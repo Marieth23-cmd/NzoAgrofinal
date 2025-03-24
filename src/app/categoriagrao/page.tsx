@@ -2,15 +2,16 @@ import { BiSearch } from "react-icons/bi"
 import Footer from "../Components/Footer"
 import Navbar from "../Components/Navbar"
 import Image from "next/image"
+import Head from "next/head"
 
   export default function Categoriagrao(){
      return(
 
         <main >
        
-         <head>
+         <Head>
                 <title> Categoria </title>
-            </head>
+            </Head>
             <Navbar/>
 
         

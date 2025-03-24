@@ -1,15 +1,51 @@
-
+"use client";
 import Image from "next/image";
 import Footer from "./Components/Footer";
-import { FaApple, FaAppleAlt, FaCarrot, FaSeedling } from "react-icons/fa";
-import { GiCabbage, GiSeedling } from "react-icons/gi";
+import { FaAppleAlt, FaCarrot, FaSeedling } from "react-icons/fa";
+import { GiCabbage } from "react-icons/gi";
 import Link from "next/link";
 import Navbar from "./Components/Navbar";
 import { LuWheat } from "react-icons/lu";
+import { verificarAuth } from "./Services/auth"
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import Head from "next/head";
+
 
 export default function Home() {
+   const [autenticado , SetAutenticado]=useState<boolean |null>(null)
+    const router= useRouter();
+
+  useEffect(()=>{
+    const checar= async() =>{ 
+      try {
+         await verificarAuth();
+        SetAutenticado(true)
+      } catch (error) {
+        SetAutenticado(false)
+        
+      }
+    }
+      checar()
+
+
+    
+    } , [])  
+     const redirecionamento=()=>{
+       if(autenticado=== false){
+        router.push("/login")
+     }   else{
+      router.push("/comecarcomprar")
+    }
+     }
+
+
   return (
     <div>
+
+       <Head>
+        <Image src="/images/nzoagro.png" width={18} alt="logo" height={18}/>
+       </Head>
       <Navbar />
 
       <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center 
@@ -19,8 +55,8 @@ export default function Home() {
         <div className="backgroundimage">
           <h1 className="text-[2rem] font-bold" > Conectando o Campo à sua Mesa  </h1>
           <p>Encontre produtos frescos direto dos produtores locais</p>
-          <button className=" bg-marieth text-white py-4 px-8 text-[1.1rem] border-none rounded-[5px] cursor-pointers hover:bg-verdeaceso transition-colors duration-150">
-            <Link href="./comecarcomprar " > Começar a Comprar </Link>
+          <button onClick={redirecionamento} className=" bg-marieth text-white py-4 px-8 text-[1.1rem] border-none rounded-[5px] cursor-pointers hover:bg-verdeaceso transition-colors duration-150">
+           Começar a Comprar
           </button>
         </div>
 

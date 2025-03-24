@@ -2,15 +2,16 @@ import { AiFillCar } from "react-icons/ai";
 import { FaLuggageCart } from "react-icons/fa";
 import { GiFarmer} from "react-icons/gi";
 import { TiShoppingCart } from "react-icons/ti";
+import { Head } from "next/document";
 
 
 export default function select(){
 
     return(
         <div >
-          <head>
+          <Head>
                 <title>Seleccionar Perfil</title>
-            </head>
+            </Head>
         <div>
         <div  className=" p-6 text-center text-white  bg-primary">
           <h1 className="text-[32px] font-bold">Escolha seu  Perfil</h1>

@@ -4,15 +4,16 @@ import { FaApple, FaAppleAlt, FaCarrot, FaSeedling } from "react-icons/fa";
 import { GiCabbage } from "react-icons/gi";
 import Navbar from "../Components/Navbar";
 import Link from "next/link";
+import Head from "next/head";
 
  
  export default  function   ComecarComprar(){ 
     return(
         <main>
-            <head>
+            <Head>
                 <title>Começar a Comprar</title>
                     
-            </head>
+            </Head>
                  <Navbar/>
             <div className="p-8 mb-8 mx-auto  text-center  max-w-[800px]">
                 <h1  className=" text-[2rem] mb-6 text-marieth font-bold mt-[20%]" >Bem-vindo à NzoAgro!</h1>

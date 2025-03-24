@@ -1,16 +1,17 @@
 import { BiSearch } from "react-icons/bi"
 import Footer from "../Components/Footer"
 import Navbar from "../Components/Navbar"
-import Image from "next/image"
+import Image from "next/image" 
+import Head from "next/head"
 
   export default function Categoriaverdura(){
      return(
 
         <div >
        
-         <head>
-                <title> Categoria </title>
-            </head>
+         <Head>
+                <title> Categoria Verduras </title>
+            </Head>
             <Navbar/>
 
         

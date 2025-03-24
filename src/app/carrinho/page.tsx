@@ -1,5 +1,6 @@
- 
-
+"use client"
+import { useState } from "react"
+import Head from "next/head"
 import { FaTrash } from "react-icons/fa6"
 import Footer from "../Components/Footer"
 import Navbar from "../Components/Navbar"
@@ -8,16 +9,19 @@ import Image from "next/image"
 
 
   export default function categoriainsumo(){
+
+
+    const [showcaixa , setshowcaixa] =useState(false)
      return(
 
         <div >
        
-         <head>
+         <Head>
                 <title> Carrinho </title>
-            </head>
+            </Head>
             <Navbar/>
 
-       <div  className="mb-12  mt-[18%]">
+       <div  className="mb-20  mt-[18%]">
 
 <div className="max-w-[1200px] my-8 mx-auto py-0 px-4  items-center gap-4 grid grid-cols-1 
 relative border-b-[1px]">
@@ -31,7 +35,7 @@ relative border-b-[1px]">
       <p  className=" font-bold text-marieth -mb-6">Kzs 5000/<span>1</span>tonelada</p>
           <FaTrash className=" ml-[60rem] mb-2 border-none bg-none text-vermelho text-[1.2rem] cursor-pointer"/>
          <button className=" hover:bg-verdeaceso bg-marieth rounded-[5px] cursor-pointer text-white p-2 text-[0.9rem] 
-          border-none bottom-4  " >+ Adicionar mais</button> 
+          border-none bottom-4  " onClick={()=>setshowcaixa(true)}>+ Adicionar mais</button> 
           
       </div>
        </div> 
@@ -44,7 +48,7 @@ relative border-b-[1px]">
       <p  className=" font-bold text-marieth -mb-6">Kzs 5000/<span>1</span>tonelada</p>
           <FaTrash className=" ml-[60rem] mb-2 border-none bg-none text-vermelho text-[1.2rem] cursor-pointer"/>
          <button className=" hover:bg-verdeaceso bg-marieth rounded-[5px] cursor-pointer text-white p-2 text-[0.9rem] 
-          border-none bottom-4  " >+ Adicionar mais</button> 
+          border-none bottom-4  " onClick={()=>setshowcaixa(true)}>+ Adicionar mais</button> 
           
       </div>
        </div> 
@@ -55,7 +59,7 @@ relative border-b-[1px]">
       <p  className=" font-bold text-marieth -mb-6">Kzs 5000/<span>1</span>tonelada</p>
           <FaTrash className=" ml-[60rem] mb-2 border-none bg-none text-vermelho text-[1.2rem] cursor-pointer"/>
          <button className=" hover:bg-verdeaceso bg-marieth rounded-[5px] cursor-pointer text-white p-2 text-[0.9rem] 
-          border-none bottom-4  " >+ Adicionar mais</button> 
+          border-none bottom-4  " onClick={()=>setshowcaixa(true)} >+ Adicionar mais</button> 
           
       </div>
        </div>
@@ -67,7 +71,7 @@ relative border-b-[1px]">
       <p  className=" font-bold text-marieth -mb-6">Kzs 5000/<span>1</span>tonelada</p>
           <FaTrash className=" ml-[60rem] mb-2 border-none bg-none text-vermelho text-[1.2rem] cursor-pointer"/>
          <button className=" hover:bg-verdeaceso bg-marieth rounded-[5px] cursor-pointer text-white p-2 text-[0.9rem] 
-          border-none bottom-4  " >+ Adicionar mais</button> 
+          border-none bottom-4  "  onClick={ ()=>setshowcaixa(true)}>+ Adicionar mais</button> 
           
       </div>
        </div> 
@@ -81,7 +85,7 @@ relative border-b-[1px]">
       <p  className=" font-bold text-marieth -mb-6">Kzs 5000/<span>1</span>tonelada</p>
           <FaTrash className=" ml-[60rem] mb-2 border-none bg-none text-vermelho text-[1.2rem] cursor-pointer "/>
          <button className=" hover:bg-verdeaceso bg-marieth rounded-[5px] cursor-pointer  text-white p-2 text-[0.9rem] 
-          border-none bottom-4" >+ Adicionar mais</button> 
+          border-none bottom-4" onClick={()=>setshowcaixa(true)} >+ Adicionar mais</button> 
       </div>
        </div> 
 
@@ -109,35 +113,39 @@ relative border-b-[1px]">
          text-white border-none rounded-[5px] cursor-pointer">Finalizar Compra</button>
       </div>
 
-
-
            </div  >   
- <div className="flex items-center  " >
+
+           { showcaixa &&(<div className="flex items-center  " >
         <div className="top-[40%] left-[40%] min-w-[300px] bg-white shadow-custom rounded-[10px] p-8 absolute " >
           <h2 className="font-bold text-2xl mb-4">Alterar Quantidade</h2>
           <div></div>
-           <div className=" mb-4 gap-2 grid grid-cols-2">
-           <button data-value="0.5" className="p-2 bg-marieth rounded-[5px] border-nonr cursor-pointer text-white text-[0.9rem] hover:bg-verdeaceso">+0.5</button>
-          <button data-value="1"  className="p-2 bg-marieth rounded-[5px] border-nonr cursor-pointer text-white text-[0.9rem] hover:bg-verdeaceso">+1</button>
-          <button data-value="5"  className="p-2 bg-marieth rounded-[5px] border-nonr cursor-pointer text-white text-[0.9rem] hover:bg-verdeaceso">+5</button>
-          <button data-value="10"  className="p-2 bg-marieth rounded-[5px] border-nonr cursor-pointer text-white text-[0.9rem] hover:bg-verdeaceso">+10</button>
-          </div>
+            <div className=" mb-4 gap-2 grid grid-cols-2">
+            <button data-value="0.5" className="p-2 bg-marieth rounded-[5px] border-nonr cursor-pointer text-white text-[0.9rem] hover:bg-verdeaceso">+0.5</button>
+            <button data-value="1"  className="p-2 bg-marieth rounded-[5px] border-nonr cursor-pointer text-white text-[0.9rem] hover:bg-verdeaceso">+1</button>
+            <button data-value="5"  className="p-2 bg-marieth rounded-[5px] border-nonr cursor-pointer text-white text-[0.9rem] hover:bg-verdeaceso">+5</button>
+            <button data-value="10"  className="p-2 bg-marieth rounded-[5px] border-nonr cursor-pointer text-white text-[0.9rem] hover:bg-verdeaceso">+10</button>
+            </div>
           <div className="flex flex-col gap-4 my-4 mx-0">
+             <label htmlFor="number">Ajustar
     <input type="number" name="numero" min={0}  step={0.1} className="text-4 p-2 border-[1px] border-solid border-tab rounded-[5px]" />
-     
-      <select id="verduras" className="text-4 p-2 border-[1px] border-solid border-tab rounded-[5px]" >
+     </label> 
+
+     <label htmlFor="verduras">
+      <select title="verduras" className="text-4 p-2 border-[1px] border-solid border-tab rounded-[5px]" >
         <option value="Toneladas">Toneladas</option>
         <option value="Quintais">Quintais</option>
         </select>
+        </label>
        </div>
 
        <div  className=" flex gap-4 justify-end cursor-pointer  border-none ">
-        <button className="bg-vermelho py-2 px-4 text-white rounded-[5px]">Cancelar</button>
+        <button className="bg-vermelho py-2 px-4 text-white rounded-[5px]" onClick={()=>setshowcaixa(false)}>Cancelar</button>
         <button className= " bg-marieth py-2 px-4 text-white rounded-[5px]">Confirmar</button>
       </div>
         </div>
 
-       </div>
+       </div>)} 
+        
 
      
      </div>
