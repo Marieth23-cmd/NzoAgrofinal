@@ -9,22 +9,23 @@ export const login = async (email: string, senha: string): Promise<any> => {
         const response = await axios.post(
             `${API_URL}/login`,{ email, senha }, 
             {
-                withCredentials: true, // Permitir cookies para autenticação
+                withCredentials: true, 
                 headers: {
                     "Content-Type": "application/json",
                 },
             }
         );
 
-        return response.data; // Retorna exatamente a resposta da API
+        return response.data; 
 
     } catch (error: any) {
         console.error("Erro no login:", error.response?.data || error.message); 
 
-        // Se a API retornar erro, exibe exatamente a mensagem da API
+        
         if (error.response && error.response.data) {
             throw error.response.data;
         } else {
+            console.error("Erro no login:", error.message);
             throw { mensagem: "Erro desconhecido ao tentar entrar" };
         }
     }
@@ -42,7 +43,7 @@ export const logout = async (): Promise<any> => {
         return response.data; // Retorna exatamente a resposta da API
 
     } catch (error: any) {
-        console.error("Erro ao terminar sessão:", error.response?.data || error.message);
+        console.log("Erro ao terminar sessão:", error.response?.data || error.message);
 
         if (error.response && error.response.data) {
             throw error.response.data;
@@ -59,17 +60,15 @@ export const verificarAuth = async (): Promise<any> => {
             withCredentials: true,
         });
 
-        return response.data; // Retorna exatamente a resposta da API
+        console.log("Resposta da API de autenticação:", response.data);
+        return response.data;
 
     } catch (error: any) {
-        console.error("Erro ao verificar autenticação:", error.response?.data || error.message);
+        console.log("Erro ao verificar autenticação:");
 
-        if (error.response && error.response.data) {
-            throw error.response.data;
-        } else {
-            throw { mensagem: "Erro desconhecido na verificação de autenticação" };
-        }
+        throw error.response?.data || { mensagem: "Erro desconhecido na verificação de autenticação" };
     }
 };
+
 
 

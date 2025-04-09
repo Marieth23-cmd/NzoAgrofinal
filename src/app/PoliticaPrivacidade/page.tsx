@@ -1,15 +1,17 @@
 import Navbar from "../Components/Navbar";
 import Footer from "../Components/Footer";
+import Head from "next/head"
 
 
 export default function Politica(){
     return(
 
         <div>
-            <Navbar/>
-            <head>
+            
+            <Head>
                 <title>Politica de Privacidade</title>
-            </head>
+            </Head>
+            <Navbar/>
             <div className="flex flex-col mb-20 gap-2 mt-[15%] max-w-[1200px] shadow-custom p-8  rounded-[10px] ml-8">
 
            

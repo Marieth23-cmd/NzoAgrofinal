@@ -11,10 +11,14 @@ import Footer from "../Components/Footer"
             
             <div className="flex gap-4 items-center">
                 <h1 className="text-marieth text-[2rem] font-bold"> Relatório de Compras</h1>
-                
-                <input type="date" className="ml-80 p-2 rounded-[5px] items-center border-[1px] border-solid border-tab" />
-                <input type="date"  className="p-2 rounded-[5px] items-center border-[1px] border-solid border-tab"/>
-                <button className="bg-marieth border-none hover:bg-verdeaceso text-white py-2 px-4 rounded-[5px] cursor-pointer ">Filtrar</button>
+                <label htmlFor="data_inicial" className="sr-only">Data Inicial</label>
+                <input type="date" id="data_inicial" className="ml-80 p-2 rounded-[5px] items-center border-[1px] border-solid border-tab" />
+
+                <label htmlFor="data_final" className="sr-only">Data Final</label>
+                <input type="date" id="data_final" name="data_final" className="p-2 rounded-[5px] items-center border-[1px] border-solid border-tab"/>
+ 
+
+              <button className="bg-marieth border-none hover:bg-verdeaceso text-white py-2 px-4 rounded-[5px] cursor-pointer ">Filtrar</button>
           
             </div>
             </div>

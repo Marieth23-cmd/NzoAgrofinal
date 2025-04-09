@@ -8,7 +8,10 @@ import Image from "next/image"
 
 
 
-  export default function categoriainsumo(){
+  export default function Carrinho(){
+
+    const [quantidade , setquantidade] =useState()
+    const[ajuste , setajuste]=useState()
 
 
     const [showcaixa , setshowcaixa] =useState(false)
@@ -81,6 +84,7 @@ relative border-b-[1px]">
        <div className="flex  p-2 border-b-[1px]">
       <Image src= "/images/tomateorg.jpg" alt="ImagemProduto" height={100} width={100} className="object-cover rounded-[5px]"  />
      <div className="flex-1 py-0 px-4 ">
+
      <h3  className="font-bold mb-2">Legumes</h3>
       <p  className=" font-bold text-marieth -mb-6">Kzs 5000/<span>1</span>tonelada</p>
           <FaTrash className=" ml-[60rem] mb-2 border-none bg-none text-vermelho text-[1.2rem] cursor-pointer "/>
@@ -118,7 +122,7 @@ relative border-b-[1px]">
            { showcaixa &&(<div className="flex items-center  " >
         <div className="top-[40%] left-[40%] min-w-[300px] bg-white shadow-custom rounded-[10px] p-8 absolute " >
           <h2 className="font-bold text-2xl mb-4">Alterar Quantidade</h2>
-          <div></div>
+          
             <div className=" mb-4 gap-2 grid grid-cols-2">
             <button data-value="0.5" className="p-2 bg-marieth rounded-[5px] border-nonr cursor-pointer text-white text-[0.9rem] hover:bg-verdeaceso">+0.5</button>
             <button data-value="1"  className="p-2 bg-marieth rounded-[5px] border-nonr cursor-pointer text-white text-[0.9rem] hover:bg-verdeaceso">+1</button>

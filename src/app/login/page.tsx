@@ -12,6 +12,7 @@ export default function Login() {
     const [senha, setSenha] = useState("");
     const [senhaVisivel, setSenhaVisivel] = useState(false);
     const [erro, setErro] = useState("");
+    
 
     // Função para limpar erro ao digitar
     const handleInputChange = (setter: React.Dispatch<React.SetStateAction<string>>) => 
@@ -40,8 +41,8 @@ export default function Login() {
     };
 
     return (
-        <main className="flex flex-col justify-center items-center mt-6">
-            <div className="bg-white p-8 w-full rounded-lg max-w-[400px] m-5 shadow-lg">
+        <main className="flex flex-col justify-center items-center">
+            <div className="bg-white p-8 w-full rounded-lg max-w-[400px] m-4 shadow-lg">
                 <div className="flex mb-8 items-center justify-center">
                     <Image src="/images/nzoagro.png" alt="logotipo" width={150} height={150} />
                 </div>
@@ -97,7 +98,7 @@ export default function Login() {
 
                 <p className="mt-4 text-center text-gray-600">Esqueceu a Senha?</p>
                 <p className="mt-4 text-center">
-                    Não tem uma conta? <a href="./select" className="text-green-600">Cadastra-se</a>
+                    Não tem uma conta? <a href="./Seleccionar" className="text-green-600">Cadastra-se</a>
                 </p>
             </div>
         </main>
