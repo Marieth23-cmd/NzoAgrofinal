@@ -94,7 +94,7 @@ export default function Categoriagrao() {
         <h1 className="text-center my-6 text-[2rem] font-bold text-marieth">Grãos</h1>
 
         <div className="max-w-[1200px] my-12 mx-9 px-4">
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-3 gap-4 sm:grid-cols-1">
             {/* Tipo de Grão */}
             <label htmlFor="graos" className="mb-[0.5rem] font-medium block">
               Tipo de Grão
@@ -162,7 +162,7 @@ export default function Categoriagrao() {
             Pesquisar
           </button>
         </div>
-        <section className="grid grid-cols-3 gap-2">
+        <section className="grid grid-cols-3 gap-2 sm:grid-cols-1">
   {filtroAtivado ? (
     produtosFiltrados.length > 0 ? (
       produtosFiltrados.map((produto, index) => (
