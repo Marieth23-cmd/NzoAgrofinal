@@ -1,43 +1,121 @@
+"use client"
 import Head from "next/head";
 import Footer from "../Components/Footer";
 import Navbar from "../Components/Navbar";
 import { criarProduto } from "../Services/produtos";
 import { useState } from "react";
+import { verificarAuth} from "../Services/auth"
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import Image from "next/image";
+
 
 export default function CriarProduto() {
+    const router = useRouter();
+    const [autenticado, setAutenticado] = useState<boolean | null>(null);
+    const [foto, setfoto] = useState<File | null>(null);
+const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+const [loading, setLoading] = useState(false); 
+
+    useEffect(() => {
+        const checar = async () => {
+            try {
+                await verificarAuth();
+                setAutenticado(true);
+            } catch (error) {
+                setAutenticado(false);
+                router.push("/login"); // redireciona para login se não autenticado
+            }
+        };
+
+        checar();
+    }, [router]);
+
     const [formData, setFormData] = useState({
         provincia: "",
         categoria: "",
-        nomeProduto: "",
+        nome: "",
         quantidade: "",
-        unidade: "",
+        Unidade: "",
         preco: "",
         descricao: "",
+        foto:""
     });
 
     const handlechange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         setFormData({
             ...formData,
-            [e.target.name]: e.target.value,
+            [e.target.name]: e.target.type === 'number' ? Number(e.target.value) : e.target.value,
         });
     };
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-
-        // Validação simples
-        if (!formData.nomeProduto || !formData.preco || !formData.quantidade) {
+    
+        // Validação básica
+        if (!formData.nome || !formData.preco || !formData.quantidade) {
             alert("Por favor, preencha todos os campos obrigatórios.");
             return;
         }
-
+    
+        // Validação do preço e quantidade
+        const produtoData = {
+            ...formData,
+            quantidade: Number(formData.quantidade),
+            preco: Number(formData.preco),
+        };
+    
+        if (isNaN(produtoData.preco) || produtoData.preco <= 0) {
+            alert("O preço deve ser um número válido e maior que zero.");
+            return;
+        }
+    
+        if (isNaN(produtoData.quantidade) || produtoData.quantidade <= 0) {
+            alert("A quantidade deve ser um número válido e maior que zero.");
+            return;
+        }
+        if (!formData.provincia || formData.provincia === "Escolha sua Provincia") {
+            alert("Por favor, selecione uma província válida.");
+            return;
+        }
+        
+        if (!formData.categoria || formData.categoria === "Escolha uma Categoria") {
+            alert("Por favor, selecione uma categoria válida.");
+            return;
+        }
+        
+    
+        // Criar o FormData
+        const form = new FormData();
+        form.append("provincia", formData.provincia);
+        form.append("categoria", formData.categoria);
+        form.append("nomeProduto", formData.nome);
+        form.append("quantidade", formData.quantidade.toString());  // Convertendo para string
+        form.append("unidade", formData.Unidade);
+        form.append("preco", formData.preco.toString());  // Convertendo para string
+        form.append("descricao", formData.descricao);
+    
+        if (foto) {
+            form.append("imagem", foto);  // Adicionando a imagem ao FormData
+        }
+    
+        // Enviar para a API
         try {
-            const response = await criarProduto(formData);
+            const response = await criarProduto(form);  // Função que envia o FormData ao backend
             alert("Produto cadastrado com sucesso");
             console.log(response);
         } catch (error) {
             alert("Erro ao cadastrar Produto");
             console.error(error);
+        }
+        setLoading(false);
+    };
+    
+    const handleImagemChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setfoto(file);
+            setPreviewUrl(URL.createObjectURL(file)); // mostra preview
         }
     };
 
@@ -57,12 +135,32 @@ export default function CriarProduto() {
                     <div className="mb-4 items-center">
                         <label htmlFor="Provincia" className="sr-only">Província</label>
                         <select
-                            name="provincia"
-                            id="Provincia"
-                            required
+                             name="provincia"
+                             id="Provincia"
+                             required
+                             value={formData.provincia}
+                             onChange={handlechange}
                             className="w-full p-[0.8rem] border-[1px] border-solid border-tab rounded-[10px] text-base transition-colors duration-150 cursor-pointer font-medium text-profile"
                         >
-                            <option value="Província">Província</option>
+                            <option value="Escolha sua Provincia" disabled hidden>Escolha sua Província</option>
+                                <option value="Bengo">Bengo</option>
+                                <option value="Benguela">Benguela</option>
+                                <option value="Bié">Bié</option>
+                                <option value="Cabinda">Cabinda</option>
+                                <option value="Cuanza Sul">Cuanza Sul</option>
+                                <option value="Cuanza Norte">Cuanza Norte</option>
+                                <option value="Cuando Cubango">Cuando Cubango</option>
+                                <option value="Cunene">Cunene</option>
+                                <option value="Huambo">Huambo</option>
+                                <option value="Huíla">Huíla</option>
+                                <option value="Luanda">Luanda</option>
+                                <option value="Lunda Norte">Lunda Norte</option>
+                                <option value="Lunda Sul">Lunda Sul</option>
+                                <option value="Malanje">Malanje</option>
+                                <option value="Moxíco">Moxíco</option>
+                                <option value="Namibe">Namibe</option>
+                                <option value="Uíge">Uíge </option>
+                                <option value="Zaíre">Zaíre</option>
                         </select>
                     </div>
 
@@ -76,12 +174,12 @@ export default function CriarProduto() {
                             required
                             className="mb-6 cursor-pointer font-medium text-profile w-full p-[0.8rem] border-[1px] border-solid border-tab rounded-[10px] text-base transition-colors duration-150"
                         >
-                            <option value="">Escolha uma Categoria</option>
+                            <option value="Escolha uma Categoria"  disabled hidden>Escolha uma Categoria</option>
                             <option value="Frutas">Frutas</option>
                             <option value="Verduras">Verduras</option>
-                            <option value="Insumos Agricolas">Insumos Agricolas</option>
-                            <option value="Grãos">Grãos</option>
-                            <option value="Tubérculos e Raízes">Tubérculos e Raízes</option>
+                            <option value="Insumos ">Insumos Agricolas</option>
+                            <option value="Graos">Grãos</option>
+                            <option value="Tuberculos">Tubérculos e Raízes</option>
                         </select>
                     </div>
 
@@ -91,7 +189,7 @@ export default function CriarProduto() {
                             type="text"
                             name="nomeProduto"
                             onChange={handlechange}
-                            value={formData.nomeProduto}
+                            value={formData.nome}
                             id="nome"
                             required
                             className="w-full p-[0.8rem] cursor-pointer border-[1px] border-solid border-tab rounded-[10px]"
@@ -115,12 +213,12 @@ export default function CriarProduto() {
                             id="unidade"
                             required
                             onChange={handlechange}
-                            value={formData.unidade}
+                            value={formData.Unidade}
                             className="w-full p-[0.8rem] border-[1px] border-solid border-tab rounded-[10px] text-base transition-colors duration-150 cursor-pointer font-medium text-profile"
                         >
                             <option value="Unidade">Unidade</option>
                             <option value="Tonelada">Tonelada(1000Kg)</option>
-                            <option value="Quintal(100Kg)">Quintal(100Kg)</option>
+                            <option value="kg">Kilograma(kg)</option>
                         </select>
                     </div>
 
@@ -151,14 +249,35 @@ export default function CriarProduto() {
                     </div>
 
                     <div className="w-full mb-4 border-[2px] min-h-[80px] border-dashed hover:border-marieth border-tab text-center transition-all duration-150 cursor-pointer rounded-[10px]">
-                        <label htmlFor="" className="block font-medium text-profile mb-2">
+                        <label htmlFor="imagem" className="block font-medium text-profile mb-2">
                             <p className="font font-medium mt.4">Clique e arraste a foto</p>
+
+                            <input
+                        type="file"
+                        name="imagem"
+                        id="imagem"
+                        accept="image/*"
+                        onChange={handleImagemChange}
+                        width={200} 
+                        height={200}
+                        className="absolute inset-0 opacity-0 cursor-pointer"
+                    />
+                    {previewUrl && (<Image src={previewUrl}
+                    
+                    alt="Pré-visualização"
+            className="mx-auto mt-4 max-h-48 object-contain rounded-[10px]"
+       />)}
+                    
+
+
+
                         </label>
                     </div>
 
                     <div className="flex justify-between">
                         <button
                             type="button"
+                            onClick={()=>router.back()}
                             className="bg-vermelho text-white py-4 px-8 text-base cursor-pointer font-medium transition-colors duration-150 hover:bg-red-400 mt-4 flex border-none rounded-[10px]"
                         >
                             Cancelar
@@ -167,6 +286,7 @@ export default function CriarProduto() {
                             type="submit"
                             className="bg-marieth text-white py-4 px-8 text-base cursor-pointer font-medium transition-colors duration-150 hover:bg-verdeaceso mt-4 flex border-none rounded-[10px]"
                         >
+
                             Cadastrar
                         </button>
                     </div>

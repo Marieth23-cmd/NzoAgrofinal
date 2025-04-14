@@ -32,8 +32,7 @@ export default function Login() {
         try {
             const response = await login(email, senha);
             console.log("Usuário logado:", response);
-            setErro(""); // Limpa erro ao logar com sucesso
-
+            setErro(""); 
             router.push("/")
         } catch (error: any) {
             setErro(error.mensagem || "Erro ao Iniciar Sessão!");
@@ -44,7 +43,7 @@ export default function Login() {
         <main className="flex flex-col justify-center items-center">
             <div className="bg-white p-8 w-full rounded-lg max-w-[400px] m-4 shadow-lg">
                 <div className="flex mb-8 items-center justify-center">
-                    <Image src="/images/nzoagro.png" alt="logotipo" width={150} height={150} />
+                    <Image src="/images/logo.jpg" alt="logotipo" width={150} height={150} />
                 </div>
 
                 <form onSubmit={handleLogin}>

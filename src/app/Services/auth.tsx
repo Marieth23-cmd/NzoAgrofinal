@@ -1,6 +1,5 @@
 import axios from "axios";
 
-// Definição da URL base da API
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
 // Função para fazer login
@@ -19,19 +18,19 @@ export const login = async (email: string, senha: string): Promise<any> => {
         return response.data; 
 
     } catch (error: any) {
-        console.error("Erro no login:", error.response?.data || error.message); 
+        console.log("Erro no login:", error.response?.data || error.message); 
 
         
         if (error.response && error.response.data) {
             throw error.response.data;
         } else {
-            console.error("Erro no login:", error.message);
+            console.log("Erro no login:", error.message);
             throw { mensagem: "Erro desconhecido ao tentar entrar" };
         }
     }
 };
 
-// Função para logout
+
 export const logout = async (): Promise<any> => {
     try {
         const response = await axios.post(
@@ -40,8 +39,7 @@ export const logout = async (): Promise<any> => {
             { withCredentials: true }
         );
 
-        return response.data; // Retorna exatamente a resposta da API
-
+        return response.data; 
     } catch (error: any) {
         console.log("Erro ao terminar sessão:", error.response?.data || error.message);
 

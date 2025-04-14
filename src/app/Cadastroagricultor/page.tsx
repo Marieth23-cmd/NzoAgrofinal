@@ -23,13 +23,13 @@ export default function CadastroComprador() {
         
     });
      const [senhaVisivel,setSenhaVisivel]=useState(false)
+     const [confirmarSenhaVisivel, setConfirmarSenhaVisivel] = useState(false);
+
     const [erros, setErros] = useState<{ confirmarSenha?: string;
          geral?: string ; contacto?:string }>({});
     const router = useRouter();
     const [etapa, setEtapa] = useState(1);
-    const [step, setStep] = useState(1); 
- 
-
+   
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement> ) => {
         const { name, value } = e.target;
@@ -58,7 +58,7 @@ export default function CadastroComprador() {
         alert("Por favor , insira todos os dados")
                 return
         }
-        setStep(2)
+        setEtapa(2)
        
     }
    
@@ -153,6 +153,7 @@ export default function CadastroComprador() {
                                 value={formData.contacto}
                                 className="p-3 border-solid border-[1px] hover:border-marieth border-tab w-[100%] text-base rounded-[5px]" 
                                 required 
+                                max={13}
                                 onChange={handleInputChange}
                                      />
                                      {erros.contacto && <p className="text-vermelho text-sm"></p>}
@@ -171,6 +172,7 @@ export default function CadastroComprador() {
                                             value={formData.senha}
                                             className="p-3 pr-10 border border-tab hover:border-marieth w-full text-base rounded-[5px]"  
                                             required
+                                            maxLength={12}
                                             onChange={handleInputChange}
                                             />
                         
@@ -188,24 +190,25 @@ export default function CadastroComprador() {
                                         </div>
                         
                                                 <div className="mb-4">
-                                <label htmlFor="senha" className="mb-2 font-medium block text-profile">
+                                <label htmlFor="confirmarSenha" className="mb-2 font-medium block text-profile">
                                     Confirmar Senha
                                 </label>
                         
                                 <div className="relative">
                                     <input 
-                                    type={senhaVisivel ? "text" : "password"} 
-                                    id="senha" 
-                                    name="senha"
+                                    type={confirmarSenhaVisivel ? "text" : "password"} 
+                                    id="confirmarSenha" 
+                                    name="confirmarSenha"
                                     value={formData.confirmarSenha}
                                     className="p-3 pr-10 border border-tab hover:border-marieth w-full text-base rounded-[5px]"  
                                     required
+                                    maxLength={12}
                                     onChange={handleInputChange}
                                     />
                         
                                     <span 
                                     className="absolute inset-y-0 right-3 flex items-center cursor-pointer text-gray-500"
-                                    onClick={() => setSenhaVisivel(!senhaVisivel)}
+                                    onClick={() => setConfirmarSenhaVisivel(!confirmarSenhaVisivel)}
                                     >
                                     {senhaVisivel ? (
                                         <FiEyeOff className="w-5 h-5" />
@@ -224,6 +227,7 @@ export default function CadastroComprador() {
                                 name="descricao"
                                 required
                                 value={formData.descricao}
+                                maxLength={255}
                                 className="p-3 border-solid border-[1px] resize-y hover:border-marieth min-h-[80px] border-tab w-[100%] text-base rounded-[5px]"  
                                 onChange={handleInputChange}
                                 placeholder="Eu sou X e cultivo Milho , Soja, Café , Banana etc..">
@@ -241,13 +245,13 @@ export default function CadastroComprador() {
           Voltar
         </button>
 
-         {step===1 &&(
+         {etapa===1 &&(
             <button 
           type="button"
           onClick={handleNext}
-          className="bg-gradient-to-r from-purple-500 to-violet-700 text-white py-[0.8rem] border-none font-medium cursor-pointer rounded-[5px] text-base px-8 hover:bg-verdeaceso"
+          className="bg-gradient-to-r from-purple-500 to-violet-600 text-white py-[0.8rem] border-none font-medium cursor-pointer rounded-[5px] text-base px-8 hover:bg-verdeaceso"
         >
-          Próximo
+          Próximo Passo
         </button>)}                           
         
       </div>
@@ -256,26 +260,26 @@ export default function CadastroComprador() {
                         {etapa===2 &&(<><h1 className="text-xl text-marieth mb-4">Endereço da Propriedade</h1>
                             <label htmlFor="provincia" className="sr-only">Provincia</label>
                             <div className="mb-4"> 
-                                <select name="provincia" id="provincia" className="p-3 border-solid border-[1px] hover:border-marieth border-tab w-[100%] text-base rounded-[5px]" >
-                                <option value="Escolha sua Provincia">Escolha sua Província</option>
-                                <option value={formData.provincia}>Bengo</option>
-                                <option value={formData.provincia}>Benguela</option>
-                                <option value={formData.provincia}>Bié</option>
-                                <option value={formData.provincia}>Cabinda</option>
-                                <option value={formData.provincia}>Cuanza Sul</option>
-                                <option value={formData.provincia}>Cuanza Norte</option>
-                                <option value={formData.provincia}>Cuando Cubango</option>
-                                <option value={formData.provincia}>Cunene</option>
-                                <option value={formData.provincia}>Huambo</option>
-                                <option value={formData.provincia}>Huíla</option>
-                                <option value={formData.provincia}>Luanda</option>
-                                <option value={formData.provincia}>Lunda Norte</option>
-                                <option value={formData.provincia}>Lunda Sul</option>
-                                <option value={formData.provincia}>Malanje</option>
-                                <option value={formData.provincia}>Moxíco</option>
-                                <option value={formData.provincia}>Namibe</option>
-                                <option value={formData.provincia}>Uíge</option>
-                                <option value={formData.provincia}>Zaíre</option>
+                                <select name="provincia" onChange={handleInputChange} value={formData.provincia} id="provincia" className="p-3 border-solid border-[1px] hover:border-marieth border-tab w-[100%] text-base rounded-[5px]" >
+                                <option value="" disabled hidden>Escolha sua Província</option>
+                                <option value="Bengo">Bengo</option>
+                                <option value="Benguela">Benguela</option>
+                                <option value="Bié">Bié</option>
+                                <option value="Cabinda">Cabinda</option>
+                                <option value="Cuanza Sul">Cuanza Sul</option>
+                                <option value="Cuanza Norte">Cuanza Norte</option>
+                                <option value="Cuando Cubango">Cuando Cubango</option>
+                                <option value="Cunene">Cunene</option>
+                                <option value="Huambo">Huambo</option>
+                                <option value="Huíla">Huíla</option>
+                                <option value="Luanda">Luanda</option>
+                                <option value="Lunda Norte">Lunda Norte</option>
+                                <option value="Lunda Sul">Lunda Sul</option>
+                                <option value="Malanje">Malanje</option>
+                                <option value="Moxico">Moxíco</option>
+                                <option value="Namibe">Namibe</option>
+                                <option value="Uige">Uíge</option>
+                                <option value="Zaire">Zaíre</option>
                             </select></div>
                            
 
@@ -287,9 +291,9 @@ export default function CadastroComprador() {
                                 name="municipio"
                                 className="p-3 border-solid border-[1px] hover:border-marieth border-tab w-[100%] text-base rounded-[5px]" 
                                 required 
-                                value={formData.municipio}
-                                placeholder="Ex.: Marieth Pascoal" 
+                                value={formData.municipio} 
                                 onChange={handleInputChange}
+                                placeholder="Ex.: Cazenga, Viana, Lubango, etc."
                             />
                         </div>
                         <div className="mb-4 gap-2">
@@ -301,7 +305,7 @@ export default function CadastroComprador() {
                                 className="p-3 border-solid border-[1px] hover:border-marieth border-tab w-[100%] text-base rounded-[5px]" 
                                 required 
                                 value={formData.bairro}
-                                placeholder="Ex.: Marieth Pascoal" 
+                                placeholder="Ex.:Calemba2" 
                                 onChange={handleInputChange}
                             />
                         </div>
@@ -310,11 +314,11 @@ export default function CadastroComprador() {
                             <input 
                                 type="text" 
                                 id="rua" 
-                                name="nome"
+                                name="rua"
                                 className="p-3 border-solid border-[1px] border-tab w-[100%] hover:border-marieth text-base rounded-[5px]" 
                                 required 
                                 value={formData.rua}
-                                placeholder="Ex.: Marieth Pascoal" 
+                                placeholder="Ex.: Rua da Gabela" 
                                 onChange={handleInputChange}
                             />
                         </div>

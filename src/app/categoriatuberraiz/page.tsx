@@ -1,142 +1,203 @@
+"use client"
 import { BiSearch } from "react-icons/bi"
 import Footer from "../Components/Footer"
 import Navbar from "../Components/Navbar"
 import Image from "next/image"
+import Head from "next/head"
+import Link from "next/link"
+import { useEffect, useState } from "react"
+import { buscarProdutosPorCategoria } from "../Services/produtos"
 
+export default function CategoriaTuberculos() {
+  interface Produto {
+    id_produtos:number,
+    nome: string,
+    preco: number,
+    Unidade: string,
+    foto_produto: string,
+    provincia: string,
+    quantidade: number,
+    nome_vendedor:string
+  }
 
-  export default function categoriainsumo(){
-     return(
+  const [produtosFiltrados, setProdutosFiltrados] = useState<Produto[]>([])
+  const [produtos, setProdutos] = useState<Produto[]>([])
+  const [produtosOriginais, setProdutosOriginais] = useState<Produto[]>([])
 
-        <main >
-       
-         <head>
-                <title> Categoria </title>
-            </head>
-            <Navbar/>
+  const [tipoFiltroInput, setTipoFiltroInput] = useState("")
+  const [provinciaFiltroInput, setProvinciaFiltroInput] = useState("")
+  const [precoFiltroInput, setPrecoFiltroInput] = useState("")
+  const [filtroAtivado, setFiltroAtivado] = useState(false)
 
-        
-            
-       <div  className="mb-20  mt-[18%]">
-<h1 className="text-center my-6  mx-0 text-[2rem] font-bold text-marieth" >Tubérculos e Raízes</h1>
+  const aplicarFiltros = async () => {
+    setFiltroAtivado(true)
 
-      <div className=" max-w-[1200px] my-12 mx-9 py-0 px-4 " >
+    let precoMin: number | undefined = undefined
+    let precoMax: number | undefined = undefined
 
-<div className=" gap-4  grid grid-cols-3 ">
-      
-       
-  
-      <label htmlFor="Tuberculo"  className="mb-[0.5rem] font-medium block" >Tipo de Tubérculo
-      <div className="p-4  shadow-custom  bg-white rounded-[10px] "  >
-         <select id="Tuberculo" className="w-full p-[0.8rem] rounded-[5px] text-base border-[1px] border-solid border-tab">
-        <option value="">Todos os tipos</option>
-        <option value="Batata">Batata Rena</option>
-        <option value="Batata-Doce">Batata-Doce</option>
-        <option value="Mandioca">Mandioca</option>
-        <option value="Inhame">Inhame</option>
-        <option value="Cenoura">Cenoura</option>
-        <option value="Rabanete">Rabanete</option>
-        <option value="Beterraba">Beterraba</option>
-        <option value="Gengibre">Gengibre</option>
- 
- 
-
-        
-      </select>
-      </div>
-      </label>
-    
-
-
-         <label htmlFor="local"  className="mb-[0.5rem] font-medium block " > Província
-       <div  className="p-4  shadow-custom  bg-white rounded-[10px]">
-        <select id="local " className="w-full p-[0.8rem] rounded-[5px] text-base border-[1px] border-solid border-tab">
-          <option value="">Todas as províncias</option>
-          <option value="Luanda">Luanda</option>
-          <option value="Benguela">Benguela</option>
-          <option value="huambo">Huambo</option>
-          <option value="Huila">Huíla</option>
-          <option value="Malanje">Malanje</option>
-          <option value="Namibe">Namibe</option>
-          <option value="Bengo">Bengo</option>
-          <option value="Lunda-Sul">Lunda-Sul</option>
-        </select>
-      </div>
-      </label>
-
-     <label htmlFor="intrvalo-preco" className="mb-[0.5rem] font-medium block "   >   Faixa de Preço (AOA)
-      <div className="p-4  shadow-custom  bg-white rounded-[10px]" >
-        <select id="intrvalo-preco" className="w-full p-[0.8rem] rounded-[5px] text-base border-[1px] border-solid border-tab">
-          <option value="">Todas as faixas</option>
-          <option value="0-2000">Até 2.000 AOA</option>
-          <option value="2000-5000">2.000 - 5.000 AOA</option>
-          <option value="5000-10000">5.000 - 10.000 AOA</option>
-          <option value="10000-plus">Acima de 10.000 AOA</option>
-        </select>
-       
-      </div>
-       </label>
-
-
-       
-
-    </div>
-       
-       <button  className=" flex border-none text-white bg-marieth hover:bg-verdeaceso py-[0.8rem] px-6 rounded-[5px] text-base items-center
-       cursor-pointer gap-2 my-4 mx-auto transition-transform "><BiSearch className=" text-[1.1rem]"/>Pesquisar</button>
-
-      </div>
-
-
-      <section>
-
-         <div className="  p-8 max-w-[1200px]  flex flex-row gap-6  -mt-16 ml-6" > 
-               <div className="rounded-[10px]  shadow-custom transition-transform duration-150 bg-white overflow-hidden hover:translate-y-[5px]"   >
-               <Image src= "/images/tomateorg.jpg" alt="ImagemProduto" height={200} width={380} className=" object-cover " />
-               <div  className="p-4">
-                 <h3 className="text[1.1rem] mb-[0.5rem] font-bold">Tomate</h3>
-                 <h3  className="text-[1.2rem] text-marieth font-bolds font-bold"> kz 350/unidade</h3>
-                 <h3  className="text-[0.9rem] text-cortexto"> Vendido por: Horta Feliz</h3>
-               </div>
-         </div>
-        
-
-          <div className="rounded-[10px]  shadow-custom transition-transform duration-150
-           bg-white overflow-hidden hover:translate-y-[5px]"   >
-               <Image src= "/images/beringela.png" alt="ImagemProduto" height={200} width={380} className=" object-cover " />
-               <div  className="p-4">
-                 <h3 className="text[1.1rem] mb-[0.5rem] font-bold">Beringela</h3>
-                 <h3  className="text-[1.2rem] text-marieth font-bolds font-bold"> kz 350/unidade</h3>
-                 <h3  className="text-[0.9rem] text-cortexto"> Vendido por: Horta Feliz</h3>
-               </div>     
-         </div>
-         
-         <div className="rounded-[10px]  shadow-custom transition-transform duration-150 bg-white overflow-hidden hover:translate-y-[5px]"   >
-               <Image src= "/images/hortaliciA.jpg" alt="ImagemProduto" height={200} width={380} className=" object-cover " />
-               <div  className="p-4">
-                 <h3 className="text[1.1rem] mb-[0.5rem] font-bold">hortalicia</h3>
-                 <h3  className="text-[1.2rem] text-marieth font-bolds font-bold"> kz 350/unidade</h3>
-                 <h3  className="text-[0.9rem] text-cortexto"> Vendido por: Horta Feliz</h3>
-               </div>     
-         </div>
-         <div className="rounded-[10px]  shadow-custom transition-transform duration-150 bg-white overflow-hidden hover:translate-y-[5px]"   >
-               <Image src= "/images/hortaliciA.jpg" alt="ImagemProduto" height={200} width={380} className=" object-cover " />
-               <div  className="p-4">
-                 <h3 className="text[1.1rem] mb-[0.5rem] font-bold">hortalicia</h3>
-                 <h3  className="text-[1.2rem] text-marieth font-bolds font-bold"> kz 350/unidade</h3>
-                 <h3  className="text-[0.9rem] text-cortexto"> Vendido por: Horta Feliz</h3>
-               </div>     
-         </div>
-          </div>
-      </section>
-
-
-
-
-
-
-      </div>
-      <Footer/>
-    </main>
-    
-    )
+    if (precoFiltroInput === "0-5000") {
+      precoMax = 5000
+    } else if (precoFiltroInput === "5000-50000") {
+      precoMin = 5000
+      precoMax = 50000
+    } else if (precoFiltroInput === "50000-100000") {
+      precoMin = 50000
+      precoMax = 100000
+    } else if (precoFiltroInput === "100000-plus") {
+      precoMin = 100000
     }
+
+    try {
+      const resultado = await buscarProdutosPorCategoria("Tuberculos", {
+        provincia: provinciaFiltroInput,
+        precoMin,
+        precoMax,
+      })
+
+      const nomeMatch = tipoFiltroInput.toLowerCase()
+      const filtrados = resultado.filter(p =>
+        tipoFiltroInput ? p.nome.toLowerCase().includes(nomeMatch) : true
+      )
+
+      setProdutosFiltrados(filtrados)
+    } catch (error) {
+      console.log("Erro ao aplicar filtros:", error)
+    }
+  }
+
+  useEffect(() => {
+    async function carregarProdutosParaSelects() {
+      try {
+        const produtosRecebidos = await buscarProdutosPorCategoria("Tuberculos", {})
+        setProdutos(produtosRecebidos)
+        setProdutosOriginais(produtosRecebidos)
+      } catch (error) {
+        console.log("Erro ao carregar produtos:", error)
+      }
+    }
+
+    if (!filtroAtivado) {
+      carregarProdutosParaSelects()
+    }
+  }, [filtroAtivado])
+
+  const isFormValid = tipoFiltroInput && provinciaFiltroInput && precoFiltroInput
+
+  return (
+    <main>
+      <Head>
+        <title>Categoria Tubérculos</title>
+      </Head>
+      <Navbar />
+
+      <div className="mb-20 mt-[18%]">
+        <h1 className="text-center my-6 text-[2rem] font-bold text-marieth">Tubérculos e Raízes</h1>
+
+        <div className="max-w-[1200px] my-12 mx-9 px-4">
+          <div className="grid grid-cols-3 gap-4">
+           
+            <label htmlFor="graos" className="mb-[0.5rem] font-medium block">
+              Tipo de Tubérculos e Raízes
+              <div className="p-4 shadow-custom bg-white rounded-[10px]">
+                <select
+                  id="graos"
+                  value={tipoFiltroInput}
+                  onChange={(e) => setTipoFiltroInput(e.target.value)}
+                  className="w-full p-[0.8rem] rounded-[5px] text-base border border-solid border-tab"
+                >
+                  <option value="" disabled>Todos os tipos</option>
+                  {Array.from(new Set(produtosOriginais.map(p => p.nome))).map((nome, index) => (
+                    <option key={index} value={nome}>{nome}</option>
+                  ))}
+                </select>
+              </div>
+            </label>
+
+        
+            <label htmlFor="local" className="mb-[0.5rem] font-medium block">
+              Província
+              <div className="p-4 shadow-custom bg-white rounded-[10px]">
+                <select
+                  id="local"
+                  value={provinciaFiltroInput}
+                  onChange={(e) => setProvinciaFiltroInput(e.target.value)}
+                  className="w-full p-[0.8rem] rounded-[5px] text-base border border-solid border-tab"
+                >
+                  <option value="" disabled>Todas as províncias</option>
+                  {Array.from(new Set(produtosOriginais.map(p => p.provincia)))
+                    .filter(Boolean)
+                    .map((prov, index) => (
+                      <option key={index} value={prov}>{prov}</option>
+                    ))}
+                </select>
+              </div>
+            </label>
+
+            {/* Faixa de Preço */}
+            <label htmlFor="intervalo-preco" className="mb-[0.5rem] font-medium block">
+              Faixa de Preço (AOA)
+              <div className="p-4 shadow-custom bg-white rounded-[10px]">
+                <select
+                  id="intervalo-preco"
+                  value={precoFiltroInput}
+                  onChange={(e) => setPrecoFiltroInput(e.target.value)}
+                  className="w-full p-[0.8rem] rounded-[5px] text-base border border-solid border-tab"
+                >
+                  <option value="" disabled>Todas as faixas</option>
+                  <option value="0-5000">Até 5.000 AOA</option>
+                  <option value="5000-50000">5.000 - 50.000 AOA</option>
+                  <option value="50000-100000">50.000 - 100.000 AOA</option>
+                  <option value="100000-plus">Acima de 100.000 AOA</option>
+                </select>
+              </div>
+            </label>
+          </div>
+
+          <button
+            onClick={aplicarFiltros}
+            disabled={!isFormValid}
+            className="flex border-none mb-2 text-white bg-marieth hover:bg-verdeaceso py-[0.8rem] px-6 rounded-[5px] text-base items-center cursor-pointer gap-2 my-4 mx-auto transition-transform"
+          >
+            <BiSearch className="text-[1.1rem]" />
+            Pesquisar
+          </button>
+        </div>
+        <section className="grid grid-cols-3 gap-2">
+  {filtroAtivado ? (
+    produtosFiltrados.length > 0 ? (
+      produtosFiltrados.map((produto, index) => (
+        <Link href={`/telaproduto/${produto.id_produtos}`} key={index}>
+          <div className="p-8 max-w-[1200px] flex flex-row gap-6 -mt-16 ml-6">
+            <div className="rounded-[10px] shadow-custom transition-transform duration-150 bg-white overflow-hidden hover:translate-y-[5px]">
+              <Image
+                src={produto.foto_produto}
+                alt={produto.nome}
+                height={200}
+                width={380}
+                className="object-cover"
+              />
+              <div className="p-4">
+                <h3 className="text-[1.1rem] mb-[0.5rem] font-bold">{produto.nome}</h3>
+                <h3 className="text-[1.2rem] text-marieth font-bold">
+                  kz {produto.preco}/{produto.quantidade}{produto.Unidade}
+                </h3>
+                <h3 className="text-[0.9rem] text-cortexto">Vendido por: {produto.nome_vendedor}</h3>
+              </div>
+            </div>
+          </div>
+        </Link>
+      ))
+    ) : (
+      <p className="animate-pulse text-lg text-red-600 font-semibold mt-8 ml-24">
+        Nenhum produto encontrado com os filtros aplicados.
+      </p>
+    )
+  ) : null}
+</section>
+
+      </div>
+
+      <Footer />
+    </main>
+  )
+}

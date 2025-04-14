@@ -27,16 +27,11 @@ body {
   color: white;
   text-align: center;
   padding: 4rem 1rem;
-  width: 116.5%;
+  width: 114.5%;
   
 }
  
-.productos-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 2rem;
-  padding: 1rem;
-}
+
 
 .profilheader {
   background: white;

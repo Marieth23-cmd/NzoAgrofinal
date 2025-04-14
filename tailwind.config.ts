@@ -33,7 +33,11 @@ export default {
           rating:"#ffc107",
           laranja:"#Ff914d",
           list:" #f8f8f8",
-          padding:"#ff9800"
+          padding:"#ff9800",
+          pretobranco:"#f0f0f0",
+          back: "#e0e0e0",
+          back2:"#f9f9f9"
+         
          
      },
 

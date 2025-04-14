@@ -9,11 +9,9 @@ import { LuWheat } from "react-icons/lu";
 import { verificarAuth } from "./Services/auth"
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Head from "next/head";
 import { HiChevronLeft, HiChevronRight } from "react-icons/hi2";
 import { useRef } from "react";
 import {getProdutos} from "./Services/produtos"
-
 
 
 export default function Home() {
@@ -165,6 +163,7 @@ export default function Home() {
       <div ref={scrollRef} className="flex gap-6 overflow-x-auto md:overflow-hidden p-4 scroll-smooth">
         {produtosDestaque.length > 0 ? (
           produtosDestaque.map((produto, index) => (
+            <Link href="/telaproduto">
             <div key={index} className="w-[250px] h-[350px] rounded-[10px] shadow-custom bg-white overflow-hidden flex-shrink-0">
               <Image src={produto.imagem} alt={produto.nome} height={200} width={250} className="object-cover w-full h-[200px]" />
               <div className="p-4">
@@ -173,11 +172,14 @@ export default function Home() {
                 <h3 className="text-[1.2rem] text-marieth font-bold">{produto.preco}/{produto.quantidade}{produto.unidade}</h3>
                 <p className="text-[0.9rem] text-cortexto">Vendido por: {produto.vendedor}</p>
               </div>
+              
             </div>
+            </Link>
           ))
         ) : (
           <p className="text-center w-full ">Nenhum produto em destaque</p>
         )}
+        
       </div>
       
      {hasScrolled &&(<button 

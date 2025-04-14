@@ -123,6 +123,9 @@ import { getUsuarioById } from "../Services/user";
   }
 }, [usuario]);
 
+
+
+
   
 
   
@@ -263,7 +266,11 @@ import { getUsuarioById } from "../Services/user";
       <div  className=" flex  justify-between  items-center mb-2">
         <h2 >Produtos Cadastrados</h2>
       </div>
-      <div className=" grid grid-cols-1 gap-6" >
+
+        <Link href="/telaproduto">
+      
+      <div className=" grid grid-cols-2 sm:grid-cols-1 gap-6" >
+       
         <div className=" border-solid border-[1px] border-tab p-4
          transition-shadow duration-300 rounded-[10px] hover:shadow-custom" >
          <MdMoreVert className="right-3 text-[12px] mt-1"/>
@@ -272,20 +279,22 @@ import { getUsuarioById } from "../Services/user";
           </div>
           <h3>Alface Fresca</h3>
           <p>Preço: 500 AOA</p>
+          
           <div >
+          
             <button >
                <FaRegHeart/> 12
             </button>
             <button className=" bg-padding text-white" >
                Promover Publicação
             </button>
-             <button  >
-               <FaRegMessage/> <span className="sr-only">Comentários</span>
-            </button>
-            
+           
           </div>
+          
         </div>
+        
         </div>
+        </Link>
         </section>
 
 

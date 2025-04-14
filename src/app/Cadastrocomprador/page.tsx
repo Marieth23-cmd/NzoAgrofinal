@@ -4,7 +4,6 @@ import Footer from "../Components/Footer"
 import React, { useState } from "react"
 import { useRouter } from "next/navigation";
 import { criarUsuario } from "../Services/user"
-import axios from "axios"
 import { FiEye, FiEyeOff } from "react-icons/fi";
 
 export default function CadastroComprador() {
@@ -18,6 +17,7 @@ export default function CadastroComprador() {
         contacto: "244|",
     });
      const [senhaVisivel,setSenhaVisivel]=useState(false)
+     const [ConfirmarsenhaVisivel,setConfirmarsenhaVisivel]=useState(false)
     const [erros, setErros] = useState<{ confirmarSenha?: string;
          geral?: string ; contacto?:string }>({});
     const router = useRouter();
@@ -119,6 +119,7 @@ export default function CadastroComprador() {
                                 value={formData.email}
                                 className="p-3 border-solid border-[1px] hover:border-marieth border-tab w-[100%] text-base rounded-[5px]" 
                                 required 
+                                
                                 placeholder="Ex.: marieth@example.com"
                                 onChange={handleInputChange}
                             />
@@ -133,6 +134,8 @@ export default function CadastroComprador() {
                                 value={formData.contacto}
                                 className="p-3 border-solid border-[1px] hover:border-marieth border-tab w-[100%] text-base rounded-[5px]" 
                                 required 
+
+
                                 onChange={handleInputChange}
                                      />
                                      {erros.contacto && <p className="text-vermelho text-sm"></p>}
@@ -170,15 +173,15 @@ export default function CadastroComprador() {
                 </div>
 
                         <div className="mb-4">
-        <label htmlFor="senha" className="mb-2 font-medium block text-profile">
+        <label htmlFor="confirmarsenha" className="mb-2 font-medium block text-profile">
             Confirmar Senha
         </label>
 
         <div className="relative">
             <input 
-            type={senhaVisivel ? "text" : "password"} 
-            id="senha" 
-            name="senha"
+            type={ConfirmarsenhaVisivel ? "text" : "password"} 
+            id="confirmarsenha" 
+            name="confirmarsenha"
             value={formData.confirmarSenha}
             className="p-3 pr-10 border border-tab hover:border-marieth w-full text-base rounded-[5px]"  
             required
@@ -187,9 +190,9 @@ export default function CadastroComprador() {
 
             <span 
             className="absolute inset-y-0 right-3 flex items-center cursor-pointer text-gray-500"
-            onClick={() => setSenhaVisivel(!senhaVisivel)}
+            onClick={() => setConfirmarsenhaVisivel(!ConfirmarsenhaVisivel)}
             >
-            {senhaVisivel ? (
+            {ConfirmarsenhaVisivel ? (
                 <FiEyeOff className="w-5 h-5" />
             ) : (
                 <FiEye className="w-5 h-5" />
