@@ -1,6 +1,6 @@
- "use client"
- import Head from "next/head"
- import Footer from "../Components/Footer"
+"use client"
+import Head from "next/head"
+import Footer from "../Components/Footer"
 import Navbar from "../Components/Navbar"
 import React, { useState ,useEffect } from "react";
 import { atualizarProduto } from "../Services/produtos";

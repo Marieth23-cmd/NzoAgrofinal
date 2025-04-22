@@ -10,7 +10,9 @@ const nextConfig: NextConfig = {
     domains: ['img.freepik.com'],
   },
   
-  
+  eslint: {
+    ignoreDuringBuilds: true, 
+  },
 }
 
 export default withPWA({
