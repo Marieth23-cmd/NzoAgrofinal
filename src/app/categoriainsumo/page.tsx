@@ -94,7 +94,7 @@ export default function CategoriaInsumos() {
         <h1 className="text-center my-6 text-[2rem] font-bold text-marieth">Insumos Agrícolas</h1>
 
         <div className=" my-12 mx-9 px-4">
-          <div className="flex flex-col gap-4 lg:flex-row justify-between w-full ">
+          <div className="flex flex-col gap-4 lg:flex-row justify-between w-full">
             {/* Tipo de Grão */}
             <div className="flex flex-col w-full"><label htmlFor="graos" className="mb-[0.5rem] font-medium block">
               Tipo de Insumos
