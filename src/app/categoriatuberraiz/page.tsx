@@ -93,10 +93,9 @@ export default function CategoriaTuberculos() {
       <div className="mb-20 mt-[18%]">
         <h1 className="text-center my-6 text-[2rem] font-bold text-marieth">Tubérculos e Raízes</h1>
 
-        <div className="max-w-[1200px] my-12 mx-9 px-4">
-          <div className="grid grid-cols-3 gap-4 sm:grid-cols-1">
-           
-            <label htmlFor="graos" className="mb-[0.5rem] font-medium block">
+        <div className=" my-12 mx-9 px-4">
+          <div className="flex flex-col gap-4 lg:flex-row justify-between w-full ">
+           <div className="flex flex-col w-full"><label htmlFor="graos" className="mb-[0.5rem] font-medium block">
               Tipo de Tubérculos e Raízes
               <div className="p-4 shadow-custom bg-white rounded-[10px]">
                 <select
@@ -111,9 +110,10 @@ export default function CategoriaTuberculos() {
                   ))}
                 </select>
               </div>
-            </label>
+            </label></div>
+            
 
-        
+            <div className="flex flex-col w-full">
             <label htmlFor="local" className="mb-[0.5rem] font-medium block">
               Província
               <div className="p-4 shadow-custom bg-white rounded-[10px]">
@@ -131,10 +131,11 @@ export default function CategoriaTuberculos() {
                     ))}
                 </select>
               </div>
-            </label>
+            </label></div>
+            
 
             {/* Faixa de Preço */}
-            <label htmlFor="intervalo-preco" className="mb-[0.5rem] font-medium block">
+            <div className="flex flex-col w-full"><label htmlFor="intervalo-preco" className="mb-[0.5rem] font-medium block">
               Faixa de Preço (AOA)
               <div className="p-4 shadow-custom bg-white rounded-[10px]">
                 <select
@@ -151,7 +152,8 @@ export default function CategoriaTuberculos() {
                 </select>
               </div>
             </label>
-          </div>
+          </div></div>
+            
 
           <button
             onClick={aplicarFiltros}
@@ -162,20 +164,27 @@ export default function CategoriaTuberculos() {
             Pesquisar
           </button>
         </div>
-        <section className="grid grid-cols-3 gap-2 sm:grid-cols-1">
+        <section className="grid grid-cols-3 gap-2 ">
   {filtroAtivado ? (
     produtosFiltrados.length > 0 ? (
       produtosFiltrados.map((produto, index) => (
-        <Link href={`/telaproduto/${produto.id_produtos}`} key={index}>
+        <Link href={`/DetalhesProduto/${produto.id_produtos}`} key={index}>
           <div className="p-8 max-w-[1200px] flex flex-row gap-6 -mt-16 ml-6">
             <div className="rounded-[10px] shadow-custom transition-transform duration-150 bg-white overflow-hidden hover:translate-y-[5px]">
-              <Image
-                src={produto.foto_produto}
-                alt={produto.nome}
-                height={200}
-                width={380}
-                className="object-cover"
-              />
+                      {produto.foto_produto ? (
+            <Image
+              src={produto.foto_produto}
+              alt={produto.nome}
+              height={200}
+              width={380}
+              className="object-cover"
+            />
+          ) : (
+            <div className="h-[200px] w-[380px] text-center bg-gray-200 flex items-center justify-center text-sm text-gray-500">
+              Imagem indisponível
+            </div>
+          )}
+
               <div className="p-4">
                 <h3 className="text-[1.1rem] mb-[0.5rem] font-bold">{produto.nome}</h3>
                 <h3 className="text-[1.2rem] text-marieth font-bold">

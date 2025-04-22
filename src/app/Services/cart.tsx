@@ -3,13 +3,13 @@ import axios, { AxiosError } from "axios";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
 export const adicionarProdutoAoCarrinho = async (
-    id_produto: string,
+    id_produtos: string,
     quantidade: number = 1
 ) => {
     try {
         const response = await axios.post(
             `${API_URL}/carrinho/adicionar`,
-            {  id_produto, quantidade },
+            {  id_produtos, quantidade },
             {
                 withCredentials: true,
                 headers: { "Content-Type": "application/json" },
@@ -34,9 +34,9 @@ export const listarProdutosDoCarrinho = async () => {
     }
 };
 
-export const removerProdutoDoCarrinho = async ( id_produto: string) => {
+export const removerProdutoDoCarrinho = async ( id_produtos: string) => {
     try {
-        const response = await axios.delete(`${API_URL}/carrinho/remover/${id_produto}`, {
+        const response = await axios.delete(`${API_URL}/carrinho/remover/${id_produtos}`, {
             withCredentials: true,
         });
         return response.data;
@@ -61,18 +61,36 @@ export const esvaziarCarrinho = async () => {
 };
 
 export const atualizarQuantidadeProduto = async (
-    id_produto: string,
+    id_produtos: string,
     quantidade: number
 ) => {
     try {
         const response = await axios.put(
-            `${API_URL}/carrinho/atualizar/${id_produto}`,
+            `${API_URL}/carrinho/atualizar/${id_produtos}`,
             { quantidade },
             {
                 withCredentials: true,
                 headers: { "Content-Type": "application/json" },
             }
         );
+
+        const {
+          precoUnitario,
+          precoCliente,
+          pesoTotal,
+          frete,
+          comissao,
+          totalFinal
+        } = response.data;
+    
+        
+        console.log("Preço unitario:", precoUnitario)
+        console.log("Preço do produto:", precoCliente);
+        console.log("Peso total:", pesoTotal);
+        console.log("Frete:", frete);
+        console.log("Comissão:", comissao);
+        console.log("Total Final:", totalFinal);
+    
         return response.data;
     } catch (error:any) {
         const axiosError = error as AxiosError;
@@ -81,32 +99,31 @@ export const atualizarQuantidadeProduto = async (
     }
 };
 
-
 export const calcularPrecoProduto = async (
-    produtoId: string,
-    quantidadeCliente: number
-  ) => {
-    try {
-      const response = await axios.post(
-        `${API_URL}/carrinho/calcular-preco`,
-        { produtoId, quantidadeCliente },
-        {
-          withCredentials: true,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-      return response.data;
-    } catch (error: any) {
-      const axiosError = error as AxiosError;
-      console.log(
-        "Erro ao calcular o preço do produto:",
-        axiosError.response?.data || axiosError.message
-      );
-      throw axiosError.response?.data || {
-        mensagem: "Erro desconhecido ao calcular o preço do produto",
-      };
-    }
-  };
+  produtoId: string,
+  quantidadeCliente: number
+) => {
+  try {
+    const response = await axios.post(
+      `${API_URL}/carrinho/calcular-preco`,
+      { produtoId, quantidadeCliente },
+      {
+        withCredentials: true,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+    return response.data;
+  } catch (error: any) {
+    const axiosError = error as AxiosError;
+    console.log(
+      "Erro ao calcular o preço do produto:",
+      axiosError.response?.data || axiosError.message
+    );
+    throw axiosError.response?.data || {
+      mensagem: "Erro desconhecido ao calcular o preço do produto",
+    };
+  }
+};
 
   export const finalizarCompra = async () => {
     try {

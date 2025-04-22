@@ -1,6 +1,5 @@
-import React from 'react';
-
 "use client"
+import React from 'react';
 import Head from "next/head";
 import Image from "next/image";
 import { AiFillHome } from "react-icons/ai";
@@ -18,6 +17,8 @@ import { buscarMediaEstrelas } from "../../Services/avaliacoes";
 import Cookies from "js-cookie";
 import { enviarAvaliacao } from "../../Services/avaliacoes";
 import { FaStar } from "react-icons/fa";
+import { adicionarProdutoAoCarrinho } from '@/app/Services/cart';
+
 
 
 
@@ -61,8 +62,9 @@ const token = Cookies.get("token");
   
   const [produto, setProduto] = useState<Produto | null>(null);
    const [avaliacoes, setAvaliacoes] = useState<{ [key: number]: number | null }>({});
-  
-  
+  const [precoTotal, setPrecoTotal] = useState(0);
+   const [quantidadeCarrinho, setQuantidadeCarrinho] = useState(1);
+   
    const [itemCarrinho, setItemCarrinho] = useState<{
     produtoId: number;
     nome: string;
@@ -98,10 +100,7 @@ const token = Cookies.get("token");
   }, [produtoId]);
   
 
-  if (!produto) {
-    return <div>Carregando...</div>; 
-
-  }
+  
 
   useEffect(() => {
     if (!id) return;
@@ -149,21 +148,52 @@ setTimeout(() => {
   
   
 
+
+  const verificarLoginAntesDeAvaliar = async (nota: number) => {
+    if (!token) {
+      alert("Você precisa estar logado para avaliar.");
+      router.push("/login");
+      return;
+    }
+    await handleAvaliar(nota);
+  };
+  
+  const verificarLoginAntesDeAdicionar = async () => {
+    try {
+      await verificarAuth();
+      setAutenticado(true);
+      setshowcaixa(true);
+    } catch (error) {
+      setAutenticado(false);
+      alert("Você precisa estar logado para adicionar ao carrinho.");
+      router.push("/login");
+    }
+  };
   
 
-  useEffect(() => {
-    const checar = async () => {
-      try {
-        await verificarAuth(); 
-        setAutenticado(true);
-      } catch (error) {
-        setAutenticado(false);  
-        router.push("/login");
-      }
-    };
-  
-    checar();
-  }, [router]);
+
+   useEffect(() => {
+    if (produto) {
+      setPrecoTotal(produto.preco * quantidadeCarrinho);
+    }
+  }, [produto, quantidadeCarrinho]);
+
+
+  const handleAdicionarAoCarrinho = async () => {
+    try {
+      await adicionarProdutoAoCarrinho(produto!.id_produtos.toString(), quantidadeCarrinho);
+      alert("Produto adicionado ao carrinho com sucesso!");
+        } catch (error) {
+      alert("Erro ao adicionar ao carrinho.");
+      console.log(error);
+    }
+  };
+
+  if (!produto) {
+    return <div>Carregando...</div>; 
+
+  }
+
 
     return(
          <div>
@@ -213,21 +243,23 @@ setTimeout(() => {
         
         <div  className=" text-[1.8rem] font-bold  text-marieth">
          <span>{produto.preco}AOA/</span> 
-         <span>{produto.quantidade}</span>
-          <span>{produto.Unidade}</span></div>
+         <span>{produto.quantidade}{produto.Unidade}</span>
+         </div>
 
           <div>
-        <button className=" hover:bg-verdeaceso bg-marieth rounded-[5px] cursor-pointer  text-white p-2 text-[0.9rem] 
-          border-none bottom-4" 
-          onClick={() => {
-            if (!autenticado) {
-              alert("É necessário estar autenticado para adicionar ao carrinho.");
-              return;
-            }
-            setshowcaixa(true);
-          }}>+ Adicionar mais</button> 
-
-      </div>
+          <button 
+  className="hover:bg-verdeaceso bg-marieth rounded-[5px] cursor-pointer text-white p-2 text-[0.9rem] border-none bottom-4"
+  onClick={() => {
+    if (!autenticado) {
+      alert("É necessário estar autenticado para adicionar ao carrinho.");
+      return;
+    }
+   console.log("Botão clicado!");
+    setshowcaixa(true);
+  }}
+>
+  + / -
+</button>
 
 
         
@@ -262,11 +294,15 @@ setTimeout(() => {
               name="number"
               id="number" 
               min={0}  
-              step={0.1} 
+              step={0.5} 
               value={quantidadeSelecionada}
               onChange={(e)=>setQuantidadeSelecionada(parseFloat(e.target.value))}
               className="text-4 p-2 border-[1px] border-solid border-tab rounded-[5px]" />
               </label> 
+              <p className="text-marieth font-bold">
+              Total: {produto && quantidadeCarrinho * produto.preco} AOA
+            </p>
+
 
      <label htmlFor="unidades">
       <select title="unidades" 
@@ -274,8 +310,8 @@ setTimeout(() => {
       value={unidadeSelecionada}
       onChange={(e)=>setUnidadeSelecionada(e.target.value)}
       className="text-4 p-2 border-[1px] border-solid border-tab rounded-[5px]" >
-        <option value="Toneladas">Toneladas</option>
-        <option value="Quintais">Quintais</option>
+        <option value="Tonelada">Toneladas</option>
+        <option value="kg">Kilograma(kg)</option>
         </select>
         </label>
        </div>
@@ -283,22 +319,24 @@ setTimeout(() => {
        <div  className=" flex gap-4 justify-end cursor-pointer  border-none ">
         <button className="bg-vermelho py-2 px-4 text-white rounded-[5px]" onClick={()=>setshowcaixa(false)}>Cancelar</button>
         <button className= " bg-marieth py-2 px-4 text-white rounded-[5px]"
-        onClick={() => {
-          if (produto) {
-            const precoTotal = quantidadeSelecionada * produto.preco;
-        
-            setItemCarrinho({
-              produtoId: produto.id_produtos,
-              nome: produto.nome,
-              quantidade: quantidadeSelecionada,
-              Unidade: unidadeSelecionada,
-              precoTotal,
-            });
-        
-            setshowcaixa(false);
-            alert("Item adicionado ao carrinho!");
-          }
-        }}
+             onClick={() => {
+              if (quantidadeCarrinho < produto.quantidade) {
+                setQuantidadeCarrinho(prev => prev + 1);
+
+
+                setItemCarrinho({
+                    produtoId: produto.id_produtos,
+                    nome: produto.nome,
+                    quantidade: quantidadeSelecionada,
+                   Unidade: unidadeSelecionada,
+                    precoTotal,
+                  });
+                  
+                  setshowcaixa(false);
+                  alert("Quantidade ajustada  com sucesso ");
+              }
+            }}
+     
         
       >
           Confirmar</button>
@@ -308,12 +346,39 @@ setTimeout(() => {
        </div>)} 
         
 
-        <button  
-        className=" bg-marieth w-full py-2 px-1 border-none rounded-[5px] text-white
-        text-[1.5rem] cursor-pointer transition-colors duration-300 hover:bg-verdeaceso mb-2" >
-         <CgShoppingCart className="flex items-center justify-center gap-2 text-center  ml-[50%] text-[1.8rem]" />
-          Adicionar ao Carrinho
-        </button>
+       <button
+  onClick={async () => {
+    if (quantidadeCarrinho <= 0) {
+      alert("Escolha uma quantidade válida.");
+      return;
+    }
+
+    await verificarLoginAntesDeAdicionar();
+
+    if (autenticado) {
+      
+      handleAdicionarAoCarrinho();
+    }
+  }}
+  className="bg-marieth w-full py-2 px-1 border-none rounded-[5px] text-white text-[1.5rem] cursor-pointer transition-colors duration-300
+   hover:bg-verdeaceso mb-2"
+>
+  <div className="flex items-center justify-center gap-2">
+    <CgShoppingCart className="text-[1.8rem]" />
+    Adicionar ao Carrinho
+  </div>
+</button>
+
+
+
+        {itemCarrinho && (
+  <div className="bg-green-100 text-marieth p-4 rounded mt-4">
+    <p>Adicionado ao carrinho:</p>
+    <p>{itemCarrinho.quantidade} {itemCarrinho.Unidade} de {itemCarrinho.nome}</p>
+    <p>Total: {itemCarrinho.precoTotal} AOA</p>
+  </div>
+)}
+
       </div>
     </div>
     </div>
@@ -339,15 +404,21 @@ setTimeout(() => {
       <div className="mt-4 p-4 rounded-[10px] bg-back2 ">
         <h3  className="mb-4 text-[1.2rem]">Avalie este Produto</h3>
         <div  className="flex gap-2 text-[1.5rem] cursor-pointer text-tab">
-        {[1, 2, 3, 4, 5].map((num) => (
+        {[1, 2, 3, 4, 5].map((num) =>
+      notaSelecionada >= num ? (
+        <FaStar
+          key={num}
+          className="text-yellow-500 hover:text-yellow-600 transition-colors duration-200"
+          onClick={() => verificarLoginAntesDeAvaliar(num)}
+        />
+      ) : (
         <FaRegStar
           key={num}
-          className={`hover:text-yellow-500 ${
-            notaSelecionada >= num ? "text-yellow-500" : ""
-          }`}
-          onClick={() => handleAvaliar(num)}
+          className="hover:text-yellow-500 transition-colors duration-200"
+          onClick={() => verificarLoginAntesDeAvaliar(num)}
         />
-      ))}
+      )
+    )}
        
        
         </div>
@@ -360,6 +431,7 @@ setTimeout(() => {
 
    
       </div>
+    </div>
     </div>
   </main>
 </div>

@@ -18,7 +18,7 @@ import axios from "axios"
   export const getProdutoById =async(id:number):Promise<any> =>{
 
     try{
-        const response= await axios.get(`${API_URL}/produto/${id} `)
+        const response= await axios.get(`${API_URL}/produtos/produto/${id} `)
         return response.data
 
 
@@ -35,7 +35,7 @@ import axios from "axios"
 
   export const criarProduto = async (produtoData: any): Promise<any> => {
     try {
-        const response = await axios.post(`${API_URL}/produtos`, produtoData, {
+        const response = await axios.post(`${API_URL}/produtos/produtos`, produtoData, {
             headers: { "Content-Type": "application/json" },
             withCredentials: true, 
         });
@@ -52,8 +52,9 @@ import axios from "axios"
  
 export const atualizarProduto = async (id: number, produtoData: any): Promise<any> => {
     try {
-        const response = await axios.put(`${API_URL}/produtos/${id}`, produtoData, {
+        const response = await axios.put(`${API_URL}/produtos/atualizar/${id}`, produtoData, {
             headers: { "Content-Type": "application/json" },
+            withCredentials:true
         });
         return response.data;
     } catch (error: any) {

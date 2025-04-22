@@ -27,8 +27,13 @@ body {
   color: white;
   text-align: center;
   padding: 4rem 1rem;
-  width: 114.5%;
+  width: 115%;
   
+}
+@media (max-width: 768px) {
+  .backgroundimage {
+    padding-top: 25vh;
+  }
 }
  
 

@@ -12,27 +12,19 @@ export const getUsuarios = async (): Promise<any> => {
         throw { mensagem: "Erro ao buscar usuários" };
     }
 };
-
 export const getUsuarioById = async (): Promise<any> => {
-    const token=cookies.get("token")
-
-    if(!token){
-        console.log("token não encontrado")
-        throw new Error("Token não encontrado");
-
-    }
     try {
         const response = await axios.get(`${API_URL}/usuarios/me`, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
+            withCredentials: true,
         });
-        return response.data;
+
+        return response.data.usuario; 
     } catch (error: any) {
         console.log("Erro ao buscar usuário", error.response?.data || error.message);
         throw { mensagem: "Erro ao buscar usuário" };
     }
 };
+
 
 export const criarUsuario = async (usuarioData: any): Promise<any> => {
     try {
@@ -64,7 +56,9 @@ export const atualizarUsuario = async (usuarioData: any): Promise<any> => {
   
 export const deletarUsuario = async (id: number): Promise<any> => {
     try {
-        const response = await axios.delete(`${API_URL}/usuarios/${id}`);
+        const response = await axios.delete(`${API_URL}/usuarios/${id}`,{
+            withCredentials: true, 
+        });;
         return response.data;
     } catch (error: any) {
         console.log("Erro ao excluir usuário", error.response?.data || error.message);

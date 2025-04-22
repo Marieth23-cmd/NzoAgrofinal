@@ -13,7 +13,7 @@ import Image from "next/image";
 export default function CriarProduto() {
     const router = useRouter();
     const [autenticado, setAutenticado] = useState<boolean | null>(null);
-    const [foto, setfoto] = useState<File | null>(null);
+    const [foto_produto, setfoto] = useState<File | null>(null);
 const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 const [loading, setLoading] = useState(false); 
 
@@ -24,7 +24,7 @@ const [loading, setLoading] = useState(false);
                 setAutenticado(true);
             } catch (error) {
                 setAutenticado(false);
-                router.push("/login"); // redireciona para login se não autenticado
+                router.push("/login"); 
             }
         };
 
@@ -39,7 +39,7 @@ const [loading, setLoading] = useState(false);
         Unidade: "",
         preco: "",
         descricao: "",
-        foto:""
+        foto_produto:""
     });
 
     const handlechange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -52,13 +52,13 @@ const [loading, setLoading] = useState(false);
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
     
-        // Validação básica
+
         if (!formData.nome || !formData.preco || !formData.quantidade) {
-            alert("Por favor, preencha todos os campos obrigatórios.");
+            alert( "Por favor, preencha todos os campos obrigatórios.");
             return;
         }
     
-        // Validação do preço e quantidade
+        
         const produtoData = {
             ...formData,
             quantidade: Number(formData.quantidade),
@@ -85,27 +85,29 @@ const [loading, setLoading] = useState(false);
         }
         
     
-        // Criar o FormData
+        
         const form = new FormData();
         form.append("provincia", formData.provincia);
         form.append("categoria", formData.categoria);
-        form.append("nomeProduto", formData.nome);
-        form.append("quantidade", formData.quantidade.toString());  // Convertendo para string
-        form.append("unidade", formData.Unidade);
-        form.append("preco", formData.preco.toString());  // Convertendo para string
+        form.append("nome", formData.nome);
+        form.append("quantidade", formData.quantidade.toString());  
+        form.append("Unidade", formData.Unidade);
+        form.append("preco", formData.preco.toString());  
         form.append("descricao", formData.descricao);
+        form.append("foto_produto", formData.foto_produto);
     
-        if (foto) {
-            form.append("imagem", foto);  // Adicionando a imagem ao FormData
+    
+        if (foto_produto) {
+            form.append("foto_produto", foto_produto);  
         }
     
-        // Enviar para a API
+        
         try {
-            const response = await criarProduto(form);  // Função que envia o FormData ao backend
+            const response = await criarProduto(form);  
             alert("Produto cadastrado com sucesso");
             console.log(response);
-        } catch (error) {
-            alert("Erro ao cadastrar Produto");
+        } catch (error:any) {
+            alert( error.mensagem || "Erro ao cadastrar Produto");
             console.error(error);
         }
         setLoading(false);
@@ -263,7 +265,8 @@ const [loading, setLoading] = useState(false);
                         className="absolute inset-0 opacity-0 cursor-pointer"
                     />
                     {previewUrl && (<Image src={previewUrl}
-                    
+                    height={200}
+                    width={250}
                     alt="Pré-visualização"
             className="mx-auto mt-4 max-h-48 object-contain rounded-[10px]"
        />)}

@@ -144,7 +144,7 @@ import { getUsuarioById } from "../Services/user";
     <div className="absolute w-[12.5rem] h-[12.5rem] rounded-[50%] flex items-center text-[4rem]
  justify-center text-cortime bg-cinzab">
   {imagemPerfil ?(
-    <Image src={imagemPerfil} alt="foto de Perfil"  fill className=" rounded-[50%] object-cover" />):
+    <Image src={imagemPerfil} alt="foto de Perfil" width={250} height={200}   fill className=" rounded-[50%] object-cover" />):
   ( <FaUser />)
   }
  

@@ -10,14 +10,14 @@ import { buscarProdutosPorCategoria } from "../Services/produtos"
 
 export default function Categoriagrao() {
   interface Produto {
-    id_produtos:number,
+    id_produtos: number,
     nome: string,
     preco: number,
     Unidade: string,
     foto_produto: string,
     provincia: string,
     quantidade: number,
-    nome_vendedor:string
+    nome_vendedor: string
   }
 
   const [produtosFiltrados, setProdutosFiltrados] = useState<Produto[]>([])
@@ -93,11 +93,13 @@ export default function Categoriagrao() {
       <div className="mb-20 mt-[18%]">
         <h1 className="text-center my-6 text-[2rem] font-bold text-marieth">Grãos</h1>
 
-        <div className="max-w-[1200px] my-12 mx-9 px-4">
-          <div className="grid grid-cols-3 gap-4 sm:grid-cols-1">
+        <div className=" my-12 mx-9 px-4">
+          <div className="flex flex-col gap-4 lg:flex-row justify-between w-full ">
             {/* Tipo de Grão */}
-            <label htmlFor="graos" className="mb-[0.5rem] font-medium block">
-              Tipo de Grão
+            <div className="flex flex-col w-full">
+              <label htmlFor="graos" className="mb-[0.5rem] font-medium block">
+                Tipo de Grão
+              </label>
               <div className="p-4 shadow-custom bg-white rounded-[10px]">
                 <select
                   id="graos"
@@ -111,11 +113,15 @@ export default function Categoriagrao() {
                   ))}
                 </select>
               </div>
-            </label>
+
+
+            </div>
 
             {/* Província */}
+            <div className="flex flex-col w-full">
             <label htmlFor="local" className="mb-[0.5rem] font-medium block">
               Província
+                </label>
               <div className="p-4 shadow-custom bg-white rounded-[10px]">
                 <select
                   id="local"
@@ -131,11 +137,12 @@ export default function Categoriagrao() {
                     ))}
                 </select>
               </div>
-            </label>
 
-            {/* Faixa de Preço */}
-            <label htmlFor="intervalo-preco" className="mb-[0.5rem] font-medium block">
+            </div>
+          
+            <div className="flex flex-col w-full"> <label htmlFor="intervalo-preco" className="mb-[0.5rem] font-medium block">
               Faixa de Preço (AOA)
+                </label>
               <div className="p-4 shadow-custom bg-white rounded-[10px]">
                 <select
                   id="intervalo-preco"
@@ -150,9 +157,9 @@ export default function Categoriagrao() {
                   <option value="100000-plus">Acima de 100.000 AOA</option>
                 </select>
               </div>
-            </label>
           </div>
-
+</div>
+           
           <button
             onClick={aplicarFiltros}
             disabled={!isFormValid}
@@ -162,38 +169,45 @@ export default function Categoriagrao() {
             Pesquisar
           </button>
         </div>
-        <section className="grid grid-cols-3 gap-2 sm:grid-cols-1">
-  {filtroAtivado ? (
-    produtosFiltrados.length > 0 ? (
-      produtosFiltrados.map((produto, index) => (
-        <Link href={`/telaproduto/${produto.id_produtos}`} key={index}>
-          <div className="p-8 max-w-[1200px] flex flex-row gap-6 -mt-16 ml-6">
-            <div className="rounded-[10px] shadow-custom transition-transform duration-150 bg-white overflow-hidden hover:translate-y-[5px]">
-              <Image
-                src={produto.foto_produto}
-                alt={produto.nome}
-                height={200}
-                width={380}
-                className="object-cover"
-              />
-              <div className="p-4">
-                <h3 className="text-[1.1rem] mb-[0.5rem] font-bold">{produto.nome}</h3>
-                <h3 className="text-[1.2rem] text-marieth font-bold">
-                  kz {produto.preco}/{produto.quantidade}{produto.Unidade}
-                </h3>
-                <h3 className="text-[0.9rem] text-cortexto">Vendido por: {produto.nome_vendedor}</h3>
-              </div>
-            </div>
-          </div>
-        </Link>
-      ))
-    ) : (
-      <p className="animate-pulse text-lg text-red-600 font-semibold mt-8 ml-24">
-        Nenhum produto encontrado com os filtros aplicados.
-      </p>
-    )
-  ) : null}
-</section>
+        <section className="grid grid-cols-3 gap-2 ">
+          {filtroAtivado ? (
+            produtosFiltrados.length > 0 ? (
+              produtosFiltrados.map((produto, index) => (
+                <Link href={`/DetalhesProduto/${produto.id_produtos}`} key={index}>
+                  <div className="p-8 max-w-[1200px] flex flex-row gap-6 -mt-16 ml-6">
+                    <div className="rounded-[10px] shadow-custom transition-transform duration-150 bg-white overflow-hidden hover:translate-y-[5px]">
+                      {produto.foto_produto ? (
+                        <Image
+                          src={produto.foto_produto}
+                          alt={produto.nome}
+                          height={200}
+                          width={380}
+                          className="object-cover"
+                        />
+                      ) : (
+                        <div className="h-[200px] w-[380px] text-center bg-gray-200 flex items-center justify-center text-sm text-gray-500">
+                          Imagem indisponível
+                        </div>
+                      )}
+
+                      <div className="p-4">
+                        <h3 className="text-[1.1rem] mb-[0.5rem] font-bold">{produto.nome}</h3>
+                        <h3 className="text-[1.2rem] text-marieth font-bold">
+                          kz {produto.preco}/{produto.quantidade}{produto.Unidade}
+                        </h3>
+                        <h3 className="text-[0.9rem] text-cortexto">Vendido por: {produto.nome_vendedor}</h3>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              ))
+            ) : (
+              <p className="animate-pulse text-lg text-red-600 font-semibold mt-8 ml-24">
+                Nenhum produto encontrado com os filtros aplicados.
+              </p>
+            )
+          ) : null}
+        </section>
 
       </div>
 

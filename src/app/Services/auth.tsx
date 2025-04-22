@@ -51,7 +51,7 @@ export const logout = async (): Promise<any> => {
     }
 };
 
-// Função para verificar autenticação
+
 export const verificarAuth = async (): Promise<any> => {
     try {
         const response = await axios.get(`${API_URL}/login/auth/verificar`, {

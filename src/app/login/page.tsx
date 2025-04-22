@@ -14,11 +14,11 @@ export default function Login() {
     const [erro, setErro] = useState("");
     
 
-    // Função para limpar erro ao digitar
+    
     const handleInputChange = (setter: React.Dispatch<React.SetStateAction<string>>) => 
         (e: React.ChangeEvent<HTMLInputElement>) => {
             setter(e.target.value);
-            setErro(""); // Limpa o erro ao começar a digitar
+            setErro(""); 
         };
 
     const handleLogin = async (e: React.FormEvent) => {
@@ -32,8 +32,16 @@ export default function Login() {
         try {
             const response = await login(email, senha);
             console.log("Usuário logado:", response);
+            if (response.tipo_usuario === "Administrador") {
+                console.log("Tipo de usuário recebido:", response.tipo_usuario);
+                     router.push("/Administrador"); 
+            } else {
+                router.push("/"); 
+            }
+
+
             setErro(""); 
-            router.push("/")
+          
         } catch (error: any) {
             setErro(error.mensagem || "Erro ao Iniciar Sessão!");
         }

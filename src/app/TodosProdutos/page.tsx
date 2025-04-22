@@ -8,8 +8,11 @@ import { FaStar } from "react-icons/fa";
 import { useState, useEffect } from "react";
 import { getProdutos } from "../Services/produtos";
 import { buscarMediaEstrelas } from "../Services/avaliacoes";
+import { adicionarProdutoAoCarrinho } from "../Services/cart";
+
 
 export default function Vitrine() {
+ 
   interface Produto {
     id_produtos: number;
     nome: string;
@@ -22,8 +25,9 @@ export default function Vitrine() {
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [visibleCount, setVisibleCount] = useState(12);
   const [avaliacoes, setAvaliacoes] = useState<{ [key: number]: number | null }>({});
+  const [verMaisClicado, setVerMaisClicado] = useState(false);
 
-
+  
   useEffect(() => {
     async function fetchProdutos() {
       try {
@@ -38,8 +42,9 @@ export default function Vitrine() {
     
           setAvaliacoes(avaliacaoData);
 
-      } catch (err) {
-        console.log("Erro ao carregar produtos:", err);
+      } catch (error:any) {
+        alert(error.mensagem)
+        console.log(error.mensagem || "Erro ao carregar produtos");
       }
     }
 
@@ -47,11 +52,23 @@ export default function Vitrine() {
   }, []);
 
   const mostrarMaisProdutos = () => {
+    setVerMaisClicado(true);
     setVisibleCount((prev) => prev + 12);
   };
+  
 
   const produtosVisiveis = produtos.slice(0, visibleCount);
   const haMaisProdutos = visibleCount < produtos.length;
+
+  const handleAdicionarAoCarrinho = async (id_produtos: number) => {
+    try {
+      await adicionarProdutoAoCarrinho(id_produtos.toString(), 1);
+      alert("Produto adicionado ao carrinho com sucesso!");
+    } catch (error: any) {
+      alert(error.mensagem || "Erro ao adicionar o produto ao carrinho.");
+    }
+  };
+  
 
   return (
     <div>
@@ -67,17 +84,23 @@ export default function Vitrine() {
             {produtosVisiveis.map((produto) => (
               <div
                 key={produto.id_produtos}
-                className="overflow-hidden bg-white rounded-[0.625rem] shadow-custom transition-transform duration-150 ease-in-out transform hover:translate-y-[0.3125rem]"
+                className="overflow-hidden bg-white rounded-[0.625rem]  shadow-custom transition-transform duration-150 ease-in-out transform hover:translate-y-[0.3125rem]"
               >
-                <Image
-                  src={produto.foto_produto || "/placeholder.jpg"}
+                {produto.foto_produto?(
+                  <Image
+                  src={produto.foto_produto}
                   alt={produto.nome}
                   height={200}
                   width={380}
                   className="w-full object-cover"
-                />
+                />) : (
+                  <div className="h-[200px] w-[380px] bg-gray-200 flex items-center text-center justify-center text-sm text-gray-500">
+                    Imagem indisponível
+                  </div>
+                )}
+                
                 <div className="p-6">
-                  <h3 className="text-[1.2rem] mb-2 text-profile">
+                  <h3 className="text-[1.2rem] mb-2 text-profile font-semibold">
                     {produto.nome}
                   </h3>
 
@@ -107,17 +130,18 @@ export default function Vitrine() {
                     AOA {produto.preco.toLocaleString()}
                   </p>
                   <span>
-                    /{produto.quantidade} {produto.Unidade}
+                    {produto.quantidade}/{produto.Unidade}
                   </span>
 
                   <div className="flex flex-col gap-2 mt-4">
                     <Link
-                      href={`/telaproduto/${produto.id_produtos}`}
+                      href={`/DetalhesProduto/${produto.id_produtos}`}
                       className="text-marieth text-center py-2 cursor-pointer px-4 transition-all duration-150 ease-in-out border-[1px] border-solid bg-cinza rounded-[0.3125rem] hover:bg-marieth hover:text-white"
                     >
                       Ver detalhes
                     </Link>
-                    <button className="hover:bg-verdeaceso py-2 cursor-pointer px-4 text-white bg-marieth transition-colors duration-150 ease-in-out rounded-[0.3125rem]">
+                    <button  onClick={() => handleAdicionarAoCarrinho(produto.id_produtos)}
+                     className="hover:bg-verdeaceso py-2 cursor-pointer px-4 text-white bg-marieth transition-colors duration-150 ease-in-out rounded-[0.3125rem]">
                       Adicionar ao Carrinho
                     </button>
                   </div>
@@ -128,17 +152,18 @@ export default function Vitrine() {
         </div>
 
         {haMaisProdutos ? (
-          <button
-            onClick={mostrarMaisProdutos}
-            className="block my-8 mx-auto bg-marieth cursor-pointer text-[1.1rem] text-white py-4 px-8 rounded-[0.3125rem] transition-colors ease-in-out hover:bg-verdeaceso"
-          >
-            Ver mais Produtos
-          </button>
-        ) : (
-          <p className="text-center text-gray-500 mt-8">
-            Não há mais produtos a serem exibidos.
-          </p>
-        )}
+        <button
+          onClick={mostrarMaisProdutos}
+          className="block my-8 mx-auto bg-marieth cursor-pointer text-[1.1rem] text-white py-4 px-8 rounded-[0.3125rem] transition-colors ease-in-out hover:bg-verdeaceso"
+        >
+          Ver mais Produtos
+        </button>
+      ) : verMaisClicado ? (
+        <p className="text-center text-gray-500 mt-8">
+          Não há mais produtos a serem exibidos.
+        </p>
+      ) : null}
+
       </div>
 
       <Footer />

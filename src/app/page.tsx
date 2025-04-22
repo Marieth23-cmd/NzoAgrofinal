@@ -24,7 +24,7 @@ export default function Home() {
 
 
     interface Produto {
-      id: number;
+      id_produtos: number;
       nome: string;
       preco: number;
       imagem: string;
@@ -114,9 +114,9 @@ export default function Home() {
         </div>
 
 
-        <section className="max-w-[75rem] md:p-8 -mb-12  mt-24 ml:-mt-20">
-          <h1 className=" text-center mb-4 text-2xl mt-0 font-bold md:mt[5rem] ">Categorias</h1>
-          <div className="grid gap-6 grid-cols-2 md:grid-cols-5  ">
+        <section className="max-w-[75rem] md:p-8 -mb-12  mt-24 ">
+          <h1 className=" text-center mb-4 text-2xl mt-0 font-bold ">Categorias</h1>
+          <div className="grid gap-6 grid-cols-2 md:grid-cols-5 ">
             <div className=" flex items-center justify-center bg-white p-6  rounded-[10px] hover:shadow-xl text-center cursor-pointer shadow-custom   hover:translate-y-2 " >
               <h3 className="  font-medium text-[1.17rem] mb-[0.5rem]" >        <Link href="./categoriafrutas"><FaAppleAlt className="mb-4 text-marieth text-[2.5rem] " />
                 Frutas</Link>
@@ -163,7 +163,8 @@ export default function Home() {
       <div ref={scrollRef} className="flex gap-6 overflow-x-auto md:overflow-hidden p-4 scroll-smooth">
         {produtosDestaque.length > 0 ? (
           produtosDestaque.map((produto, index) => (
-            <Link href="/telaproduto">
+            <Link href={`/DetalhesProduto/${produto.id_produtos}`}
+            >
             <div key={index} className="w-[250px] h-[350px] rounded-[10px] shadow-custom bg-white overflow-hidden flex-shrink-0">
               <Image src={produto.imagem} alt={produto.nome} height={200} width={250} className="object-cover w-full h-[200px]" />
               <div className="p-4">

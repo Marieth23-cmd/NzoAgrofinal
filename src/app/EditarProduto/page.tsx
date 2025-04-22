@@ -20,8 +20,8 @@ import { verificarAuth } from "../Services/auth";
     const [preco, setPreco] = useState(0);
     const [quantidade, setQuantidade] = useState(0);
     const [categoria, setCategoria] = useState("");
-    const [unidade, setUnidade] = useState("");
-    const [foto, setfoto] = useState<File | null>(null);
+    const [Unidade, setUnidade] = useState("");
+    const [foto_produto, setfoto] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [provincia, setProvincia] = useState("");
     const [autenticado , SetAutenticado]=useState<boolean |null>(null)
@@ -61,11 +61,16 @@ import { verificarAuth } from "../Services/auth";
           })
           .catch(() => {
             SetAutenticado(false);
-            router.push("/login");
+            
           });
+         }, []);
 
-          
-      }, []);
+         useEffect(() => {
+          if (autenticado === false) {
+            router.push("/login");
+          }
+        }, [autenticado]);
+        
       
       if (isLoadingProduto) {
         return <div className="text-center py-10">Carregando produto...</div>;
@@ -86,14 +91,14 @@ import { verificarAuth } from "../Services/auth";
         formData.append('preco', preco.toString());
         formData.append('quantidade', quantidade.toString());
         formData.append('categoria', categoria);
-        formData.append('Unidade', unidade);
+        formData.append('Unidade', Unidade);
         formData.append('provincia', provincia);
       
-        // Verifica se há uma imagem e a adiciona no FormData
-        if (foto) {
-          formData.append('foto', foto); // O nome 'foto' deve ser o mesmo que o backend espera
+       
+        if (foto_produto) {
+          formData.append('foto', foto_produto); // O nome 'foto' deve ser o mesmo que o backend espera
         }
-      if (!nome || !descricao || !categoria || !unidade || !provincia) {
+      if (!nome || !descricao || !categoria || !Unidade || !provincia) {
             alert("Preencha todos os campos obrigatórios");
             return;
           }
@@ -221,7 +226,7 @@ import { verificarAuth } from "../Services/auth";
                                         name="unidade"
                                         id="unidade"
                                         required
-                                        value={unidade}
+                                        value={Unidade}
                                         onChange={(e) => setUnidade(e.target.value)}
                                         className="w-full p-[0.8rem] border-[1px] border-solid border-tab rounded-[10px] text-base transition-colors duration-150 cursor-pointer font-medium text-profile"
                                     >
@@ -275,8 +280,9 @@ import { verificarAuth } from "../Services/auth";
                                 width={200}
                                 height={200}
                                 alt="Pré-visualização"
-                        className="mx-auto mt-4 max-h-48 object-contain rounded-[10px]"
-                   />)}
+                                className="mx-auto mt-4 max-h-48 object-contain rounded-[10px]"
+                   />
+                   )}
                                 
             
             

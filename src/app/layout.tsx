@@ -1,21 +1,24 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Inter } from 'next/font/google'
 
-
-
 const inter = Inter({ subsets: ['latin'] })
+
+
 export const metadata: Metadata = {
   title: "NzoAgro",
   description: "Plataforma de Conexão Agrícola",
-  themeColor: "#00A651",
   icons: {
     apple: "/icons/icon-192x192.png",
   },
   manifest: "/manifest.json",
 };
 
+
+export const viewport: Viewport = {
+  themeColor: "#4CAF50",
+};
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,8 +30,6 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -36,11 +37,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      
       <body className={inter.className}>
         {children}
       </body>
     </html>
   );
 }
-
