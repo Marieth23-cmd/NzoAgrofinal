@@ -1,3 +1,4 @@
+ "use client"
  import Head from "next/head"
  import Footer from "../Components/Footer"
 import Navbar from "../Components/Navbar"

@@ -1,5 +1,4 @@
 'use client';
-
 import { useState, ChangeEvent, FormEvent } from "react";
 import { BiCamera, BiUser } from "react-icons/bi";
 
