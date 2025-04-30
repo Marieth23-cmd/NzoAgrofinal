@@ -21,9 +21,7 @@ export default function CategoriaTuberculos() {
   }
 
   const [produtosFiltrados, setProdutosFiltrados] = useState<Produto[]>([])
-  const [produtos, setProdutos] = useState<Produto[]>([])
   const [produtosOriginais, setProdutosOriginais] = useState<Produto[]>([])
-
   const [tipoFiltroInput, setTipoFiltroInput] = useState("")
   const [provinciaFiltroInput, setProvinciaFiltroInput] = useState("")
   const [precoFiltroInput, setPrecoFiltroInput] = useState("")
@@ -69,7 +67,6 @@ export default function CategoriaTuberculos() {
     async function carregarProdutosParaSelects() {
       try {
         const produtosRecebidos = await buscarProdutosPorCategoria("Tuberculos", {})
-        setProdutos(produtosRecebidos)
         setProdutosOriginais(produtosRecebidos)
       } catch (error) {
         console.log("Erro ao carregar produtos:", error)

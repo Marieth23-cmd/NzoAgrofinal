@@ -43,8 +43,7 @@ import { getUsuarioById } from "../Services/user";
       setIsOpen(false);
     }
   }, []);
-
-  // Adicionando e removendo o listener com base na mudança do estado isOpen
+  
   useEffect(() => {
     if (isopen) {
       document.addEventListener("mousedown", handleClick);

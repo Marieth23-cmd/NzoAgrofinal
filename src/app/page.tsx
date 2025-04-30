@@ -147,7 +147,7 @@ export default function Home() {
                       </div>
                       </section>
 
-                      <section className="relative w-full mx-auto px-4 mt-10">
+                      <section className="relative w-full mt-14 mx-auto px-4 lg:mt-10">
       <h2 className="text-center text-2xl font-bold mb-6">Produtos em Destaque</h2>
       
      {produtosDestaque.length>3 &&(<button 

@@ -58,7 +58,7 @@ const handleRemover = async (id_produtos: string) => {
     const dadosAtualizados = await listarProdutosDoCarrinho();
     setProdutos(dadosAtualizados);
   } catch (error) {
-    console.error("Erro ao remover produto:", error);
+    console.log("Erro ao remover produto:", error);
   }
 };
 
@@ -119,18 +119,27 @@ useEffect(() => {
          <Head>
                 <title> Carrinho </title>
             </Head>
+
             <Navbar/>
 
-       <div  className="mb-20  mt-[18%]">
+       <div  className="mb-20  mt-[15%]">
 
       <div className="max-w-[1200px] my-8 mx-auto py-0 px-4  items-center gap-4 grid grid-cols-1 
       relative border-b-[1px]">
+          <div className="flex items-end">
+                <h1 className="text-[2rem] text-marieth mb-8 p-4 font-bold">
+                    Meu Carrinho
+                </h1>
+                <button className="bg-vermelho text-white  rounded-[5px] h-fit px-2 py-1 mb-12 ml-[750px]  flex items-center gap-2 cursor-pointer">
+                    <FaTrash />
+                    Esvaziar 
+                </button>
+                </div>
 
-     <h1 className="text-[2rem] font-bold mb-8 text-marieth">Meu Carrinho</h1>
      {loading ? (
   <p className="text-center text-gray-500 text-lg">Carregando produtos...</p>
 ) : produtos.length === 0 ? (
-  <p className="text-center text-gray-500 text-lg">Carrinho vazio. Nenhum produto adicionado.</p>
+  <p className="text-center text-gray-500 text-lg mt-8">Carrinho vazio. Nenhum produto adicionado.</p>
 ) : (
   produtos.map((produto) => (
     <div key={produto.id_produtos} className="flex p-2 border-b-[1px]">

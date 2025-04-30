@@ -18,6 +18,7 @@ import Cookies from "js-cookie";
 import { enviarAvaliacao } from "../../Services/avaliacoes";
 import { FaStar } from "react-icons/fa";
 import { adicionarProdutoAoCarrinho } from '@/app/Services/cart';
+import { error } from 'console';
 
 
 
@@ -86,36 +87,40 @@ const token = Cookies.get("token");
         
         const media = await buscarMediaEstrelas(data.id_produtos);
         setAvaliacoes({ [data.id_produtos]: media?.media_estrelas || null });
-        
-    
-          
       } catch (error) {
-        console.log("Erro ao buscar produto:", error);
+        console.error("Erro ao buscar produto:", error);
+
+        // Gracefully handle memory allocation errors
+        if (error instanceof RangeError) {
+          alert("Ocorreu um erro de memória. Por favor, tente novamente mais tarde.");
+        }
       }
     };
-  
+
     if (produtoId) {
       fetchProduto();
     }
   }, [produtoId]);
-  
-
-  
 
   useEffect(() => {
     if (!id) return;
-  
+
     const carregarDados = async () => {
       try {
         const resultado = await buscarMediaEstrelas(Number(id));
         setMedia(resultado.media || 0);
         setTotal(resultado.total || 0);
-        setPercentagem(resultado.recomendacoes || 0); 
-      } catch (err) {
-        console.error(err);
+        setPercentagem(resultado.recomendacoes || 0);
+      } catch (error) {
+        console.log("Erro ao carregar dados:", error);
+
+        // Handle memory allocation errors
+        if (error instanceof RangeError) {
+          alert("Erro de memória detectado. Por favor, reduza a quantidade de dados processados.");
+        }
       }
     };
-  
+
     carregarDados();
   }, [id]);
 
@@ -162,9 +167,11 @@ setTimeout(() => {
     try {
       await verificarAuth();
       setAutenticado(true);
-      setshowcaixa(true);
+      setshowcaixa(false);
     } catch (error) {
       setAutenticado(false);
+      setshowcaixa(false);
+
       alert("Você precisa estar logado para adicionar ao carrinho.");
       router.push("/login");
     }
@@ -210,7 +217,7 @@ setTimeout(() => {
     <div className=" grid grid-cols-2  gap-8">
       
       <div >
-       <Image src={produto.foto_produto || "/placeholder.jpg"} alt={produto.nome} width={500} height={400}  
+       <Image src={produto.foto_produto || "/default-image.jpg"} alt={produto.nome} width={500} height={400}  
         className=" flex  w-full h-[400px]  rounded-[10px] items-center justify-center 
          text-[3rem] text-cortime bg-pretobranco" />
       </div>
@@ -248,7 +255,7 @@ setTimeout(() => {
 
           <div>
           <button 
-  className="hover:bg-verdeaceso bg-marieth rounded-[5px] cursor-pointer text-white p-2 text-[0.9rem] border-none bottom-4"
+  className="hover:bg-verdeaceso bg-marieth rounded-[5px] cursor-pointer text-white p-2 text-[0.9rem] border-none bottom-4 mb-4"
   onClick={() => {
     if (!autenticado) {
       alert("É necessário estar autenticado para adicionar ao carrinho.");

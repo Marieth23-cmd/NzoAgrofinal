@@ -32,9 +32,11 @@ export default function Login() {
         try {
             const response = await login(email, senha);
             console.log("Usuário logado:", response);
-            if (response.tipo_usuario === "Administrador") {
+            console.log("Resposta completa:", response);
+
+            if (response.tipo_usuario?.trim() === "Administrador") {
+                router.push("/Administrador"); 
                 console.log("Tipo de usuário recebido:", response.tipo_usuario);
-                     router.push("/Administrador"); 
             } else {
                 router.push("/"); 
             }
@@ -48,7 +50,7 @@ export default function Login() {
     };
 
     return (
-        <main className="flex flex-col justify-center items-center">
+        <main className="flex flex-col justify-center items-center md:mt-20">
             <div className="bg-white p-8 w-full rounded-lg max-w-[400px] m-4 shadow-lg">
                 <div className="flex mb-8 items-center justify-center">
                     <Image src="/images/logo.jpg" alt="logotipo" width={150} height={150} />

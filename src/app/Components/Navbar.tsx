@@ -12,19 +12,31 @@ import { getUsuarioById } from "../Services/user"
 import { FaBars } from "react-icons/fa"
 import React, { useState,useCallback, useRef, useEffect  } from 'react';
 import { logout } from "../Services/auth";
+import { badgeNotificacoes } from "../Services/notificacoes";
 
-
+      
 
 export default function Navbar() {
     const [tipoUsuario, setTipoUsuario] = useState<string | null>(null)
     const [menuAberto, setMenuAberto] = useState(false)
-    const [autenticado ,setAutenticado]=useState <Boolean | null> (null)
+    const [autenticado ,setAutenticado]=useState <boolean | null> (null)
     const router=useRouter()
     const [isopen , setIsOpen]=useState(false)
      const boxref=useRef <HTMLDivElement>(null)
 
-
-
+     const [notificacoesNaoLidas, setNotificacoesNaoLidas] = useState(0)
+  
+     const carregarNotificacoes = async () => {
+       if (autenticado) {  
+         try {
+           const resposta = await badgeNotificacoes();
+           setNotificacoesNaoLidas(resposta.quantidade);
+         } catch (error) {
+           console.log("Erro ao carregar notificações não lidas:", error);
+         }
+       }
+     };
+     
    
      useEffect(() => {
       const checar = async () => {
@@ -42,6 +54,8 @@ export default function Navbar() {
           if (usuario && usuario.tipo_usuario) {
             setTipoUsuario(usuario.tipo_usuario);
             console.log("Usuário autenticado:", usuario);
+
+            carregarNotificacoes(); // Carregar notificações não lidas
           } else {
             console.log("Tipo de usuário não encontrado.");
           }
@@ -50,6 +64,7 @@ export default function Navbar() {
           console.log("Erro ao verificar autenticação:", error);
           setAutenticado(false);
         }
+
       };
     
       checar();
@@ -58,36 +73,69 @@ export default function Navbar() {
       
       
 console.log("Tipo de usuário:", tipoUsuario);
-const redirecionar = (rotaPersonalizada?: string): void => {
-  if (autenticado === null || tipoUsuario === null) {
-    console.log("Aguardando autenticação ou tipo de usuário...");
-    return;
-  }
+const redirecionar = async (rotaPersonalizada?: string): Promise<void> => {
+  try {
+    const authResult = await verificarAuth();
+    
+    if (!authResult) {
+      setAutenticado(false);
+      router.push("/login");
+      return;
+    }
+    
+    setAutenticado(true);
+    
+    // Se já temos o tipo de usuário, use-o diretamente
+    if (tipoUsuario) {
+      if (rotaPersonalizada) {
+        router.push(rotaPersonalizada);
+        return;
+      }
 
-  if (!autenticado) {
+      if (tipoUsuario === "Comprador") {
+        router.push("/perfilcomprador");
+      } else if (tipoUsuario === "Agricultor") {
+        router.push("/perfilagricultor");
+      } else if (tipoUsuario === "Fornecedor") {
+        router.push("/perfilfornecedor");
+      } else {
+        console.log("Tipo de usuário desconhecido:", tipoUsuario);
+        router.push("/");
+      }
+    } else {
+      // Se não temos o tipo de usuário, busque-o
+      const usuario = await getUsuarioById();
+      if (usuario && usuario.tipo_usuario) {
+        setTipoUsuario(usuario.tipo_usuario);
+        
+        if (rotaPersonalizada) {
+          router.push(rotaPersonalizada);
+          return;
+        }
+
+        if (usuario.tipo_usuario === "Comprador") {
+          router.push("/perfilcomprador");
+        } else if (usuario.tipo_usuario === "Agricultor") {
+          router.push("/perfilagricultor");
+        } else if (usuario.tipo_usuario === "Fornecedor") {
+          router.push("/perfilfornecedor");
+        } else {
+          console.log("Tipo de usuário desconhecido:", usuario.tipo_usuario);
+          router.push("/");
+        }
+      } else {
+        console.log("Não foi possível obter tipo de usuário");
+        router.push("/login");
+      }
+    }
+  } catch (error) {
+    console.log("Erro na verificação de autenticação:", error);
+    setAutenticado(false);
     router.push("/login");
-    return;
   }
+};
 
-  if (rotaPersonalizada) {
-    router.push(rotaPersonalizada);
-    return;
-  }
-
-  if (tipoUsuario === "Comprador") {
-    router.push("/perfilcomprador");
-  } else if (tipoUsuario === "Agricultor") {
-    router.push("/perfilagricultor");
-  } else if (tipoUsuario === "Fornecedor") {
-    router.push("/perfilfornecedor");
-  } else {
-    console.log("Tipo de usuário desconhecido:", tipoUsuario);
-    router.push("/");
-  }
-}
-
-
-  const handleClick = useCallback((event: MouseEvent) => {
+const handleClick = useCallback((event: MouseEvent) => {
     if (boxref.current && !boxref.current.contains(event.target as Node)) {
       setIsOpen(false);
     }
@@ -112,11 +160,10 @@ const redirecionar = (rotaPersonalizada?: string): void => {
       setAutenticado(false); 
       router.push("/login");
     } catch (error) {
-      console.error("Erro ao terminar sessão:", error);
+      console.log("Erro ao terminar sessão:", error);
     }
   };
   
-
 
     return (
 
@@ -142,11 +189,18 @@ const redirecionar = (rotaPersonalizada?: string): void => {
                      <span className="hidden lg:block ">Carrinho</span>
                      </li>
                 
-                <li className=" text-[1.2rem] cursor-pointer hover:text-marieth "
-                 onClick={()=>redirecionar("./notificacoes")}> 
-                    <IoMdNotificationsOutline className="gap-2   text-[1.4rem] ml-7 mt-[0.1rem]" /> 
-                    <span className="hidden lg:block">Notificações</span>   
-                    </li>
+          <li className="text-[1.2rem] cursor-pointer hover:text-marieth relative" 
+         onClick={()=>redirecionar("./notificacoes")}> 
+          <div className="relative">
+            <IoMdNotificationsOutline className="gap-2 text-[1.4rem] ml-8 mt-[0.1rem]" /> 
+            {notificacoesNaoLidas > 0 && (
+              <span className="absolute -top-2 -right-2 bg-vermelho text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
+                {notificacoesNaoLidas}
+              </span>
+            )}
+          </div>
+          <span className="hidden lg:block">Notificações</span>   
+        </li>
                 
                 
                 <li className="  text-[1.2rem] cursor-pointer hover:text-marieth "
@@ -165,12 +219,13 @@ const redirecionar = (rotaPersonalizada?: string): void => {
 
             
       <div className="lg:hidden">
-      <FaBars className="text-2xl mt-2 cursor-pointer hover:bg-marieth" onClick={() => setMenuAberto(!menuAberto)} />
+      <FaBars  className="text-2xl mt-2 cursor-pointer hover:bg-marieth" onClick={() =>{ setMenuAberto(!menuAberto)
+       setIsOpen(true)}} />
     </div>
 
     
     {menuAberto && isopen && (
-      <div className="absolute top-16 right-2 bg-white border shadow-md p-4 w-[250px] z-[999] rounded-xl">
+      <div ref={boxref} className="absolute top-16 right-2 bg-white border shadow-md p-4 w-[250px] z-[999] rounded-xl">
         <ul className="flex flex-col gap-4">
           <li className="text-[1rem] cursor-pointer hover:text-marieth" onClick={() => redirecionar("./")}>
             <GoHome className="inline mr-2" />
@@ -180,10 +235,18 @@ const redirecionar = (rotaPersonalizada?: string): void => {
             <AiOutlineShoppingCart className="inline mr-2" />
             Carrinho
           </li>
-          <li className="text-[1rem] cursor-pointer hover:text-marieth" onClick={() => redirecionar("./notificacoes")}>
-            <IoMdNotificationsOutline className="inline mr-2" />
-            Notificações
-          </li>
+          <li className="text-[1.2rem] cursor-pointer hover:text-marieth relative" 
+         onClick={()=>redirecionar("./notificacoes")}> 
+          <div className="relative">
+            <IoMdNotificationsOutline className="gap-2 text-[1.4rem] ml-8 mt-[0.1rem]" /> 
+            {notificacoesNaoLidas > 0 && (
+              <span className="absolute -top-2 -right-2 bg-vermelho text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
+                {notificacoesNaoLidas}
+              </span>
+            )}
+          </div>
+          <span className="hidden lg:block">Notificações</span>   
+        </li>
           <li className="text-[1rem] cursor-pointer hover:text-marieth" onClick={() => redirecionar("./relatoriocomprador")}>
             <BiBarChartSquare className="inline mr-2" />
             Relatórios

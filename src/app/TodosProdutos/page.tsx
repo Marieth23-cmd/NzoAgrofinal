@@ -78,10 +78,10 @@ export default function Vitrine() {
 
       <Navbar />
 
-      <div className="flex flex-col mb-20 gap-2 mt-[15%] max-w-[1200px] shadow-custom p-8 rounded-[10px] ml-8">
+      <div className="flex flex-col mb-20 gap-2 mt-[15%] max-w-[1200px] shadow-custom p-4 lg:p-8 rounded-[10px] ml-8">
         <div className="p-8">
-          <div className="grid grid-cols-3 gap-8 p-4">
-            {produtosVisiveis.map((produto) => (
+          <div className="grid grid-cols-1 gap-8 p-4 lg:grid-cols-3 ">
+            {produtosVisiveis.map((produto) => 
               <div
                 key={produto.id_produtos}
                 className="overflow-hidden bg-white rounded-[0.625rem]  shadow-custom transition-transform duration-150 ease-in-out transform hover:translate-y-[0.3125rem]"
@@ -147,7 +147,7 @@ export default function Vitrine() {
                   </div>
                 </div>
               </div>
-            ))}
+            )}
           </div>
         </div>
 
