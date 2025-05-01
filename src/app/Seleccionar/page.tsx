@@ -25,7 +25,7 @@ import Footer from "../Components/Footer";
          </main>         
          </div>
  
-          <div className="bg-white grid grid-cols-3" >
+          <div className="bg-white grid grid-cols-1 lg:grid-cols-3" >
 
            <div className=" ml-16 mb-20 bg-white rounded-[15px]  p-8 text-center max-w-[300px] 
             cursor-pointer shadow-custom hover:translate-y-2 ">
