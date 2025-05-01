@@ -147,8 +147,8 @@ export default function Home() {
                       </div>
                       </section>
 
-                      <section className="relative w-full mt-36 mx-auto px-4 lg:mt-10">
-      <h2 className="text-center text-2xl font-bold mb-10 lg:mb-6 ">Produtos em Destaque</h2>
+                      <section className="relative w-full mt-[140px] mx-auto px-4 lg:mt-10">
+      <h2 className="text-center text-2xl font-bold mb-8 lg:mb-6 ">Produtos em Destaque</h2>
       
      {produtosDestaque.length>3 &&(<button 
   onClick={() => scroll("right")} 
@@ -191,14 +191,7 @@ export default function Home() {
 >
   <HiChevronLeft size={40} />
 </button>)} 
-</section>
-
-
-
-
-
-
-                      
+</section>           
       </div>
       <Footer />
     </div>

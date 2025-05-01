@@ -229,7 +229,7 @@ const handleClick = useCallback((event: MouseEvent) => {
       <div ref={boxref} className="absolute top-16 right-2 bg-white border shadow-md p-4 w-[250px] z-[999] rounded-xl">
         <ul className="flex flex-col gap-4">
 
-        <li onClick={()=>router.push("/")}  className="text-[1.2rem] cursor-pointer hover:text-marieth "> 
+        <li onClick={()=>router.push("/")}  className="text-[1rem] cursor-pointer hover:text-marieth "> 
                      <GoHome className="gap-2 text-[1.4rem] ml-2  mt-[0.1rem]" /> Inicio                    </li>
                 
           
@@ -237,7 +237,7 @@ const handleClick = useCallback((event: MouseEvent) => {
             <AiOutlineShoppingCart className="inline mr-2" />
             Carrinho
           </li>
-          <li className="text-[1.2rem] cursor-pointer hover:text-marieth relative" 
+          <li className="text-[1rem] cursor-pointer hover:text-marieth relative" 
          onClick={()=>redirecionar("./notificacoes")}> 
           <div className="relative">
             <IoMdNotificationsOutline className="gap-2 text-[1.4rem] ml-8 mt-[0.1rem]" /> 
