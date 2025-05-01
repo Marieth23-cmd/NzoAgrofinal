@@ -102,11 +102,11 @@ export default function Home() {
       <Navbar />
 
       <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center 
-    min-h-screen p-8 pb-20 gap-16 sm:p-20 mt-[35%] lg:mt-[16%] mb-20">
+    min-h-screen p-8 pb-20 gap-16 sm:p-20 mt-[40%] lg:mt-[16%] mb-20">
 
 
         <div className="backgroundimage">
-          <h1 className="text-[2rem] font-bold" > Conectando o Campo à sua Mesa  </h1>
+          <h1 className=" text-[1.5rem] lg:text-[2rem] font-bold" > Conectando o Campo à sua Mesa  </h1>
           <p>Encontre produtos frescos direto dos produtores locais</p>
           <button onClick={redirecionamento} className=" bg-marieth text-white py-4 px-8 text-[1.1rem] border-none rounded-[5px] cursor-pointers hover:bg-verdeaceso transition-colors duration-150">
            Começar a Comprar
@@ -178,7 +178,7 @@ export default function Home() {
             </Link>
           ))
         ) : (
-          <p className="text-center w-full mb-10 lg:mb-0 ">Nenhum produto em destaque</p>
+          <p className="text-center w-full mb-14 lg:mb-0 ">Nenhum produto em destaque</p>
         )}
         
       </div>

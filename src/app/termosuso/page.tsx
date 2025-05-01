@@ -10,7 +10,7 @@ export default function Politica(){
             <head>
                 <title>Termos de Uso</title>
             </head>
-            <div className="flex flex-col mb-20 gap-2 mt-[15%] max-w-[1200px] shadow-custom p-8  rounded-[10px] ml-8">
+            <div className="flex flex-col mb-20 gap-2 mt-[15%] max-w-[1200px] shadow-custom p-8 ml-0  rounded-[10px] lg:ml-8">
 
            
                 <h1 className="text-[2rem] text-center text-marieth font-bold mb-8">Termos de Uso</h1>
