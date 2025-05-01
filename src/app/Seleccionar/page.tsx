@@ -1,5 +1,4 @@
- import { AiFillCar } from "react-icons/ai";
- import { FaLuggageCart } from "react-icons/fa";
+import { FaLuggageCart } from "react-icons/fa";
  import { GiFarmer} from "react-icons/gi";
  import { TiShoppingCart } from "react-icons/ti";
  import Head from "next/head"
