@@ -164,7 +164,7 @@ export default function Carrinho() {
             ))
           )}
 
-          <div className=" mt-8 p-4 bg-white rounded-[10px] shadow-custom">
+          <div className="mt-8 p-4 bg-white rounded-[10px] shadow-custom">
             <div className="flex justify-between border-b-[1px] border-solid border-tab py-2 px-0 " >
               <span>Subtotal:</span>
               <span>kzs {calcularSubtotal().toFixed(2)}</span>

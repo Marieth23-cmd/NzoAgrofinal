@@ -27,8 +27,8 @@ import Footer from "../Components/Footer";
  
           <div className="bg-white grid grid-cols-1 lg:grid-cols-3" >
 
-           <div className=" ml-16 mb-20 bg-white rounded-[15px]  p-8 text-center max-w-[300px] 
-            cursor-pointer shadow-custom hover:translate-y-2 ">
+           <div className=" ml-8 mb-20 bg-white rounded-[15px]  p-8 text-center max-w-[300px] 
+            cursor-pointer shadow-custom hover:translate-y-2 lg:ml-16">
            
                  <div className=" w-20 h-10 m-0 mx-auto mb-6 ">
                     <GiFarmer className=" w-full h-full fill-primary"/>
@@ -43,7 +43,7 @@ import Footer from "../Components/Footer";
           
          
          
-       <div className=" ml-8 mb-20 hover:translate-y-2 bg-white rounded-[15px] p-8 text-center max-w-[300px] cursor-pointer shadow-custom   "> 
+       <div className=" ml-8 hover:translate-y-2 bg-white rounded-[15px] p-8 text-center max-w-[300px] cursor-pointer shadow-custom lg:mb-20" > 
        
        <div className=" w-20 h-10 m-0 mx-auto mb-6 ">
                     < TiShoppingCart className=" w-full h-full fill-primary " />
@@ -57,8 +57,8 @@ import Footer from "../Components/Footer";
                        <Link href="./Cadastrocomprador">Seleccionar Perfil</Link></button>
                  </div>
             
-        <div className=" hover:translate-y-2 mb-20 bg-white rounded-[15px] p-8 text-center max-w-[300px] cursor-pointer shadow-custom transition-transform " >
-                <div className=" w-20 h-10 m-0 mx-auto mb-6 ">
+        <div className=" hover:translate-y-2  bg-white rounded-[15px] p-8 text-center mb-24 max-w-[300px] cursor-pointer shadow-custom transition-transform lg:mb-20" >
+                <div className=" ml-8 w-20 h-10 lg:m-0 mx-auto mb-6 ">
                     <FaLuggageCart className=" w-full h-full fill-primary " />
                 </div>
                  <div className=" text-2xl  text-profile" > Fornecedor</div>

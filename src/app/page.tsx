@@ -102,7 +102,7 @@ export default function Home() {
       <Navbar />
 
       <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center 
-    min-h-screen p-8 pb-20 gap-16 sm:p-20 mt-[25%] lg:mt-[16%] mb-20">
+    min-h-screen p-8 pb-20 gap-16 sm:p-20 mt-[30%] lg:mt-[16%] mb-20">
 
 
         <div className="backgroundimage">
@@ -114,7 +114,7 @@ export default function Home() {
         </div>
 
 
-        <section className="max-w-[75rem] md:p-8 -mb-12 mt-40  lg:mt-24 ">
+        <section className="max-w-[75rem] md:p-8 -mb-12 mt-44gi  lg:mt-24 ">
           <h1 className=" text-center mb-4 text-2xl mt-0 font-bold ">Categorias</h1>
           <div className="grid gap-6 grid-cols-2 md:grid-cols-5 ">
             <div className=" flex items-center justify-center bg-white p-6  rounded-[10px] hover:shadow-xl text-center cursor-pointer shadow-custom   hover:translate-y-2 " >
@@ -178,7 +178,7 @@ export default function Home() {
             </Link>
           ))
         ) : (
-          <p className="text-center w-full ">Nenhum produto em destaque</p>
+          <p className="text-center w-full mb-10 lg:mb-0 ">Nenhum produto em destaque</p>
         )}
         
       </div>
