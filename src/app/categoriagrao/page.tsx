@@ -87,7 +87,7 @@ export default function Categoriagrao() {
       </Head>
       <Navbar />
 
-      <div className="mb-20 mt-[20%] lg:mt-[18%]">
+      <div className="mb-20 mt-[24%] lg:mt-[18%]">
         <h1 className="text-center my-6 text-[2rem] font-bold text-marieth">Grãos</h1>
 
         <div className=" my-12 mx-9 px-4">
