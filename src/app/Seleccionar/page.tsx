@@ -65,7 +65,7 @@ import Footer from "../Components/Footer";
                  <div className="mb-6 text-cortexto ">Ofereça insumos agricolas para agricultores e aumente suas vendas com facilidade</div>
                  
                <button className="hover:bg-verdeaceso cursor-pointer w-full text-base text-white rounded-[5px] border-none bg-primary py-3 px-6" >
-                 <Link href="./cadastrofornecedor"></Link> Seleccionar Perfil</button>
+                 <Link href="./cadastrofornecedor">Seleccionar Perfil</Link> </button>
  </div>
              
    

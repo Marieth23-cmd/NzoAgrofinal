@@ -92,7 +92,7 @@ export default function CadastroComprador() {
                 <h1 className="text-[32px] font-bold">Cadastrar Comprador</h1>
             </div>
             <div className="mb-20 mt-10"> 
-                <div className="bg-white rounded-[10px] p-8 w-full max-w-[800px] ml-[20%] shadow-custom">
+                <div className="bg-white rounded-[10px] p-8 w-full max-w-[800px] lg:ml-[20%] shadow-custom">
                     <div className="mx-32"></div>
 
                     <form onSubmit={handleSubmit}>
