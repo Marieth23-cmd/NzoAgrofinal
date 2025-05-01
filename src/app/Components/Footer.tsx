@@ -37,7 +37,7 @@ import Link from "next/link"
     
  
               </div>
-<p className="text-white text-center  mt-4 pt-4 border-t-[1px] border-solid border-gray-600 ">&copy; 2025 Nzoagro. Todos os direitos reservados.</p>
+<p className="text-white text-center pt-6 mt-4 lg:pt-4 border-t-[1px] border-solid border-gray-600 ">&copy; 2025 Nzoagro. Todos os direitos reservados.</p>
                 
 
 

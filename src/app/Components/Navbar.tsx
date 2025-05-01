@@ -229,10 +229,8 @@ const handleClick = useCallback((event: MouseEvent) => {
       <div ref={boxref} className="absolute top-16 right-2 bg-white border shadow-md p-4 w-[250px] z-[999] rounded-xl">
         <ul className="flex flex-col gap-4">
 
-        <li className="  text-[1.2rem] cursor-pointer hover:text-marieth "> 
-                    <Link href="./"> <GoHome className="gap-2 text-[1.4rem] ml-2  mt-[0.1rem]" /> 
-                    Inicio</Link> 
-                    </li>
+        <li onClick={()=>router.push("/")}  className="text-[1.2rem] cursor-pointer hover:text-marieth "> 
+                     <GoHome className="gap-2 text-[1.4rem] ml-2  mt-[0.1rem]" /> Inicio                    </li>
                 
           
           <li className="text-[1rem] cursor-pointer hover:text-marieth" onClick={() => redirecionar("./carrinho")}>
@@ -243,13 +241,13 @@ const handleClick = useCallback((event: MouseEvent) => {
          onClick={()=>redirecionar("./notificacoes")}> 
           <div className="relative">
             <IoMdNotificationsOutline className="gap-2 text-[1.4rem] ml-8 mt-[0.1rem]" /> 
-            <span className="hidden lg:block">Notificações</span>   
             {notificacoesNaoLidas > 0 && (
               <span className="absolute -top-2 -right-2 bg-vermelho text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
                 {notificacoesNaoLidas}
               </span>
             )}
           </div>
+            Notificações  
         </li>
           <li className="text-[1rem] cursor-pointer hover:text-marieth" onClick={() => redirecionar("./relatoriocomprador")}>
             <BiBarChartSquare className="inline mr-2" />

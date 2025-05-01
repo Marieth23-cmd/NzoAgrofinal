@@ -102,7 +102,7 @@ export default function Home() {
       <Navbar />
 
       <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center 
-    min-h-screen p-8 pb-20 gap-16 sm:p-20 mt-[40%] lg:mt-[16%] mb-20">
+    min-h-screen p-8 pb-20 gap-16 sm:p-20 mt-[45%] lg:mt-[16%] mb-20">
 
 
         <div className="backgroundimage">
@@ -117,13 +117,13 @@ export default function Home() {
         <section className="max-w-[75rem] md:p-8 -mb-12 mt-44  lg:mt-24 ">
           <h1 className=" text-center mb-4 text-2xl mt-0 font-bold ">Categorias</h1>
           <div className="grid gap-6 grid-cols-2 md:grid-cols-5 ">
-            <div className=" flex items-center justify-center bg-white p-6  rounded-[10px] hover:shadow-xl text-center cursor-pointer shadow-custom   hover:translate-y-2 " >
-              <h3 className="  font-medium text-[1.17rem] mb-[0.5rem]" >        <Link href="./categoriafrutas"><FaAppleAlt className="mb-4 text-marieth text-[2.5rem] " />
+            <div className=" flex items-center justify-center bg-white p-6  rounded-[10px] hover:shadow-xl text-center cursor-pointer shadow-custom hover:translate-y-2 " >
+              <h3 className="  font-medium text-[1.17rem] mb-[0.5rem]" ><Link href="./categoriafrutas"><FaAppleAlt className="mb-4 text-marieth text-[2.5rem] " />
                 Frutas</Link>
               </h3>
             </div>
             <div className=" flex items-center justify-center bg-white p-6  rounded-[10px] hover:shadow-xl text-center cursor-pointer shadow-custom  hover:translate-y-2">
-              <h3 className="  font-medium text-[18.72px]  mb-[0.5rem] " ><Link href="./categoriaverdura"> <GiCabbage className="mb-4 ml-4  text-marieth text-[2.5rem]" />
+              <h3 className="font-medium text-[18.72px]  mb-[0.5rem]" ><Link href="./categoriaverdura"> <GiCabbage className="mb-4 ml-4  text-marieth text-[2.5rem]" />
                 Verduras </Link></h3>
             </div>
 
@@ -147,7 +147,7 @@ export default function Home() {
                       </div>
                       </section>
 
-                      <section className="relative w-full mt-32 mx-auto px-4 lg:mt-10">
+                      <section className="relative w-full mt-36 mx-auto px-4 lg:mt-10">
       <h2 className="text-center text-2xl font-bold mb-10 lg:mb-6 ">Produtos em Destaque</h2>
       
      {produtosDestaque.length>3 &&(<button 
@@ -178,7 +178,7 @@ export default function Home() {
             </Link>
           ))
         ) : (
-          <p className="text-center w-full mb-14 lg:mb-0 ">Nenhum produto em destaque</p>
+          <p className="text-center w-full mb-16 lg:mb-0 ">Nenhum produto em destaque</p>
         )}
         
       </div>
