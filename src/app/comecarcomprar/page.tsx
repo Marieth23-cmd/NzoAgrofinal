@@ -15,13 +15,13 @@ import Head from "next/head";
                     
             </Head>
                  <Navbar/>
-            <div className="p-8 mb-8 mx-auto  text-center  max-w-[800px]">
-                <h1  className=" text-[2rem] mb-6 text-marieth font-bold mt-[20%]" >Bem-vindo à NzoAgro!</h1>
+            <div className="p-8 mb-8 mx-auto  mt-[22%] text-center  max-w-[800px] lg:mt-[20%]">
+                <h1  className=" text-[2rem] mb-6 text-marieth font-bold" >Bem-vindo à NzoAgro!</h1>
                 <p className="mb-8 text-[1.2rem]  text-profile ">Para começar suas compras, selecione uma categoria abaixo ou explore todos os nossos produtos disponíveis. 
                     Temos uma grande variedade de produtos agrícolas de alta qualidade esperando por você!</p>
                     <a  className=" bg-marieth text-white py-4 px-8 border-none rounded-[5px]
                      text-[1.1rem] cursor-pointer inline-block hover:bg-verdeaceso transition-colors duration-150 
-             " href="./TodosProdutos">   Ver Todos os Produtos</a>
+             " href="./TodosProdutos">Ver Todos os Produtos</a>
                     <div className=" s grid grid-cols-2 ">
                     <div className="  mt-12 py-0  px-8" >
                         <div className=" flex items-center justify-center  rounded-[10px] text-center p-6 cursor-pointer shadow-custom  bg-branco transition-colors duration-150 ease-in-out hover:translate-y-2 " >

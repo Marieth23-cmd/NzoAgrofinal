@@ -180,7 +180,8 @@ const handleClick = useCallback((event: MouseEvent) => {
             <ul className="   ml-[33rem] gap-8 hidden lg:flex">
                 <li className="  text-[1.2rem] cursor-pointer hover:text-marieth "> 
                     <Link href="./"> <GoHome className="gap-2 text-[1.4rem] ml-2  mt-[0.1rem]" /> 
-                    <span>Inicio</span></Link> </li>
+                    Inicio</Link> 
+                    </li>
                 
                 
                 <li className="  text-[1.2rem] cursor-pointer hover:text-marieth "
@@ -227,10 +228,13 @@ const handleClick = useCallback((event: MouseEvent) => {
     {menuAberto && isopen && (
       <div ref={boxref} className="absolute top-16 right-2 bg-white border shadow-md p-4 w-[250px] z-[999] rounded-xl">
         <ul className="flex flex-col gap-4">
-          <li className="text-[1rem] cursor-pointer hover:text-marieth" onClick={() => redirecionar("./")}>
-            <GoHome className="inline mr-2" />
-            Início
-          </li>
+
+        <li className="  text-[1.2rem] cursor-pointer hover:text-marieth "> 
+                    <Link href="./"> <GoHome className="gap-2 text-[1.4rem] ml-2  mt-[0.1rem]" /> 
+                    Inicio</Link> 
+                    </li>
+                
+          
           <li className="text-[1rem] cursor-pointer hover:text-marieth" onClick={() => redirecionar("./carrinho")}>
             <AiOutlineShoppingCart className="inline mr-2" />
             Carrinho

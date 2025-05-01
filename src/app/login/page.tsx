@@ -49,7 +49,7 @@ export default function Login() {
     };
 
     return (
-        <main className="flex flex-col justify-center items-center md:mt-20">
+        <main className="flex flex-col justify-center mt-24 items-center lg:mt-20">
             <div className="bg-white p-8 w-full rounded-lg max-w-[400px] m-4 shadow-lg">
                 <div className="flex mb-8 items-center justify-center">
                     <Image src="/images/logo.jpg" alt="logotipo" width={150} height={150} />
