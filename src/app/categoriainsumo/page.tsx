@@ -87,7 +87,7 @@ export default function CategoriaInsumos() {
       </Head>
       <Navbar />
 
-      <div className="mb-20 mt-[32%] lg:mt-[18%]">
+      <div className="mb-20 mt-[40%] lg:mt-[18%]">
         <h1 className="text-center my-6 text-[2rem] font-bold text-marieth">Insumos Agrícolas</h1>
 
         <div className=" my-12 mx-9 px-4">
