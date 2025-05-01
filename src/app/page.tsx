@@ -102,19 +102,19 @@ export default function Home() {
       <Navbar />
 
       <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center 
-    min-h-screen p-8 pb-20 gap-16 sm:p-20 mt-[45%] lg:mt-[16%] mb-20">
+    min-h-screen p-8 pb-20 gap-16 sm:p-20 mt-[46%] lg:mt-[16%] mb-20">
 
 
         <div className="backgroundimage">
           <h1 className=" text-[1.5rem] lg:text-[2rem] font-bold" > Conectando o Campo à sua Mesa  </h1>
           <p>Encontre produtos frescos direto dos produtores locais</p>
-          <button onClick={redirecionamento} className=" bg-marieth text-white py-4 px-8 text-[1.1rem] border-none rounded-[5px] cursor-pointers hover:bg-verdeaceso transition-colors duration-150">
+          <button onClick={redirecionamento} className=" bg-marieth text-white py-2 px-4 lg:py-4 lg:px-8 text-[1.1rem] border-none rounded-[5px] cursor-pointers hover:bg-verdeaceso transition-colors duration-150">
            Começar a Comprar
           </button>
         </div>
 
 
-        <section className="max-w-[75rem] md:p-8 -mb-12 mt-44  lg:mt-24 ">
+        <section className="max-w-[75rem] md:p-8 mb-16 lg:-mb-12 mt-44  lg:mt-24 ">
           <h1 className=" text-center mb-4 text-2xl mt-0 font-bold ">Categorias</h1>
           <div className="grid gap-6 grid-cols-2 md:grid-cols-5 ">
             <div className=" flex items-center justify-center bg-white p-6  rounded-[10px] hover:shadow-xl text-center cursor-pointer shadow-custom hover:translate-y-2 " >
@@ -178,7 +178,7 @@ export default function Home() {
             </Link>
           ))
         ) : (
-          <p className="text-center w-full mb-16 lg:mb-0 ">Nenhum produto em destaque</p>
+          <p className="text-center w-full mb-20 lg:mb-0 ">Nenhum produto em destaque</p>
         )}
         
       </div>
