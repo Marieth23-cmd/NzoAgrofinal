@@ -178,7 +178,7 @@ export default function Home() {
             </Link>
           ))
         ) : (
-          <p className="text-center w-full mb-20 lg:mb-0 ">Nenhum produto em destaque</p>
+          <p className="text-center w-full mb-14 lg:mb-0 ">Nenhum produto em destaque</p>
         )}
         
       </div>
