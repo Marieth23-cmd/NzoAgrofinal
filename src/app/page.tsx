@@ -108,7 +108,7 @@ export default function Home() {
         <div className="backgroundimage">
           <h1 className=" text-[1rem] lg:text-[2rem] font-bold" > Conectando o Campo à sua Mesa  </h1>
           <p className="hidden lg:block ">Encontre produtos frescos direto dos produtores locais</p>
-          <button onClick={redirecionamento} className=" bg-marieth text-white py-2 px-4 lg:py-4 lg:px-8 text-[1.1rem] border-none rounded-[5px] cursor-pointers hover:bg-verdeaceso transition-colors duration-150">
+          <button onClick={redirecionamento} className="mt-1 bg-marieth text-white py-2 px-4 lg:mt-0 lg:py-4 lg:px-8 text-[1.1rem] border-none rounded-[5px] cursor-pointers hover:bg-verdeaceso transition-colors duration-150">
            Começar a Comprar
           </button>
         </div>
