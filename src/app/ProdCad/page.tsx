@@ -130,7 +130,7 @@ const [loading, setLoading] = useState(false);
             <div>
                 <form
                     onSubmit={handleSubmit}
-                    className="bg-white rounded-[10px] p-8 w-full max-w-[800px] ml-[20%] mb-20 mt-[15%] shadow-custom"
+                    className="bg-white rounded-[10px] p-8 w-full max-w-[800px] ml-0 lg:ml-[20%] mb-20 mt-[15%] shadow-custom"
                 >
                     <h3 className="mb-6 text-marieth text-[1.8rem] font-bold ">Cadastrar Novo Produto</h3>
 

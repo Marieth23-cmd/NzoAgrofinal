@@ -106,7 +106,7 @@ export default function Home() {
 
 
         <div className="backgroundimage">
-          <h1 className=" text-[1.5rem] lg:text-[2rem] font-bold" > Conectando o Campo à sua Mesa  </h1>
+          <h1 className=" text-[1rem] lg:text-[2rem] font-bold" > Conectando o Campo à sua Mesa  </h1>
           <p className="hidden lg:block ">Encontre produtos frescos direto dos produtores locais</p>
           <button onClick={redirecionamento} className=" bg-marieth text-white py-2 px-4 lg:py-4 lg:px-8 text-[1.1rem] border-none rounded-[5px] cursor-pointers hover:bg-verdeaceso transition-colors duration-150">
            Começar a Comprar
@@ -117,29 +117,29 @@ export default function Home() {
         <section className="max-w-[75rem] md:p-8 mb-16 lg:-mb-12 mt-44  lg:mt-24 ">
           <h1 className=" text-center mb-4 text-2xl mt-0 font-bold ">Categorias</h1>
           <div className="grid gap-6 grid-cols-2 md:grid-cols-5 ">
-            <div className=" flex items-center justify-center bg-white p-6  rounded-[10px] hover:shadow-xl text-center cursor-pointer shadow-custom hover:translate-y-2 " >
+            <div className=" flex items-center justify-center bg-white p-6  rounded-[10px] lg:hover:shadow-xl text-center cursor-pointer shadow-custom lg:hover:translate-y-2 " >
               <h3 className="  font-medium text-[1.17rem] mb-[0.5rem]" ><Link href="./categoriafrutas"><FaAppleAlt className="mb-4 text-marieth text-[2.5rem] " />
                 Frutas</Link>
               </h3>
             </div>
-            <div className=" flex items-center justify-center bg-white p-6  rounded-[10px] hover:shadow-xl text-center cursor-pointer shadow-custom  hover:translate-y-2">
+            <div className=" flex items-center justify-center bg-white p-6  rounded-[10px] lg:hover:shadow-xl text-center cursor-pointer shadow-custom  lg:hover:translate-y-2">
               <h3 className="font-medium text-[18.72px]  mb-[0.5rem]" ><Link href="./categoriaverdura"> <GiCabbage className="mb-4 ml-4  text-marieth text-[2.5rem]" />
                 Verduras </Link></h3>
             </div>
 
-            <div className=" flex justify-center items-center bg-white p-6  rounded-[10px] hover:shadow-xl text-center cursor-pointer shadow-custom  hover:translate-y-2" >
+            <div className=" flex justify-center items-center bg-white p-6  rounded-[10px] lg:hover:shadow-xl text-center cursor-pointer shadow-custom  lg:hover:translate-y-2" >
               <h3 className="  font-medium text-[18.72px]  mb-[0.5rem]" >
                 <Link href="./categoriainsumo"> <FaSeedling className="mb-4 ml-11  text-marieth text-[2.5rem]" /> Insumos Agrícolas  </Link>
               </h3>
             </div>
 
 
-            <div className=" flex items-cente justify-center bg-white p-6  rounded-[10px] hover:shadow-xl text-center cursor-pointer shadow-custom  hover:translate-y-2">
+            <div className=" flex items-cente justify-center bg-white p-6  rounded-[10px] lg:hover:shadow-xl text-center cursor-pointer shadow-custom  lg:hover:translate-y-2">
               <h3 className="  font-medium text-[18.72px]  mb-[0.5rem]" >
                 <Link href="./categoriagrao"><LuWheat className="mb-4 ml-4  text-marieth text-[2.5rem]" /> Grãos</Link>
               </h3>
             </div>
-            <div className=" flex items-center justify-center bg-white p-6  rounded-[10px] hover:shadow-xl text-center cursor-pointer shadow-custom  hover:translate-y-2" >
+            <div className=" flex items-center justify-center bg-white p-6  rounded-[10px] lg:hover:shadow-xl text-center cursor-pointer shadow-custom  lg:hover:translate-y-2" >
               <h3 className="  font-medium text-[18.72px]  mb-[0.5rem]" >
                 <Link href="./categoriatuberraiz"  ><FaCarrot className=" text-marieth mb-4 text-[2.5rem] ml-10" /> Tubérculos e Raízes</Link>
               </h3>
@@ -148,7 +148,7 @@ export default function Home() {
                       </section>
 
                       <section className="relative w-full mt-[30px] mx-auto px-4 lg:mt-10">
-      <h2 className="text-center text-2xl font-bold mb-8 lg:mb-6 ">Produtos em Destaque</h2>
+      <h2 className="text-center text-2xl font-bold mb-6 lg:mb-6 ">Produtos em Destaque</h2>
       
      {produtosDestaque.length>3 &&(<button 
   onClick={() => scroll("right")} 
@@ -178,7 +178,7 @@ export default function Home() {
             </Link>
           ))
         ) : (
-          <p className="text-center w-full mb-14 lg:mb-0 ">Nenhum produto em destaque</p>
+          <p className="text-center w-full mb-12 lg:mb-0 ">Nenhum produto em destaque</p>
         )}
         
       </div>

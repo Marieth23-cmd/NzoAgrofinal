@@ -239,7 +239,7 @@ const handleClick = useCallback((event: MouseEvent) => {
           </li>
           <li className="text-[1rem] cursor-pointer hover:text-marieth" 
          onClick={()=>redirecionar("./notificacoes")}> 
-          <div className="relative">
+          <div>
             <IoMdNotificationsOutline className="inline mr-2" /> 
             {notificacoesNaoLidas > 0 && (
               <span className="absolute -top-2 -right-2 bg-vermelho text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">

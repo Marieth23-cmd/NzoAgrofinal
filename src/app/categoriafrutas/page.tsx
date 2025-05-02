@@ -88,7 +88,7 @@ export default function CategoriaFrutas() {
       </Head>
       <Navbar />
 
-      <div className="mb-20 mt-[50%] lg:mt-[18%]">
+      <div className="mb-20 mt-[52%] lg:mt-[18%]">
         <h1 className="text-center my-6 text-[2rem] font-bold text-marieth">Frutas</h1>
 
         <div className=" my-12 mx-9 px-4">
