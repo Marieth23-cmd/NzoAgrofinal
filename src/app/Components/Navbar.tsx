@@ -4,7 +4,7 @@ import { AiOutlineShoppingCart } from "react-icons/ai"
 import { BiBarChartSquare } from "react-icons/bi"
 import { GoHome } from "react-icons/go";
 import { IoPersonCircleOutline } from "react-icons/io5"
-import Link from "next/link"
+import { MdOutlinePersonOff } from "react-icons/md";
 import { IoMdNotificationsOutline } from "react-icons/io";
 import { verificarAuth } from "../Services/auth"
 import { useRouter } from "next/navigation"
@@ -226,7 +226,7 @@ const handleClick = useCallback((event: MouseEvent) => {
 
     
     {menuAberto && isopen && (
-      <div ref={boxref} className="absolute top-16 right-2 bg-white border shadow-md p-4 w-[250px] z-[999] rounded-xl">
+      <div ref={boxref} className="absolute top-16 right-2 bg-white border shadow-custom p-4 w-[200px] z-[999] rounded-xl">
         <ul className="flex flex-col gap-4">
 
         <li onClick={()=>router.push("/")} className="text-[1rem] cursor-pointer hover:text-marieth "> 
@@ -259,7 +259,7 @@ const handleClick = useCallback((event: MouseEvent) => {
             Minha conta
           </li>
           <li className="text-[1rem] cursor-pointer hover:text-vermelho" onClick={handleLogout}>
-            <IoPersonCircleOutline className="inline mr-2" />
+            <MdOutlinePersonOff  className="inline mr-2" />
             Terminar Sessão
           </li>
         </ul>
