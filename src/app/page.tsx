@@ -107,7 +107,7 @@ export default function Home() {
 
         <div className="backgroundimage">
           <h1 className=" text-[1.5rem] lg:text-[2rem] font-bold" > Conectando o Campo à sua Mesa  </h1>
-          <p>Encontre produtos frescos direto dos produtores locais</p>
+          <p className="text-xs lg:text-[0px] ">Encontre produtos frescos direto dos produtores locais</p>
           <button onClick={redirecionamento} className=" bg-marieth text-white py-2 px-4 lg:py-4 lg:px-8 text-[1.1rem] border-none rounded-[5px] cursor-pointers hover:bg-verdeaceso transition-colors duration-150">
            Começar a Comprar
           </button>
@@ -147,7 +147,7 @@ export default function Home() {
                       </div>
                       </section>
 
-                      <section className="relative w-full mt-[38px] mx-auto px-4 lg:mt-10">
+                      <section className="relative w-full mt-[30px] mx-auto px-4 lg:mt-10">
       <h2 className="text-center text-2xl font-bold mb-8 lg:mb-6 ">Produtos em Destaque</h2>
       
      {produtosDestaque.length>3 &&(<button 
