@@ -28,7 +28,7 @@ import Footer from "../Components/Footer";
           <div className="bg-white grid grid-cols-1 lg:grid-cols-3" >
 
            <div className=" ml-8  bg-white rounded-[15px]  p-8 text-center max-w-[300px] 
-            cursor-pointer shadow-custom lg:hover:translate-y-2 lg:mb-20 lg:ml-16">
+            cursor-pointer shadow-custom lg:hover:translate-y-2 mb-20 lg:ml-16">
            
                  <div className="w-20 h-10 m-0 mx-auto mb-6 ">
                     <GiFarmer className=" w-full h-full fill-primary"/>
@@ -43,7 +43,7 @@ import Footer from "../Components/Footer";
           
          
          
-       <div className=" ml-8 bg-white rounded-[15px] p-8 text-center  max-w-[300px] cursor-pointer shadow-custom lg:mb-20 lg:hover:translate-y-2" > 
+       <div className=" ml-8 bg-white rounded-[15px] p-8 text-center  max-w-[300px] cursor-pointer shadow-custom mb-20 hover:translate-y-2" > 
        
        <div className=" w-20 h-10 m-0 mx-auto mb-6 ">
                     < TiShoppingCart className=" w-full h-full fill-primary " />
@@ -57,7 +57,7 @@ import Footer from "../Components/Footer";
                        <Link href="./Cadastrocomprador">Seleccionar Perfil</Link></button>
                  </div>
             
-        <div className="ml-8   bg-white rounded-[15px] p-8 text-center max-w-[300px] cursor-pointer shadow-custom transition-transform lg:mb-20 lg:hover:translate-y-2" >
+        <div className="ml-8  bg-white rounded-[15px] p-8 text-center max-w-[300px] cursor-pointer shadow-custom transition-transform mb-20 lg:hover:translate-y-2" >
                 <div className=" ml-8 w-20 h-10 lg:m-0 mx-auto mb-6 ">
                     <FaLuggageCart className=" w-full h-full fill-primary " />
                 </div>
