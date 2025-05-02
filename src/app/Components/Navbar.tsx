@@ -237,18 +237,19 @@ const handleClick = useCallback((event: MouseEvent) => {
             <AiOutlineShoppingCart className="inline mr-2" />
             Carrinho
           </li>
-          <li className="text-[1rem] cursor-pointer hover:text-marieth" 
-         onClick={()=>redirecionar("./notificacoes")}> 
-          <div>
-            <IoMdNotificationsOutline className="inline mr-2" /> 
-            {notificacoesNaoLidas > 0 && (
-              <span className="absolute -top-2 -right-2 bg-vermelho text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
-                {notificacoesNaoLidas}
-              </span>
-            )}
-          </div>
-            Notificações  
+                  <li
+          className="text-[1rem] cursor-pointer hover:text-marieth relative"
+          onClick={() => redirecionar("./notificacoes")}
+        >
+          <IoMdNotificationsOutline className="inline mr-2" />
+          {notificacoesNaoLidas > 0 && (
+            <span className="absolute top-0 right-4 bg-vermelho text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
+              {notificacoesNaoLidas}
+            </span>
+          )}
+          Notificações
         </li>
+
           <li className="text-[1rem] cursor-pointer hover:text-marieth" onClick={() => redirecionar("./relatoriocomprador")}>
             <BiBarChartSquare className="inline mr-2" />
             Relatórios
