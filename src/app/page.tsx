@@ -114,7 +114,7 @@ export default function Home() {
         </div>
 
 
-        <section className="max-w-[75rem] md:p-8 mb-16 lg:-mb-12 mt-42 lg:mt-24 ">
+        <section className="max-w-[75rem] md:p-8 mb-16 lg:-mb-12 mt-44 lg:mt-24 ">
           <h1 className=" text-center mb-4 text-2xl mt-0 font-bold ">Categorias</h1>
           <div className="grid gap-6 grid-cols-2 md:grid-cols-5 ">
             <div className=" flex items-center justify-center bg-white p-6  rounded-[10px] lg:hover:shadow-xl text-center cursor-pointer shadow-custom lg:hover:translate-y-2 " >
