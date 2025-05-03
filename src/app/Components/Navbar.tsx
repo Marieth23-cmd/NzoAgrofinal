@@ -220,7 +220,7 @@ const handleClick = useCallback((event: MouseEvent) => {
 
             
       <div className="lg:hidden">
-      <FaBars  className="text-2xl mt-2 cursor-pointer hover:bg-marieth" onClick={() =>{ setMenuAberto(!menuAberto)
+      <FaBars  className="text-2xl mt-2 cursor-pointer hover:text-marieth" onClick={() =>{ setMenuAberto(!menuAberto)
        setIsOpen(true)}} />
     </div>
 
