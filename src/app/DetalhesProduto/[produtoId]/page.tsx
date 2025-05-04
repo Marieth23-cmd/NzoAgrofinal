@@ -18,7 +18,7 @@ import Cookies from "js-cookie";
 import { enviarAvaliacao } from "../../Services/avaliacoes";
 import { FaStar } from "react-icons/fa";
 import { adicionarProdutoAoCarrinho } from '@/app/Services/cart';
-import { error } from 'console';
+
 
 export default function DetalhesProduto(){
 
@@ -42,7 +42,6 @@ export default function DetalhesProduto(){
   const [notaSelecionada, setNotaSelecionada] = useState<number>(0);
 
   const id = produtoId;
-  const token = Cookies.get("token");
 
   type Produto = {
     id_produtos: number;
@@ -94,7 +93,7 @@ export default function DetalhesProduto(){
         const media = await buscarMediaEstrelas(data.id_produtos);
         setAvaliacoes({ [data.id_produtos]: media?.media_estrelas || null });
       } catch (error) {
-        console.error("Erro ao buscar produto:", error);
+        console.log("Erro ao buscar produto:", error);
 
         // Gracefully handle memory allocation errors
         if (error instanceof RangeError) {
@@ -131,13 +130,13 @@ export default function DetalhesProduto(){
   }, [id]);
 
   const handleAvaliar = async (nota: number) => {
-    if (!token) {
+    if (!autenticado) {
       alert("Você precisa estar logado para avaliar.");
       return;
     }
   
     try {
-      await enviarAvaliacao(Number(produtoId), nota, token);
+      await enviarAvaliacao(Number(produtoId), nota);
       alert("Avaliação enviada com sucesso!");
       setNotaSelecionada(nota);
       // Recarregar dados
@@ -151,14 +150,14 @@ export default function DetalhesProduto(){
         setMensagemSucesso(null);
       }, 3000);
 
-    } catch (err) {
-      console.log(err);
+    } catch (error) {
+      console.log(error);
       alert("Erro ao enviar avaliação.");
     }
   };
   
   const verificarLoginAntesDeAvaliar = async (nota: number) => {
-    if (!token) {
+    if (!autenticado) {
       alert("Você precisa estar logado para avaliar.");
       router.push("/login");
       return;
@@ -168,7 +167,7 @@ export default function DetalhesProduto(){
   
   // Nova função para lidar com o clique no botão +/-
   const handleBotaoMaisMenos = async () => {
-    if (!token) {
+    if (!autenticado) {
       alert("Você precisa estar logado para adicionar ao carrinho.");
       router.push("/login");
       return;

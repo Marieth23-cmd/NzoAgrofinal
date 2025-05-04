@@ -144,7 +144,7 @@ export default function PerfilComprador() {
       <Navbar />
       <div className="flex flex-col mb-20 gap-2 mt-[15%] max-w-[1200px] shadow-custom justify-center items-center">
         <main className="my-8 p-4 max-w-[72rem] mx-8">
-          <div className="flex shadow-custom border-[1px] rounded-[10px] p-4 bg-white gap-8">
+          <div className="flex shadow-custom border-[1px] rounded-[10px] p-8 bg-white gap-8">
             <div className="absolute w-[12.5rem] h-[12.5rem] rounded-[50%] flex items-center text-[4rem] justify-center text-cortime bg-cinzab">
               {imagemPerfil ? (
                 <Image src={imagemPerfil} alt="foto de Perfil" width={250} height={200} fill className="rounded-[50%] object-cover" />
@@ -211,7 +211,7 @@ export default function PerfilComprador() {
             </div>
           </div>
 
-          <div className="mt-4 shadow-custom p-4 bg-white">
+          <div className="mt-4 shadow-custom p-8 bg-white">
             <h2 className="mb-6 text-profile font-semibold text-2xl">Histórico de Compras</h2>
             <div className="grid gap-4">
               <div className="flex gap-8 rounded-[0.625rem] p-6 bg-list">

@@ -3,13 +3,13 @@ import axios, { AxiosError } from "axios";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
 export const adicionarProdutoAoCarrinho = async (
-    id_produtos: string,
+    id_produto: string,
     quantidade: number = 1
 ) => {
     try {
         const response = await axios.post(
             `${API_URL}/carrinho/adicionar`,
-            {  id_produtos, quantidade },
+            {  id_produto, quantidade },
             {
                 withCredentials: true,
                 headers: { "Content-Type": "application/json" },

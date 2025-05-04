@@ -85,7 +85,7 @@ export default function Comprador() {
     responsive: true,
     maintainAspectRatio: false, // Importante para evitar o redimensionamento
     animation: {
-      duration: 0 // Desativa a animação para evitar o efeito de redimensionamento
+      duration: 500 // Uma pequena animação para mostrar os dados, mas não constante
     },
     plugins: {
       legend: {
@@ -136,15 +136,15 @@ export default function Comprador() {
   useEffect(() => {
     carregarDados();
     
-    // Ajustar o tamanho do gráfico ao montar o componente
+    // Não é mais necessário ajustar o tamanho manualmente, pois usamos classes Tailwind
+    // Podemos ainda manter uma referência para possíveis atualizações futuras
     const ajustarTamanhoGrafico = () => {
-      if (chartContainerRef.current && chartRef.current) {
-        const container = chartContainerRef.current;
-        container.style.height = '400px'; // Altura fixa para o gráfico
+      if (chartRef.current) {
+        // Qualquer ajuste adicional pode ser feito aqui se necessário no futuro
+        // mas sem manipular diretamente o estilo
       }
     };
     
-    ajustarTamanhoGrafico();
     window.addEventListener('resize', ajustarTamanhoGrafico);
     
     return () => {
@@ -162,40 +162,58 @@ export default function Comprador() {
       const relatorioData = await getRelatorioUsuario(dataInicial || undefined, dataFinal || undefined);
       setRelatorio(relatorioData || []);
       
-      // Buscar estatísticas gerais
-      const estatisticasData = await getEstatisticas();
-      setEstatisticas(estatisticasData);
-      
-      // Atualizar o gráfico com os dados mensais
-      if (estatisticasData?.por_mes) {
-        const dadosMensais = Array(12).fill(0);
-        const coresFundo = Array(12).fill('#E53E3E');
-        const coresBorda = Array(12).fill('#C53030');
+      try {
+        // Buscar estatísticas gerais
+        const estatisticasData = await getEstatisticas();
+        setEstatisticas(estatisticasData);
         
-        estatisticasData.por_mes.forEach((item: ItemMensal) => {
-          if (item.mes >= 1 && item.mes <= 12) {
-            dadosMensais[item.mes - 1] = item.total_mes;
-            
-            // Determinar a cor com base no valor
-            const cores = determinarCor(item.total_mes);
-            coresFundo[item.mes - 1] = cores.backgroundColor;
-            coresBorda[item.mes - 1] = cores.borderColor;
-          }
-        });
-        
-        setDadosGrafico(prev => ({
-          ...prev,
-          datasets: [{
-            ...prev.datasets[0],
-            data: dadosMensais,
-            backgroundColor: coresFundo,
-            borderColor: coresBorda
-          }]
-        }));
+        // Atualizar o gráfico com os dados mensais
+        if (estatisticasData?.por_mes) {
+          const dadosMensais = Array(12).fill(0);
+          const coresFundo = Array(12).fill('#E53E3E');
+          const coresBorda = Array(12).fill('#C53030');
+          
+          estatisticasData.por_mes.forEach((item: ItemMensal) => {
+            if (item.mes >= 1 && item.mes <= 12) {
+              dadosMensais[item.mes - 1] = item.total_mes;
+              
+              // Determinar a cor com base no valor
+              const cores = determinarCor(item.total_mes);
+              coresFundo[item.mes - 1] = cores.backgroundColor;
+              coresBorda[item.mes - 1] = cores.borderColor;
+            }
+          });
+          
+          setDadosGrafico(prev => ({
+            ...prev,
+            datasets: [{
+              ...prev.datasets[0],
+              data: dadosMensais,
+              backgroundColor: coresFundo,
+              borderColor: coresBorda
+            }]
+          }));
+        } else {
+          // Nenhum dado mensal disponível, manter o gráfico vazio mas sem erro
+          console.log("Nenhum dado mensal disponível");
+        }
+      } catch (estatisticasError) {
+        console.log("Erro ao carregar estatísticas:", estatisticasError);
+        // Não exibir erro para o usuário se apenas as estatísticas falharem
+        // Apenas mantenha o gráfico vazio
       }
     } catch (error) {
-      setError("Erro ao carregar dados. Por favor, tente novamente.");
-      console.log("Erro:", error);
+      console.log("Erro ao carregar relatório:", error);
+      
+      // Verificar se é um erro de "sem dados" ou um erro de conexão/servidor
+      if (error instanceof Error && error.message.includes("sem dados")) {
+        // Nenhum dado disponível para o período selecionado - não é um erro real
+        setRelatorio([]);
+        // Não exibir mensagem de erro, apenas o estado vazio
+      } else {
+        // Erro real de conexão ou do servidor
+        setError("Erro ao carregar dados. Por favor, tente novamente.");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -342,8 +360,7 @@ export default function Comprador() {
 
         <div 
           ref={chartContainerRef} 
-          className="bg-white p-6 rounded-[10px] mb-8 border-[1px] border-solid border-tab"
-          style={{ height: '400px' }} // Altura fixa para o container do gráfico
+          className="bg-white p-6 rounded-[10px] mb-8 border-[1px] border-solid border-tab h-[400px]" // Usando classe Tailwind para altura
         >
           <div className="h-full">
             <Bar 
@@ -394,7 +411,7 @@ export default function Comprador() {
               ) : (
                 <tr>
                   <td colSpan={6} className="p-4 text-center border-b-[1px] border-b-solid border-b-tab">
-                    {isLoading ? "Carregando..." : "Nenhum dado encontrado"}
+                    {isLoading ? "Carregando..." : "Nenhum dado de compra encontrado no período selecionado"}
                   </td>
                 </tr>
               )}

@@ -60,9 +60,9 @@ export default function Vitrine() {
   const produtosVisiveis = produtos.slice(0, visibleCount);
   const haMaisProdutos = visibleCount < produtos.length;
 
-  const handleAdicionarAoCarrinho = async (id_produtos: number) => {
+  const handleAdicionarAoCarrinho = async (id_produto: number) => {
     try {
-      await adicionarProdutoAoCarrinho(id_produtos.toString(), 1);
+      await adicionarProdutoAoCarrinho(id_produto.toString(), 1);
       alert("Produto adicionado ao carrinho com sucesso!");
     } catch (error: any) {
       alert(error.mensagem || "Erro ao adicionar o produto ao carrinho.");

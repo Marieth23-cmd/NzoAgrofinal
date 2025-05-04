@@ -5,17 +5,17 @@ const API_URL = process.env.NXT_PUBLIC_API_URL || "http://localhost:4000";
 // Enviar avaliação (nova ou atualizar)
 export const enviarAvaliacao = async (
   id_produtos: number,
-  nota: number,
-  token: string
+  nota: number
 ): Promise<any> => {
   try {
     const response = await axios.post(
       `${API_URL}/avaliacoes`,
       { id_produtos, nota },
       {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        withCredentials: true, 
+                headers: {
+                    "Content-Type": "application/json",
+                },
       }
     );
     return response.data;
