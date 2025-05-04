@@ -269,7 +269,7 @@ export default function DetalhesProduto(){
                     </div>
                     <div>
                       <h3>{produto.nome}</h3>
-                      <div className="flex items-center gap-2 text-cortexto">
+                      <div className="flex items-center gap-2 mb-4 text-cortexto">
                         <CiLocationOn/>
                         <span>{produto.provincia}</span>
                         <span>/Angola</span>

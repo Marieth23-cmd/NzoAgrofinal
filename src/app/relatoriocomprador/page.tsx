@@ -1,11 +1,11 @@
 "use client"
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Bar } from 'react-chartjs-2';
 import { ChartOptions } from 'chart.js';
 import { Chart as ChartJS, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from 'chart.js';
 import Navbar from "../Components/Navbar"
 import Footer from "../Components/Footer"
-import { getRelatorioUsuario, getEstatisticas, exportarPDF, exportarCSV } from "../Services/relatorios"; // Ajuste o caminho conforme a estrutura do seu projeto
+import { getRelatorioUsuario, getEstatisticas, exportarPDF, exportarCSV } from "../Services/relatorios";
 
 // Registrando os componentes necessários do Chart.js
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
@@ -41,6 +41,11 @@ interface ItemMensal {
   total_mes: number;
 }
 
+// Constantes para definir limiares de cores
+const LIMITE_VALOR_ALTO = 100000; // Valor acima disso é considerado alto (verde)
+const LIMITE_VALOR_MEDIO = 50000; // Valor entre isso e LIMITE_VALOR_ALTO é médio (laranja)
+// Abaixo de LIMITE_VALOR_MEDIO é considerado baixo (vermelho)
+
 export default function Comprador() {
   // Estado para controlar o dropdown de exportação
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -59,8 +64,8 @@ export default function Comprador() {
       {
         label: 'Total de Compras',
         data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        backgroundColor: '#48BB78',
-        borderColor: '#2F855A',
+        backgroundColor: Array(12).fill('#E53E3E'), // Inicialmente vermelho
+        borderColor: Array(12).fill('#C53030'),
         borderWidth: 1,
       },
     ],
@@ -71,19 +76,80 @@ export default function Comprador() {
   const [error, setError] = useState<string | null>(null);
   const [exportLoading, setExportLoading] = useState(false);
   
+  // Referência para o container do gráfico para evitar redimensionamento
+  const chartContainerRef = useRef<HTMLDivElement>(null);
+  const chartRef = useRef<any>(null);
+  
+  // Opções para o gráfico com configuração de animação e responsividade
   const options: ChartOptions<'bar'> = { 
     responsive: true,
+    maintainAspectRatio: false, // Importante para evitar o redimensionamento
+    animation: {
+      duration: 0 // Desativa a animação para evitar o efeito de redimensionamento
+    },
     plugins: {
       legend: {
         display: true,
         position: 'top',
       },
+      tooltip: {
+        callbacks: {
+          label: function(context) {
+            return `Total: ${formatarMoeda(context.parsed.y)}`;
+          }
+        }
+      }
     },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          callback: function(value) {
+            return 'kzs ' + Number(value).toLocaleString('pt-BR');
+          }
+        }
+      }
+    }
+  };
+
+  // Função para determinar a cor com base no valor
+  const determinarCor = (valor: number) => {
+    if (valor >= LIMITE_VALOR_ALTO) {
+      return {
+        backgroundColor: '#48BB78', // Verde para valores altos
+        borderColor: '#2F855A'
+      };
+    } else if (valor >= LIMITE_VALOR_MEDIO) {
+      return {
+        backgroundColor: '#ED8936', // Laranja para valores médios
+        borderColor: '#DD6B20'
+      };
+    } else {
+      return {
+        backgroundColor: '#E53E3E', // Vermelho para valores baixos
+        borderColor: '#C53030'
+      };
+    }
   };
 
   // Função para carregar os dados iniciais
   useEffect(() => {
     carregarDados();
+    
+    // Ajustar o tamanho do gráfico ao montar o componente
+    const ajustarTamanhoGrafico = () => {
+      if (chartContainerRef.current && chartRef.current) {
+        const container = chartContainerRef.current;
+        container.style.height = '400px'; // Altura fixa para o gráfico
+      }
+    };
+    
+    ajustarTamanhoGrafico();
+    window.addEventListener('resize', ajustarTamanhoGrafico);
+    
+    return () => {
+      window.removeEventListener('resize', ajustarTamanhoGrafico);
+    };
   }, []);
 
   // Função para buscar dados com base nas datas selecionadas
@@ -103,9 +169,17 @@ export default function Comprador() {
       // Atualizar o gráfico com os dados mensais
       if (estatisticasData?.por_mes) {
         const dadosMensais = Array(12).fill(0);
+        const coresFundo = Array(12).fill('#E53E3E');
+        const coresBorda = Array(12).fill('#C53030');
+        
         estatisticasData.por_mes.forEach((item: ItemMensal) => {
           if (item.mes >= 1 && item.mes <= 12) {
             dadosMensais[item.mes - 1] = item.total_mes;
+            
+            // Determinar a cor com base no valor
+            const cores = determinarCor(item.total_mes);
+            coresFundo[item.mes - 1] = cores.backgroundColor;
+            coresBorda[item.mes - 1] = cores.borderColor;
           }
         });
         
@@ -113,7 +187,9 @@ export default function Comprador() {
           ...prev,
           datasets: [{
             ...prev.datasets[0],
-            data: dadosMensais
+            data: dadosMensais,
+            backgroundColor: coresFundo,
+            borderColor: coresBorda
           }]
         }));
       }
@@ -264,8 +340,18 @@ export default function Comprador() {
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded[10px] mb-8 border-[1px] border-solid border-tab">
-          <Bar data={dadosGrafico} options={options} />
+        <div 
+          ref={chartContainerRef} 
+          className="bg-white p-6 rounded-[10px] mb-8 border-[1px] border-solid border-tab"
+          style={{ height: '400px' }} // Altura fixa para o container do gráfico
+        >
+          <div className="h-full">
+            <Bar 
+              ref={chartRef}
+              data={dadosGrafico} 
+              options={options} 
+            />
+          </div>
         </div>
 
         <div className="overflow-x-auto">
