@@ -31,7 +31,7 @@ export const buscarAvaliacoes = async (id_produtos: number): Promise<any> => {
     const response = await axios.get(`${API_URL}/avaliacoes/${id_produtos}`);
     return response.data;
   } catch (error: any) {
-    console.error("Erro ao buscar avaliações", error);
+    console.log("Erro ao buscar avaliações", error);
     throw { mensagem: "Erro ao buscar avaliações" };
   }
 };

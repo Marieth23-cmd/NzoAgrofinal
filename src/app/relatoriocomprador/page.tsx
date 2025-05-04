@@ -117,9 +117,9 @@ export default function Comprador() {
           }]
         }));
       }
-    } catch (err) {
+    } catch (error) {
       setError("Erro ao carregar dados. Por favor, tente novamente.");
-      console.error("Erro:", err);
+      console.log("Erro:", error);
     } finally {
       setIsLoading(false);
     }

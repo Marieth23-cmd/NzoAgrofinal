@@ -143,7 +143,7 @@ export default function PerfilComprador() {
       </Head>
       <Navbar />
       <div className="flex flex-col mb-20 gap-2 mt-[15%] max-w-[1200px] shadow-custom justify-center items-center">
-        <main className="my-8 p-8 max-w-[80rem]">
+        <main className="my-8 p-8 max-w-[72rem]">
           <div className="flex shadow-custom border-[1px] rounded-[10px] p-8 bg-white gap-8">
             <div className="absolute w-[12.5rem] h-[12.5rem] rounded-[50%] flex items-center text-[4rem] justify-center text-cortime bg-cinzab">
               {imagemPerfil ? (

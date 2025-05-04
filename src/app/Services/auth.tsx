@@ -16,6 +16,7 @@ export const login = async (email: string, senha: string): Promise<any> => {
             }
         );
 
+
         return response.data; 
 
     } catch (error: any) {

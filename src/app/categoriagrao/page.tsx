@@ -6,18 +6,19 @@ import Image from "next/image"
 import Head from "next/head"
 import Link from "next/link"
 import { useEffect, useState } from "react"
+import React from "react"
 import { buscarProdutosPorCategoria } from "../Services/produtos"
 
-export default function Categoriagrao() {
+export default function CategoriaTuberculos() {
   interface Produto {
-    id_produtos: number,
+    id_produtos:number,
     nome: string,
     preco: number,
     Unidade: string,
     foto_produto: string,
     provincia: string,
     quantidade: number,
-    nome_vendedor: string
+    nome_vendedor:string
   }
 
   const [produtosFiltrados, setProdutosFiltrados] = useState<Produto[]>([])
@@ -26,9 +27,11 @@ export default function Categoriagrao() {
   const [provinciaFiltroInput, setProvinciaFiltroInput] = useState("")
   const [precoFiltroInput, setPrecoFiltroInput] = useState("")
   const [filtroAtivado, setFiltroAtivado] = useState(false)
+  const [mostrarMensagemErro, setMostrarMensagemErro] = useState(false)
 
   const aplicarFiltros = async () => {
     setFiltroAtivado(true)
+    setMostrarMensagemErro(false) // Reset error message when applying filters
 
     let precoMin: number | undefined = undefined
     let precoMax: number | undefined = undefined
@@ -58,8 +61,33 @@ export default function Categoriagrao() {
       )
 
       setProdutosFiltrados(filtrados)
+      // Set error message visibility based on results
+      setMostrarMensagemErro(filtrados.length === 0)
     } catch (error) {
       console.log("Erro ao aplicar filtros:", error)
+      setMostrarMensagemErro(true)
+    }
+  }
+
+  // Handler functions for each filter input change
+  const handleTipoChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setTipoFiltroInput(e.target.value)
+    if (filtroAtivado) {
+      setMostrarMensagemErro(false)
+    }
+  }
+
+  const handleProvinciaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setProvinciaFiltroInput(e.target.value)
+    if (filtroAtivado) {
+      setMostrarMensagemErro(false)
+    }
+  }
+
+  const handlePrecoChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setPrecoFiltroInput(e.target.value)
+    if (filtroAtivado) {
+      setMostrarMensagemErro(false)
     }
   }
 
@@ -83,80 +111,77 @@ export default function Categoriagrao() {
   return (
     <main>
       <Head>
-        <title>Categoria</title>
+        <title>Categoria Tubérculos</title>
       </Head>
       <Navbar />
 
       <div className="mb-20 mt-[52%] lg:mt-[18%]">
         <h1 className="text-center my-6 text-[2rem] font-bold text-marieth">Grãos</h1>
 
-        <div className=" my-12 mx-9 px-4">
+        <div className="my-12 mx-9 px-4">
           <div className="flex flex-col gap-4 lg:flex-row justify-between w-full">
-            {/* Tipo de Grão */}
             <div className="flex flex-col w-full">
               <label htmlFor="graos" className="mb-[0.5rem] font-medium block">
                 Tipo de Grão
-              </label>
-              <div className="p-4 shadow-custom bg-white rounded-[10px]">
-                <select
-                  id="graos"
-                  value={tipoFiltroInput}
-                  onChange={(e) => setTipoFiltroInput(e.target.value)}
-                  className="w-full p-[0.8rem] rounded-[5px] text-base border border-solid border-tab"
-                >
-                  <option value="">Todos os tipos</option>
-                  {Array.from(new Set(produtosOriginais.map(p => p.nome))).map((nome, index) => (
-                    <option key={index} value={nome}>{nome}</option>
-                  ))}
-                </select>
-              </div>
-
-
-            </div>
-
-            {/* Província */}
-            <div className="flex flex-col w-full">
-            <label htmlFor="local" className="mb-[0.5rem] font-medium block">
-              Província
-                </label>
-              <div className="p-4 shadow-custom bg-white rounded-[10px]">
-                <select
-                  id="local"
-                  value={provinciaFiltroInput}
-                  onChange={(e) => setProvinciaFiltroInput(e.target.value)}
-                  className="w-full p-[0.8rem] rounded-[5px] text-base border border-solid border-tab"
-                >
-                  <option value="">Todas as províncias</option>
-                  {Array.from(new Set(produtosOriginais.map(p => p.provincia)))
-                    .filter(Boolean)
-                    .map((prov, index) => (
-                      <option key={index} value={prov}>{prov}</option>
+                <div className="p-4 shadow-custom bg-white rounded-[10px]">
+                  <select
+                    id="graos"
+                    value={tipoFiltroInput}
+                    onChange={handleTipoChange}
+                    className="w-full p-[0.8rem] rounded-[5px] text-base border border-solid border-tab"
+                  >
+                    <option value="" disabled>Todos os tipos</option>
+                    {Array.from(new Set(produtosOriginais.map(p => p.nome))).map((nome, index) => (
+                      <option key={index} value={nome}>{nome}</option>
                     ))}
-                </select>
-              </div>
-
+                  </select>
+                </div>
+              </label>
             </div>
-          
-            <div className="flex flex-col w-full"> <label htmlFor="intervalo-preco" className="mb-[0.5rem] font-medium block">
-              Faixa de Preço (AOA)
-                </label>
-              <div className="p-4 shadow-custom bg-white rounded-[10px]">
-                <select
-                  id="intervalo-preco"
-                  value={precoFiltroInput}
-                  onChange={(e) => setPrecoFiltroInput(e.target.value)}
-                  className="w-full p-[0.8rem] rounded-[5px] text-base border border-solid border-tab"
-                >
-                  <option value="">Todas as faixas</option>
-                  <option value="0-5000">Até 5.000 AOA</option>
-                  <option value="5000-50000">5.000 - 50.000 AOA</option>
-                  <option value="50000-100000">50.000 - 100.000 AOA</option>
-                  <option value="100000-plus">Acima de 100.000 AOA</option>
-                </select>
-              </div>
+            
+            <div className="flex flex-col w-full">
+              <label htmlFor="local" className="mb-[0.5rem] font-medium block">
+                Província
+                <div className="p-4 shadow-custom bg-white rounded-[10px]">
+                  <select
+                    id="local"
+                    value={provinciaFiltroInput}
+                    onChange={handleProvinciaChange}
+                    className="w-full p-[0.8rem] rounded-[5px] text-base border border-solid border-tab"
+                  >
+                    <option value="" disabled>Todas as províncias</option>
+                    {Array.from(new Set(produtosOriginais.map(p => p.provincia)))
+                      .filter(Boolean)
+                      .map((prov, index) => (
+                        <option key={index} value={prov}>{prov}</option>
+                      ))}
+                  </select>
+                </div>
+              </label>
+            </div>
+            
+            {/* Faixa de Preço */}
+            <div className="flex flex-col w-full">
+              <label htmlFor="intervalo-preco" className="mb-[0.5rem] font-medium block">
+                Faixa de Preço (AOA)
+                <div className="p-4 shadow-custom bg-white rounded-[10px]">
+                  <select
+                    id="intervalo-preco"
+                    value={precoFiltroInput}
+                    onChange={handlePrecoChange}
+                    className="w-full p-[0.8rem] rounded-[5px] text-base border border-solid border-tab"
+                  >
+                    <option value="" disabled>Todas as faixas</option>
+                    <option value="0-5000">Até 5.000 AOA</option>
+                    <option value="5000-50000">5.000 - 50.000 AOA</option>
+                    <option value="50000-100000">50.000 - 100.000 AOA</option>
+                    <option value="100000-plus">Acima de 100.000 AOA</option>
+                  </select>
+                </div>
+              </label>
+            </div>
           </div>
-</div>
-           
+            
           <button
             onClick={aplicarFiltros}
             disabled={!isFormValid}
@@ -166,46 +191,50 @@ export default function Categoriagrao() {
             Pesquisar
           </button>
         </div>
-        <section className="grid grid-cols-3 gap-2 ">
-          {filtroAtivado ? (
-            produtosFiltrados.length > 0 ? (
-              produtosFiltrados.map((produto, index) => (
-                <Link href={`/DetalhesProduto/${produto.id_produtos}`} key={index}>
-                  <div className="p-8 max-w-[1200px] flex flex-row gap-6 -mt-16 ml-6">
-                    <div className="rounded-[10px] shadow-custom transition-transform duration-150 bg-white overflow-hidden hover:translate-y-[5px]">
-                      {produto.foto_produto ? (
-                        <Image
-                          src={produto.foto_produto}
-                          alt={produto.nome}
-                          height={200}
-                          width={380}
-                          className="object-cover"
-                        />
-                      ) : (
-                        <div className="h-[200px] w-[380px] text-center bg-gray-200 flex items-center justify-center text-sm text-gray-500">
-                          Imagem indisponível
-                        </div>
-                      )}
 
-                      <div className="p-4">
-                        <h3 className="text-[1.1rem] mb-[0.5rem] font-bold">{produto.nome}</h3>
-                        <h3 className="text-[1.2rem] text-marieth font-bold">
-                          kz {produto.preco}/{produto.quantidade}{produto.Unidade}
-                        </h3>
-                        <h3 className="text-[0.9rem] text-cortexto">Vendido por: {produto.nome_vendedor}</h3>
+        {/* Seção de produtos ou mensagem de erro */}
+        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+          {filtroAtivado && produtosFiltrados.length > 0 && (
+            produtosFiltrados.map((produto, index) => (
+              <Link href={`/DetalhesProduto/${produto.id_produtos}`} key={index}>
+                <div className="p-8 max-w-[1200px] flex flex-row gap-6 -mt-16 ml-6">
+                  <div className="rounded-[10px] shadow-custom transition-transform duration-150 bg-white overflow-hidden hover:translate-y-[5px]">
+                    {produto.foto_produto ? (
+                      <Image
+                        src={produto.foto_produto}
+                        alt={produto.nome}
+                        height={200}
+                        width={380}
+                        className="object-cover"
+                      />
+                    ) : (
+                      <div className="h-[200px] w-[380px] text-center bg-gray-200 flex items-center justify-center text-sm text-gray-500">
+                        Imagem indisponível
                       </div>
+                    )}
+
+                    <div className="p-4">
+                      <h3 className="text-[1.1rem] mb-[0.5rem] font-bold">{produto.nome}</h3>
+                      <h3 className="text-[1.2rem] text-marieth font-bold">
+                        kz {produto.preco}/{produto.quantidade}{produto.Unidade}
+                      </h3>
+                      <h3 className="text-[0.9rem] text-cortexto">Vendido por: {produto.nome_vendedor}</h3>
                     </div>
                   </div>
-                </Link>
-              ))
-            ) : (
-              <p className="animate-pulse text-lg text-red-600 font-semibold mt-8 ml-24">
-                Nenhum produto encontrado com os filtros aplicados.
-              </p>
-            )
-          ) : null}
+                </div>
+              </Link>
+            ))
+          )}
         </section>
 
+        {/* Mensagem de erro centralizada */}
+        {mostrarMensagemErro && (
+          <div className="w-full flex justify-center items-center mt-8">
+            <p className="animate-pulse text-lg text-red-600 font-semibold text-center">
+              Nenhum produto encontrado com os filtros aplicados.
+            </p>
+          </div>
+        )}
       </div>
 
       <Footer />
