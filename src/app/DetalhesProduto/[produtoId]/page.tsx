@@ -59,7 +59,7 @@ export default function DetalhesProduto(){
   const [quantidadeCarrinho, setQuantidadeCarrinho] = useState(1);
    
   const [itemCarrinho, setItemCarrinho] = useState<{
-    produtoId: number;
+    id_produto: number;
     nome: string;
     quantidade: number;
     Unidade: string;
@@ -172,7 +172,7 @@ export default function DetalhesProduto(){
       router.push("/login");
       return;
     }
-    
+
     try {
       await verificarAuth();
       setAutenticado(true);
@@ -332,7 +332,7 @@ export default function DetalhesProduto(){
                               if (quantidadeCarrinho < produto.quantidade) {
                                 setQuantidadeCarrinho(prev => prev + 1);
                                 setItemCarrinho({
-                                  produtoId: produto.id_produtos,
+                                  id_produto: produto.id_produtos,
                                   nome: produto.nome,
                                   quantidade: quantidadeSelecionada,
                                   Unidade: unidadeSelecionada,
