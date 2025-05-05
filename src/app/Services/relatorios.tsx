@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://backend-nzoagro.onrender.com";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"
 
 // 1. Relatório do usuário logado (com filtros de data opcionais)
 export const getRelatorioUsuario = async (dataInicio?: string, dataFim?: string): Promise<any> => {
