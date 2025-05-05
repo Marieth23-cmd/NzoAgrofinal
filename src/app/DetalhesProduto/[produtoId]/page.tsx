@@ -313,13 +313,13 @@ export default function DetalhesProduto(){
                     + / -
                   </button>
               
-                  <div className="flex items-center gap-4 p-4 rounded-[10px] bg-pretobranco">
+                  <div className="flex items-center gap-4 p-4 mb-2 rounded-[10px] bg-pretobranco">
                     <div className="flex w-[60px] h-[60px] rounded-[50%] items-center justify-center bg-back">
                       <AiFillHome/>
                     </div>
                     <div>
                       <h3>{produto.nome}</h3>
-                      <div className="flex items-center gap-2 mb-8 text-cortexto">
+                      <div className="flex items-center gap-2 text-cortexto">
                         <CiLocationOn/>
                         <span>{produto.provincia}</span>
                         <span>/Angola</span>

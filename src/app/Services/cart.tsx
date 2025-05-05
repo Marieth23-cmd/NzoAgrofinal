@@ -124,23 +124,32 @@ export const calcularPrecoProduto = async (
     };
   }
 };
-
-  export const finalizarCompra = async () => {
-    try {
-      const response = await axios.post(`${API_URL}/carrinho/finalizar-compra`, {}, {
+export const finalizarCompra = async () => {
+  try {
+    const response = await axios.post(
+      `${API_URL}/carrinho/finalizar-compra`,
+      {},
+      {
         withCredentials: true,
         headers: { "Content-Type": "application/json" },
-      });
-      return response.data;
-    } catch (error: any) {
-      const axiosError = error as AxiosError;
-      console.log(
-        "Erro ao finalizar a compra:",
-        axiosError.response?.data || axiosError.message
-      );
-      throw axiosError.response?.data || {
-        mensagem: "Erro desconhecido ao finalizar a compra",
-      };
+      }
+    );
+    return response.data;
+  } catch (error: any) {
+    const axiosError = error as AxiosError;
+    console.log(
+      "Erro ao finalizar a compra:",
+      axiosError.response?.data || axiosError.message
+    );
+    
+    // Verifica se é um erro com resposta da API
+    if (axiosError.response && axiosError.response.data) {
+      throw axiosError.response.data;
     }
-  };
-  
+    
+    // Caso contrário, lança um erro genérico
+    throw {
+      mensagem: "Erro desconhecido ao finalizar a compra",
+    };
+  }
+};

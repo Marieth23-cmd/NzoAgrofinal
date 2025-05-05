@@ -11,13 +11,16 @@ import { atualizarQuantidadeProduto } from "../Services/cart"
 import { removerProdutoDoCarrinho } from "../Services/cart"
 import { finalizarCompra } from "../Services/cart"
 import { calcularPrecoProduto } from "../Services/cart"
+import { esvaziarCarrinho } from "../Services/cart" // Adicionar importação da função
 
 export default function Carrinho() {
   const [produtos, setProdutos] = useState<any[]>([]);
   const [quantidade, setQuantidade] = useState(1);
   const [loading, setLoading] = useState(true);
   const router = useRouter()
-
+  
+  
+  const [showcaixa, setshowcaixa] = useState(false);
   const [produtoSelecionado, setProdutoSelecionado] = useState<any>(null);
 
   useEffect(() => {
@@ -43,11 +46,22 @@ export default function Carrinho() {
     carregarProdutos();
   }, []);
 
+  // Função para esvaziar o carrinho
+  const handleEsvaziarCarrinho = async () => {
+    try {
+      const resposta = await esvaziarCarrinho();
+      alert(resposta.mensagem);
+      setProdutos([]); // Limpa a lista de produtos na interface
+    } catch (error: any) {
+      console.log("Erro ao esvaziar carrinho:", error);
+      alert(error.mensagem || "Erro ao esvaziar o carrinho.");
+    }
+  };
+
   const handleConfirmar = async () => {
     if (!produtoSelecionado) return;
 
     try {
-      
       await atualizarQuantidadeProduto(produtoSelecionado.id, quantidade);
       const dadosAtualizados = await listarProdutosDoCarrinho();
       if (dadosAtualizados && dadosAtualizados.produtos) {
@@ -125,8 +139,6 @@ export default function Carrinho() {
     }
   }, [produtos]);
 
-  const [showcaixa, setshowcaixa] = useState(false)
-
   // Determinar a unidade padrão com base na categoria do produto
   const getUnidadePadrao = (categoria: string) => {
     if (!categoria) return 'unidade';
@@ -157,7 +169,10 @@ export default function Carrinho() {
             <h1 className="text-[2rem] text-marieth mb-8 p-4 font-bold">
               Meu Carrinho
             </h1>
-            <button className="bg-vermelho text-white rounded-[5px] h-fit px-2 py-1 mb-12 ml-[750px] flex items-center gap-2 cursor-pointer">
+            <button 
+              className="bg-vermelho text-white rounded-[5px] h-fit px-2 py-1 mb-12 ml-[750px] flex items-center gap-2 cursor-pointer"
+              onClick={handleEsvaziarCarrinho} // Adicionar o evento onClick
+            >
               <FaTrash />
               Esvaziar
             </button>
@@ -223,11 +238,18 @@ export default function Carrinho() {
                 try {
                   const resposta = await finalizarCompra();
                   alert(resposta.mensagem);
-                  setProdutos([]);
-                  router.push("/enderecopedido")
+                  setProdutos([]); // Limpa a lista de produtos na interface
+                  router.push("/enderecopedido");
                 } catch (error: any) {
-                  console.error("Erro ao finalizar compra:", error);
-                  alert(error.response?.data?.mensagem || "Erro ao finalizar a compra.");
+                  console.log("Erro ao finalizar compra:", error);
+                  // Verifica se o erro tem uma mensagem específica ou usa uma mensagem genérica
+                  if (error.mensagem) {
+                    alert(error.mensagem);
+                  } else if (error.erro) {
+                    alert(error.erro);
+                  } else {
+                    alert("Erro ao finalizar a compra. Verifique se há itens no carrinho ou se há estoque suficiente.");
+                  }
                 }
               }}
               disabled={produtos.length === 0}
@@ -237,53 +259,67 @@ export default function Carrinho() {
           </div>
         </div>
 
+        {/* Modal "showcaixa" atualizado com base no DetalhesProduto */}
         {showcaixa && (
-          <div className="flex items-center">
-            <div className="top-[40%] left-[40%] min-w-[300px] bg-white shadow-custom rounded-[10px] p-8 absolute " >
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="min-w-[300px] bg-white shadow-custom rounded-[10px] p-8 relative">
               <h2 className="font-bold text-2xl mb-4">Alterar Quantidade</h2>
 
-              <div className=" mb-4 gap-2 grid grid-cols-2">
-                <div className="mb-4 gap-2 grid grid-cols-2">
-                  <button onClick={() => handleIncrementoRapido(0.5)} className="p-2 bg-marieth rounded-[5px] text-white text-[0.9rem] hover:bg-verdeaceso">+0.5</button>
-                  <button onClick={() => handleIncrementoRapido(1)} className="p-2 bg-marieth rounded-[5px] text-white text-[0.9rem] hover:bg-verdeaceso">+1</button>
-                  <button onClick={() => handleIncrementoRapido(5)} className="p-2 bg-marieth rounded-[5px] text-white text-[0.9rem] hover:bg-verdeaceso">+5</button>
-                  <button onClick={() => handleIncrementoRapido(10)} className="p-2 bg-marieth rounded-[5px] text-white text-[0.9rem] hover:bg-verdeaceso">+10</button>
-                </div>
+              <div className="mb-4 gap-2 grid grid-cols-2">
+                <button onClick={() => handleIncrementoRapido(0.5)} className="p-2 bg-marieth rounded-[5px] text-white text-[0.9rem] hover:bg-verdeaceso">+0.5</button>
+                <button onClick={() => handleIncrementoRapido(1)} className="p-2 bg-marieth rounded-[5px] text-white text-[0.9rem] hover:bg-verdeaceso">+1</button>
+                <button onClick={() => handleIncrementoRapido(5)} className="p-2 bg-marieth rounded-[5px] text-white text-[0.9rem] hover:bg-verdeaceso">+5</button>
+                <button onClick={() => handleIncrementoRapido(10)} className="p-2 bg-marieth rounded-[5px] text-white text-[0.9rem] hover:bg-verdeaceso">+10</button>
               </div>
+              
               <div className="flex flex-col gap-4 my-4 mx-0">
                 <label htmlFor="number">Ajustar
-
-                <input
-                  type="number"
-                  name="numero"
-                  min={0.1}
-                  value={quantidade}
-                  onChange={(e) => {
-                    const novaQuantidade = parseFloat(e.target.value);
-                    if (!isNaN(novaQuantidade) && novaQuantidade > 0) {
-                      setQuantidade(novaQuantidade);
-                    }
-                  }}
-                  step={0.1}
-                  className="text-4 p-2 border-[1px] border-solid border-tab rounded-[5px]"
+                  <input
+                    type="number"
+                    name="numero"
+                    id="number"
+                    min={0.1}
+                    value={quantidade}
+                    onChange={(e) => {
+                      const novaQuantidade = parseFloat(e.target.value);
+                      if (!isNaN(novaQuantidade) && novaQuantidade > 0) {
+                        setQuantidade(novaQuantidade);
+                      }
+                    }}
+                    step={0.1}
+                    className="text-4 p-2 border-[1px] border-solid border-tab rounded-[5px]"
                   />
+                </label>
                 <p className="text-gray-500 text-sm">
                   Unidade: {produtoSelecionado && getUnidadePadrao(produtoSelecionado.categoria)}
                 </p>
-                </label>
 
                 <label htmlFor="verduras">
-                  <select title="verduras" className="text-4 p-2 border-[1px] border-solid border-tab rounded-[5px]">
+                  <select 
+                    id="verduras" 
+                    title="verduras" 
+                    className="text-4 p-2 border-[1px] border-solid border-tab rounded-[5px]"
+                  >
                     <option value="Toneladas">Toneladas</option>
                     <option value="kg">Kilograma</option>
-                    <option value="unidade">Unidade</option>
+                    
                   </select>
                 </label>
               </div>
 
-              <div className=" flex gap-4 justify-end cursor-pointer border-none ">
-                <button className="bg-vermelho py-2 px-4 text-white rounded-[5px]" onClick={() => setshowcaixa(false)}>Cancelar</button>
-                <button className="bg-marieth py-2 px-4 text-white rounded-[5px]" onClick={handleConfirmar}>Confirmar</button>
+              <div className="flex gap-4 justify-end cursor-pointer border-none">
+                <button 
+                  className="bg-vermelho py-2 px-4 text-white rounded-[5px]" 
+                  onClick={() => setshowcaixa(false)}
+                >
+                  Cancelar
+                </button>
+                <button 
+                  className="bg-marieth py-2 px-4 text-white rounded-[5px]" 
+                  onClick={handleConfirmar}
+                >
+                  Confirmar
+                </button>
               </div>
             </div>
           </div>
