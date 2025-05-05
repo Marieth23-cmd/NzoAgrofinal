@@ -124,12 +124,6 @@ import { getUsuarioById } from "../Services/user";
 
 
 
-
-  
-
-  
-
-
     return(
          
         <div>
@@ -268,7 +262,7 @@ import { getUsuarioById } from "../Services/user";
 
         <Link href="/telaproduto">
       
-      <div className=" grid grid-cols-2 sm:grid-cols-1 gap-6" >
+      <div className=" grid grid-cols-2 lg:grid-cols-1 gap-6" >
        
         <div className=" border-solid border-[1px] border-tab p-4
          transition-shadow duration-300 rounded-[10px] hover:shadow-custom" >
