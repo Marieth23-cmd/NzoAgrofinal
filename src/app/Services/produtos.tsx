@@ -16,12 +16,9 @@ import axios from "axios"
  } 
 
   export const getProdutoById =async(id:number):Promise<any> =>{
-
     try{
         const response= await axios.get(`${API_URL}/produtos/produto/${id} `)
         return response.data
-
-
     } 
     
     catch(error:any){
