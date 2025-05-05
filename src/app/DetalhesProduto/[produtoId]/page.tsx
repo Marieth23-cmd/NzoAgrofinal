@@ -95,7 +95,7 @@ export default function DetalhesProduto(){
       } catch (error) {
         console.log("Erro ao buscar produto:", error);
 
-        // Gracefully handle memory allocation errors
+        
         if (error instanceof RangeError) {
           alert("Ocorreu um erro de memória. Por favor, tente novamente mais tarde.");
         }
@@ -129,43 +129,80 @@ export default function DetalhesProduto(){
     carregarDados();
   }, [id]);
 
+
   const handleAvaliar = async (nota: number) => {
     if (!autenticado) {
       alert("Você precisa estar logado para avaliar.");
       return;
     }
   
+    if (!produtoId) {
+      alert("ID do produto não encontrado.");
+      return;
+    }
+  
     try {
-      await enviarAvaliacao(Number(produtoId), nota);
-      alert("Avaliação enviada com sucesso!");
+      console.log("Iniciando avaliação para produto ID:", produtoId, "com nota:", nota);
+      
+      // Converter produtoId para número com segurança
+      const idProdutoNumerico = Number(produtoId);
+      if (isNaN(idProdutoNumerico)) {
+        throw new Error("ID do produto inválido");
+      }
+      
+      // Enviar avaliação
+      await enviarAvaliacao(idProdutoNumerico, nota);
+      
+      // Atualizar UI após sucesso
       setNotaSelecionada(nota);
-      // Recarregar dados
-      const resultado = await buscarMediaEstrelas(Number(id));
-      setMedia(resultado.media || 0);
-      setTotal(resultado.total || 0);
-      setPercentagem(resultado.recomendacoes || 0);
+      
+      // Recarregar dados - com tratamento de erro adequado
+      try {
+        const resultado = await buscarMediaEstrelas(idProdutoNumerico);
+        setMedia(resultado.media || 0);
+        setTotal(resultado.total || 0);
+        setPercentagem(resultado.recomendacoes || 0);
+      } catch (erroMedia) {
+        console.log("Erro ao buscar média de estrelas:", erroMedia);
+        // Não exibir alerta aqui, pois a avaliação já foi enviada com sucesso
+      }
+      
+      // Mostrar mensagem de sucesso
       setMensagemSucesso("Avaliação enviada com sucesso!");
-
       setTimeout(() => {
         setMensagemSucesso(null);
       }, 3000);
+  
+    } catch (error: any) {
+      console.log("Erro detalhado ao avaliar:", error);
+      alert(error.mensagem || "Erro ao enviar avaliação. Tente novamente.");
+    }
+  };
 
-    } catch (error) {
-      console.log(error);
-      alert("Erro ao enviar avaliação.");
-    }
-  };
-  
   const verificarLoginAntesDeAvaliar = async (nota: number) => {
-    if (!autenticado) {
-      alert("Você precisa estar logado para avaliar.");
-      router.push("/login");
-      return;
+    
+    try {
+      if (!autenticado) {
+        
+        try {
+          await verificarAuth();
+          setAutenticado(true);
+        } catch (error:any) {
+          alert( error.mensagem || "Você precisa estar logado para avaliar.");
+          router.push("/login");
+          return;
+        }
+      }
+      
+      await handleAvaliar(nota);
+    } catch (error) {
+      console.log("Erro ao verificar login:", error);
+      alert("Ocorreu um erro. Por favor, tente novamente.");
     }
-    await handleAvaliar(nota);
   };
   
-  // Nova função para lidar com o clique no botão +/-
+  
+  
   const handleBotaoMaisMenos = async () => {
     if (!autenticado) {
       alert("Você precisa estar logado para adicionar ao carrinho.");
@@ -176,7 +213,7 @@ export default function DetalhesProduto(){
     try {
       await verificarAuth();
       setAutenticado(true);
-      setshowcaixa(true);  // Abre a caixa SOMENTE se o usuário estiver autenticado
+      setshowcaixa(true);  
     } catch (error) {
       setAutenticado(false);
       alert("Você precisa estar logado para adicionar ao carrinho.");
@@ -184,22 +221,36 @@ export default function DetalhesProduto(){
     }
   };
 
+
   useEffect(() => {
     if (produto) {
       setPrecoTotal(produto.preco * quantidadeCarrinho);
     }
   }, [produto, quantidadeCarrinho]);
-
+  
   const handleAdicionarAoCarrinho = async () => {
     try {
-      await adicionarProdutoAoCarrinho(produto!.id_produtos.toString(), quantidadeCarrinho);
+      // Verificar se o produto existe
+      if (!produto) {
+        alert("Erro: Produto não encontrado.");
+        return;
+      }
+  
+      
+      const quantidadeEfetiva = itemCarrinho ? itemCarrinho.quantidade : quantidadeCarrinho;
+  
+      await adicionarProdutoAoCarrinho(
+        produto.id_produtos.toString(),  
+        quantidadeEfetiva
+      );
+      
       alert("Produto adicionado ao carrinho com sucesso!");
-    } catch (error) {
-      alert("Erro ao adicionar ao carrinho.");
-      console.log(error);
+    } catch (error: any) {
+      alert(error.mensagem || "Erro ao adicionar ao carrinho.");
+      console.log("Erro completo:", error);
     }
   };
-
+  
   if (!produto) {
     return <div>Carregando...</div>; 
   }
@@ -268,7 +319,7 @@ export default function DetalhesProduto(){
                     </div>
                     <div>
                       <h3>{produto.nome}</h3>
-                      <div className="flex items-center p-3 gap-2 mb-8 text-cortexto">
+                      <div className="flex items-center gap-2 mb-8 text-cortexto">
                         <CiLocationOn/>
                         <span>{produto.provincia}</span>
                         <span>/Angola</span>
@@ -327,53 +378,65 @@ export default function DetalhesProduto(){
                             Cancelar
                           </button>
                           <button 
-                            className="bg-marieth py-2 px-4 text-white rounded-[5px]"
-                            onClick={() => {
-                              if (quantidadeCarrinho < produto.quantidade) {
-                                setQuantidadeCarrinho(prev => prev + 1);
-                                setItemCarrinho({
-                                  id_produto: produto.id_produtos,
-                                  nome: produto.nome,
-                                  quantidade: quantidadeSelecionada,
-                                  Unidade: unidadeSelecionada,
-                                  precoTotal,
-                                });
-                                
-                                setshowcaixa(false);
-                                alert("Quantidade ajustada com sucesso");
-                              }
-                            }}
-                          >
-                            Confirmar
-                          </button>
+                          className="bg-marieth py-2 px-4 text-white rounded-[5px]"
+                          onClick={() => {
+                            if (quantidadeSelecionada <= 0) {
+                              alert("Por favor, selecione uma quantidade válida.");
+                              return;
+                            }
+                            
+                            if (quantidadeSelecionada > produto.quantidade) {
+                              alert("Quantidade selecionada maior que o disponível.");
+                              return;
+                            }
+                            
+                            // Atualizar a quantidade do carrinho com o valor selecionado
+                            setQuantidadeCarrinho(quantidadeSelecionada);
+                            
+                            // Atualizar o item do carrinho
+                            setItemCarrinho({
+                              id_produto: produto.id_produtos,
+                              nome: produto.nome,
+                              quantidade: quantidadeSelecionada,
+                              Unidade: unidadeSelecionada,
+                              precoTotal: produto.preco * quantidadeSelecionada,
+                            });
+                            
+                            setshowcaixa(false);
+                            alert("Quantidade ajustada com sucesso");
+                          }}
+                        >
+                          Confirmar
+                        </button>
+
                         </div>
                       </div>
                     </div>
                   )} 
                 
-                  <button
-                    onClick={async () => {
-                      if (quantidadeCarrinho <= 0) {
-                        alert("Escolha uma quantidade válida.");
-                        return;
-                      }
+                <button
+                onClick={async () => {
+                  if (!autenticado) {
+                    alert("É necessário estar autenticado para adicionar ao carrinho.");
+                    router.push("/login");
+                    return;
+                  }
 
-                      if (!autenticado) {
-                        alert("É necessário estar autenticado para adicionar ao carrinho.");
-                        router.push("/login");
-                        return;
-                      }
-                      
-                      handleAdicionarAoCarrinho();
-                    }}
-                    className="bg-marieth w-full py-2 px-1 border-none rounded-[5px] text-white text-[1.5rem] cursor-pointer transition-colors duration-300
-                    hover:bg-verdeaceso mb-2"
-                  >
-                    <div className="flex items-center justify-center mt-4 gap-2">
-                      <CgShoppingCart className="text-[1.8rem]" />
-                      Adicionar ao Carrinho
-                    </div>
-                  </button>
+                  // Se o usuário não ajustou a quantidade, definir um valor padrão
+                  if (!itemCarrinho && quantidadeCarrinho <= 0) {
+                    setQuantidadeCarrinho(1);
+                  }
+                  
+                  handleAdicionarAoCarrinho();
+                }}
+                className="bg-marieth w-full py-2 px-1 border-none mt-4 rounded-[5px] text-white text-[1.5rem] cursor-pointer transition-colors duration-300
+                hover:bg-verdeaceso mb-2"
+              >
+                <div className="flex items-center justify-center gap-2">
+                  <CgShoppingCart className="text-[1.8rem]" />
+                  Adicionar ao Carrinho
+                </div>
+              </button>
 
                   {itemCarrinho && (
                     <div className="bg-green-100 text-marieth p-4 rounded mt-4">
