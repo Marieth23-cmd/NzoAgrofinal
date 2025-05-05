@@ -10,9 +10,7 @@ import { getProdutos } from "../Services/produtos";
 import { buscarMediaEstrelas } from "../Services/avaliacoes";
 import { adicionarProdutoAoCarrinho } from "../Services/cart";
 
-
 export default function Vitrine() {
- 
   interface Produto {
     id_produtos: number;
     nome: string;
@@ -21,13 +19,11 @@ export default function Vitrine() {
     Unidade: string;
     preco: number;
   }
-
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [visibleCount, setVisibleCount] = useState(12);
   const [avaliacoes, setAvaliacoes] = useState<{ [key: number]: number | null }>({});
   const [verMaisClicado, setVerMaisClicado] = useState(false);
 
-  
   useEffect(() => {
     async function fetchProdutos() {
       try {

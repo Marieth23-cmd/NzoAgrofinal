@@ -1,5 +1,5 @@
 import axios from "axios"
- const API_URL=process.env.NXT_PUBLIC_API_URL||"http://localhost:4000"
+ const API_URL=process.env.NXT_PUBLIC_API_URL||"https://backend-nzoagro.onrender.com"
 
  export const getProdutos= async(): Promise<any> =>{
 

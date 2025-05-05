@@ -1,8 +1,8 @@
 import axios from "axios";
 
 console.log('API URL:', process.env.NEXT_PUBLIC_API_URL)
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://backend-nzoagro.onrender.com";
+console.log('API URL:', API_URL)
 // Função para fazer login
 export const login = async (email: string, senha: string): Promise<any> => {
     try {
