@@ -59,55 +59,55 @@ export default function CadastroAgricultor() {
         }
         setEtapa(2)
     }
-   
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setErros({});
     
+        // Validação do formulário
         if (formData.senha !== formData.confirmarSenha) {
             setErros({ confirmarSenha: "As senhas não coincidem." });
             return;
         }
     
-        console.log("Dados do formulário:", formData);
-
+        // Remover o prefixo do número de telefone
+        const contactoLimpo = formData.contacto.replace("244|", "");
+    
         try {
             const resposta = await criarUsuario({
-                nome: formData.nome,
-                email: formData.email,
+                nome: formData.nome.trim(),
+                email: formData.email.trim(),
                 senha: formData.senha,
                 descricao: formData.descricao,
-                contacto: formData.contacto.replace("244|", ""),
+                contacto: contactoLimpo, // Número de telefone sem o prefixo
                 tipo_usuario: tipoUsuario,
-                rua: formData.rua,
-                bairro: formData.bairro,
-                municipio: formData.municipio,
-                provincia: formData.provincia,
+                rua: formData.rua || "",
+                bairro: formData.bairro || "",
+                municipio: formData.municipio || "",
+                provincia: formData.provincia || ""
             });
     
             console.log("Usuário criado com sucesso:", resposta);
             alert("Conta criada com Sucesso. Bem-vindo(a) à NzoAgro");
+            
+            // Redirecionar após o cadastro bem-sucedido
             setTimeout(() => {
                 router.push("/");
             }, 50);
-        } catch (error:any) {
-            console.log("Erro ao criar conta:", error.message);
+        } catch (error: any) {
+            console.error("Erro ao criar conta:", error);
             
-            // Verifica se existe erro.response e error.response.data antes de acessar suas propriedades
-            if (error && error.response && error.response.data) {
-                if (error.response.data.campo === "contacto") {
-                    setErros({contacto: error.response.data.mensagem});
-                } else if (error.response.data.message) {
-                    setErros({geral: error.response.data.message});
-                } else {
-                    setErros({geral: "Erro ao criar conta. Por favor, tente novamente."});
-                }
+            // Tratamento de erro específico para cada campo
+            if (error.campo === "contacto") {
+                setErros({ contacto: error.mensagem });
+            } else if (error.status === 409) {
+                // Erro de conflito - email já existe
+                setErros({ geral: error.mensagem || "Este email já está em uso." });
             } else {
-                setErros({geral: "Erro ao criar conta. Por favor, tente novamente."});
+                // Erro geral
+                setErros({ geral: error.mensagem || "Erro ao criar conta. Por favor, tente novamente." });
             }
-        } 
+        }
     };
-
     return (
         <main>
             <Head>
