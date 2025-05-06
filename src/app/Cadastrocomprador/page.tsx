@@ -48,7 +48,6 @@ export default function CadastroComprador() {
    
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        // setErros({});
     
         if (formData.senha !== formData.confirmarSenha) {
             setErros({ confirmarSenha: "As senhas não coincidem." });
@@ -138,7 +137,7 @@ export default function CadastroComprador() {
 
                                 onChange={handleInputChange}
                                      />
-                                     {erros.contacto && <p className="text-vermelho text-sm"></p>}
+                                     {erros.contacto && <p className="text-vermelho text-sm">{erros.contacto}</p>}
                         </div>
 
               
