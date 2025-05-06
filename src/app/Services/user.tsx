@@ -26,10 +26,6 @@ export const getUsuarioById = async (): Promise<any> => {
 };
 
 
-import axios from 'axios';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://seu-backend-url.com/api';
-
 export const criarUsuario = async (usuarioData: any): Promise<any> => {
     try {
         // Adicionar dados que possam estar faltando
