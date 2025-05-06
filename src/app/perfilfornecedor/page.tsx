@@ -47,7 +47,7 @@ export default function PerfilComprador() {
         setUsuario(dados);
         
         // Verificar tipo de usuário
-        if (dados && dados.tipo_usuario !== "Comprador") {
+        if (dados && dados.tipo_usuario !== "Fornecedor") {
           router.push("/");
           return;
         }

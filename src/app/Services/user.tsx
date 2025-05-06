@@ -32,11 +32,11 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://seu-backend-url.com/a
 
 export const criarUsuario = async (usuarioData: any): Promise<any> => {
     try {
-        
+        // Adicionar dados que possam estar faltando
         const dadosCompletos = {
             ...usuarioData,
             data_criacao: new Date().toISOString(),
-            pais: usuarioData.pais || "Angola" 
+            pais: usuarioData.pais || "Angola" // Valor padrão se não fornecido
         };
 
         if (dadosCompletos.contacto && dadosCompletos.contacto.includes('244|')) {
@@ -54,27 +54,22 @@ export const criarUsuario = async (usuarioData: any): Promise<any> => {
     } catch (error: any) {
         console.log("Erro completo:", error);
         
-        // Capturar e mostrar detalhes do erro para depuração
+        
         if (error.response) {
-            // A requisição foi feita e o servidor respondeu com um status diferente de 2xx
             console.log("Dados da resposta de erro:", error.response.data);
             console.log("Status do erro:", error.response.status);
             console.log("Cabeçalhos:", error.response.headers);
-            
-            // Retornar mensagem de erro específica da API se disponível
             throw { 
                 mensagem: error.response.data?.message || error.response.data?.mensagem || "Erro ao criar usuário",
                 status: error.response.status,
                 campo: error.response.data?.campo
             };
         } else if (error.request) {
-            // A requisição foi feita mas não houve resposta
             console.log("Sem resposta do servidor:", error.request);
             throw { mensagem: "Sem resposta do servidor. Verifique sua conexão." };
         } else {
-            // Algo aconteceu durante a configuração da requisição
             console.log("Erro na configuração da requisição:", error.message);
-            throw { mensagem: "Erro ao configurar a requisição: " + error.message };
+            throw { mensagem: "Erro ao configurar a requisição:" + error.message };
         }
     }
 };

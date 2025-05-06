@@ -19,31 +19,67 @@ import { getUsuarioById } from "../Services/user";
 
 
 
-
-
  export default function PerfilAgricultor(){
-  const boxref=useRef <HTMLDivElement>(null)
-  const [imagemPerfil , setimagemPerfil]=useState< string | null>(null)
+  
+  const boxref = useRef<HTMLDivElement>(null);
+  const [imagemPerfil, setimagemPerfil] = useState<string | null>(null);
   const inputCameraRef = useRef<HTMLInputElement>(null);
   const inputGalleryRef = useRef<HTMLInputElement>(null);
-  const router= useRouter()
-  const [isopen , setIsOpen]=useState(false)
-  const [usuario , setUsuario]=useState<any>(null)
+  const router = useRouter();
+  const [isopen, setIsOpen] = useState(false);
+  const [usuario, setUsuario] = useState<any>(null);
+  const [autenticado, setAutenticado] = useState<boolean | null>(null);
+  const [carregando, setCarregando] = useState(true);
 
   
-
-
+  useEffect(() => {
+    const verificarAutenticacao = async () => {
+      try {
   
-  const  togaleria=()=>{
-    setIsOpen((prev)=>!prev)
-  }
+        const authResult = await verificarAuth();
+        
+        if (!authResult) {
+          setAutenticado(false);
+          router.push("/login");
+          return;
+        }
+        
+        setAutenticado(true);
+        
+        // Buscar dados do usuário
+        const dados = await getUsuarioById();
+        setUsuario(dados);
+        
+        // Verificar tipo de usuário
+        if (dados && dados.tipo_usuario !== "Agricultor") {
+          router.push("/");
+          return;
+        }
+        
+        // Definir imagem do perfil se existir
+        if (dados.foto) setimagemPerfil(dados.foto);
+      } catch (error) {
+        console.log("Erro ao verificar autenticação:", error);
+        setAutenticado(false);
+        router.push("/login");
+      } finally {
+        setCarregando(false);
+      }
+    };
+
+    verificarAutenticacao();
+  }, [router]);
+
+  const togaleria = () => {
+    setIsOpen((prev) => !prev);
+  };
 
   const handleClick = useCallback((event: MouseEvent) => {
     if (boxref.current && !boxref.current.contains(event.target as Node)) {
       setIsOpen(false);
     }
   }, []);
-  
+
   useEffect(() => {
     if (isopen) {
       document.addEventListener("mousedown", handleClick);
@@ -51,77 +87,58 @@ import { getUsuarioById } from "../Services/user";
       document.removeEventListener("mousedown", handleClick);
     }
 
-    // Cleanup: remove o event listener quando o componente for desmontado ou o estado isOpen mudar
     return () => {
       document.removeEventListener("mousedown", handleClick);
     };
-  }, [isopen, handleClick]); // Dependência para garantir que o evento seja gerenciado corretamente
+  }, [isopen, handleClick]);
 
-   const handleImageChange=async(e:React.ChangeEvent<HTMLInputElement>)=>{
-    const file=e.target.files?.[0]
-    if(file){
-      const imagUrl= URL.createObjectURL(file);
-      setimagemPerfil(imagUrl)
-   
-    const  formData= new FormData()
-    formData.append("foto" , file) 
-  
-   try {
-      await atualizarUsuario( formData)
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const imagUrl = URL.createObjectURL(file);
+      setimagemPerfil(imagUrl);
 
-      alert("Foto atualizada com sucesso")
-      
-    } catch (error) {
-      console.log("Erro ao atualizar  imagem" , error)
-      alert("Erro ao atualizar foto.Tente de novo mais tarde.")
-      
+      const formData = new FormData();
+      formData.append("foto", file);
+
+      try {
+        await atualizarUsuario(formData);
+        alert("Foto atualizada com sucesso");
+      } catch (error) {
+        console.log("Erro ao atualizar imagem", error);
+        alert("Erro ao atualizar foto. Tente de novo mais tarde.");
+      }
     }
-   } 
-  }
-   const handleRemoverImagem = async () => {
+  };
+
+  const handleRemoverImagem = async () => {
     setimagemPerfil(null);
     const formData = new FormData();
-    formData.append("foto", ""); // ou não enviar nada
-  
+    formData.append("foto", "");
+
     try {
       await atualizarUsuario(formData);
       alert("Imagem removida com sucesso!");
-      setIsOpen(false)
+      setIsOpen(false);
     } catch (error) {
       console.log("Erro ao remover imagem", error);
     }
   };
-   useEffect(()=>{
-     const token=cookies.get("token") 
-     if (!token) {
-       router.push("/login"); // Se não tiver token, redireciona para login
-       return;
-   } const fecthUsuario=async ()=>{
-    try {
-       const dados= await getUsuarioById()
-    setUsuario(dados)
-    if(dados.foto) setimagemPerfil(dados.foto)
-   
-    } catch (error) {
-      console.log("Erro ao buscar dados do usuario" , error)
-      
-    }
-  }
-   fecthUsuario()
-   } ,[router])
 
-   if (!usuario) {
+  // Mostrar tela de carregamento enquanto verifica autenticação
+  if (carregando) {
     return <div className="text-center mt-20">Carregando dados...</div>;
   }
- 
 
-
-  useEffect(() => {
-  if (usuario && usuario.tipo_usuario !== "Agricultor") {
-    router.push ("/");
+  // Se não estiver autenticado, não renderiza nada (já foi redirecionado)
+  if (!autenticado) {
+    return null;
   }
-}, [usuario]);
 
+  // Se não tiver dados do usuário, mostra carregando
+  if (!usuario) {
+    return <div className="text-center mt-20">Carregando dados do usuário...</div>;
+  }
 
 
     return(
