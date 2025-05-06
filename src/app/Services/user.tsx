@@ -25,23 +25,16 @@ export const getUsuarioById = async (): Promise<any> => {
     }
 };
 
-
 export const criarUsuario = async (usuarioData: any): Promise<any> => {
     try {
-        // Adicionar dados que possam estar faltando
-        const dadosCompletos = {
-            ...usuarioData,
-            data_criacao: new Date().toISOString(),
-            pais: usuarioData.pais || "Angola" // Valor padrão se não fornecido
-        };
-
-        if (dadosCompletos.contacto && dadosCompletos.contacto.includes('244|')) {
-            dadosCompletos.contacto = dadosCompletos.contacto.replace('244|', '');
+        // Remover prefixo do contacto se existir
+        if (usuarioData.contacto && usuarioData.contacto.includes('244|')) {
+            usuarioData.contacto = usuarioData.contacto.replace('244|', '');
         }
 
-        console.log("Enviando dados para API:", dadosCompletos);
+        console.log("Enviando dados para API:", usuarioData);
         
-        const response = await axios.post(`${API_URL}/usuarios`, dadosCompletos, {
+        const response = await axios.post(`${API_URL}/usuarios`, usuarioData, {
             headers: { "Content-Type": "application/json" },
         });
         
@@ -49,8 +42,7 @@ export const criarUsuario = async (usuarioData: any): Promise<any> => {
         return response.data;
     } catch (error: any) {
         console.log("Erro completo:", error);
-        
-        
+
         if (error.response) {
             console.log("Dados da resposta de erro:", error.response.data);
             console.log("Status do erro:", error.response.status);
@@ -65,10 +57,11 @@ export const criarUsuario = async (usuarioData: any): Promise<any> => {
             throw { mensagem: "Sem resposta do servidor. Verifique sua conexão." };
         } else {
             console.log("Erro na configuração da requisição:", error.message);
-            throw { mensagem: "Erro ao configurar a requisição:" + error.message };
+            throw { mensagem: "Erro ao configurar a requisição: " + error.message };
         }
     }
 };
+
 export const atualizarUsuario = async (usuarioData: any): Promise<any> => {
     try {
       const response = await axios.put(`${API_URL}/usuarios/perfil`, usuarioData, {
