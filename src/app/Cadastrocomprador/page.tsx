@@ -173,7 +173,7 @@ export default function CadastroComprador() {
                 </div>
 
                         <div className="mb-4">
-        <label htmlFor="confirmarsenha" className="mb-2 font-medium block text-profile">
+        <label htmlFor="confirmarSenha" className="mb-2 font-medium block text-profile">
             Confirmar Senha
         </label>
 
