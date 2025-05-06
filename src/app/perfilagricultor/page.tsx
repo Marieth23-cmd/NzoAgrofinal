@@ -15,6 +15,7 @@ import { atualizarUsuario } from "../Services/user";
 import Image from "next/image";
 import cookies from "js-cookie";
 import Link from "next/link";
+import {verificarAuth} from "../Services/auth"
 import { getUsuarioById } from "../Services/user";
 
 
