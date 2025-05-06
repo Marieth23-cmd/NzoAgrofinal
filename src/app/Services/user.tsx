@@ -29,7 +29,6 @@ export const criarUsuario = async (usuarioData: any): Promise<any> => {
         const response = await axios.post(`${API_URL}/usuarios`, usuarioData, {
             headers: { "Content-Type": "application/json" },
         });
-        console.log("Resposta da API:", response.data);
         return response.data;
     } catch (error:any) {   
         console.log( error.message);
