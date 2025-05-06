@@ -12,7 +12,7 @@ export default function CadastroComprador() {
         nome: "",
         email: "",
         senha: "",
-        confirmarSenha: "",
+        confirmarSenha:"",
         descricao: "",
         contacto: "244|",
     });
@@ -180,8 +180,8 @@ export default function CadastroComprador() {
         <div className="relative">
             <input 
             type={ConfirmarsenhaVisivel ? "text" : "password"} 
-            id="confirmarsenha" 
-            name="confirmarsenha"
+            id="confirmarSenha" 
+            name="confirmarSenha"
             value={formData.confirmarSenha}
             className="p-3 pr-10 border border-tab hover:border-marieth w-full text-base rounded-[5px]"  
             required
