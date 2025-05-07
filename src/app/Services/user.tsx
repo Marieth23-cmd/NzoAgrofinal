@@ -31,8 +31,17 @@ export const criarUsuario = async (usuarioData: any): Promise<any> => {
         });
         return response.data;
     } catch (error:any) {   
-        console.log( error.message);
-     throw { mensagem: error.response?.data?.mensagem || "Erro ao criar usuário" };
+
+        if (error.response) {
+            throw { 
+                mensagem: error.response.data?.mensagem || "Erro ao criar usuário",
+                status: error.response.status,
+                campo: error.response.data?.campo 
+            };
+        } else {
+            // Erro de rede ou outro tipo
+            throw { mensagem: "Erro ao conectar com o servidor" };
+        }
     }
 
 };

@@ -94,16 +94,15 @@ export default function CadastroAgricultor() {
                 router.push("/");
             }, 50);
         } catch (error: any) {
-            console.error("Erro ao criar conta:", error);
+            console.log("Erro ao criar conta:", error);
             
             // Tratamento de erro específico para cada campo
             if (error.campo === "contacto") {
                 setErros({ contacto: error.mensagem });
             } else if (error.status === 409) {
-                // Erro de conflito - email já existe
                 setErros({ geral: error.mensagem || "Este email já está em uso." });
             } else {
-                // Erro geral
+               
                 setErros({ geral: error.mensagem || "Erro ao criar conta. Por favor, tente novamente." });
             }
         }

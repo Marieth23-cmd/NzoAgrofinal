@@ -27,8 +27,6 @@ export default function CadastroComprador() {
         const { name, value } = e.target;
             
 
-           
-    
         if (name === "contacto") {
             let somenteNumeros = value.replace(/\D/g, ""); // Remove tudo que não for número
             
@@ -45,7 +43,6 @@ export default function CadastroComprador() {
     };
     
     
-   
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
     
