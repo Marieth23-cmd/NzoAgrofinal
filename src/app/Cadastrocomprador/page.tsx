@@ -73,7 +73,7 @@ export default function CadastroComprador() {
                 senha: formData.senha,
                 descricao: formData.descricao,
                 contacto: contactoLimpo, 
-                tipo_usuario: tipoUsuario,
+                tipo_usuario: tipoUsuario
                 
             });
     
@@ -174,6 +174,7 @@ export default function CadastroComprador() {
                                             className="p-3 border-solid border-[1px] hover:border-marieth border-tab w-[100%] text-base rounded-[5px]" 
                                             required 
                                             max={13}
+                                            placeholder="9xxxxxxxx"
                                             onChange={handleInputChange}
                                         />
                                         {erros.contacto && <p className="text-vermelho text-sm">{erros.contacto}</p>}
@@ -193,6 +194,7 @@ export default function CadastroComprador() {
                                                 className="p-3 pr-10 border border-tab hover:border-marieth w-full text-base rounded-[5px]"  
                                                 required
                                                 maxLength={12}
+                                                placeholder="xxxxxxxxxxxx"
                                                 onChange={handleInputChange}
                                             />
                             
@@ -223,6 +225,7 @@ export default function CadastroComprador() {
                                                 className="p-3 pr-10 border border-tab hover:border-marieth w-full text-base rounded-[5px]"  
                                                 required
                                                 maxLength={12}
+                                                placeholder="xxxxxxxxxxxx"
                                                 onChange={handleInputChange}
                                             />
                             

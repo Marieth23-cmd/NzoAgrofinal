@@ -189,6 +189,7 @@ export default function CadastroFornecedor() {
                                             required 
                                             max={13}
                                             onChange={handleInputChange}
+                                            placeholder="9xxxxxxxx"
                                         />
                                         {erros.contacto && <p className="text-vermelho text-sm">{erros.contacto}</p>}
                                     </div>
@@ -208,6 +209,7 @@ export default function CadastroFornecedor() {
                                                 required
                                                 maxLength={12}
                                                 onChange={handleInputChange}
+                                                placeholder="xxxxxxxx"
                                             />
                             
                                             <span 
@@ -238,6 +240,7 @@ export default function CadastroFornecedor() {
                                                 required
                                                 maxLength={12}
                                                 onChange={handleInputChange}
+                                                placeholder="xxxxxxxx"
                                             />
                             
                                             <span 
