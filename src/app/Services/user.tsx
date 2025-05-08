@@ -23,6 +23,7 @@ export const getUsuarioById = async (): Promise<any> => {
         throw { mensagem: "Erro ao buscar usuário" };
     }
 };
+
 export const criarUsuario = async (usuarioData: any): Promise<any> => {
     try {
         console.log("Enviando dados para API:", usuarioData);
@@ -34,14 +35,9 @@ export const criarUsuario = async (usuarioData: any): Promise<any> => {
 
         if (error.response) {
             throw { 
-                mensagem: error.response.data?.mensagem || "Erro ao criar usuário",
-                status: error.response.status,
-                campo: error.response.data?.campo 
+                mensagem: error.response.data?.message || "Erro ao criar usuário"
             };
-        } else {
-            // Erro de rede ou outro tipo
-            throw { mensagem: "Erro ao conectar com o servidor" };
-        }
+        } 
     }
 
 };
