@@ -147,11 +147,10 @@ import { getUsuarioById } from "../Services/user";
                <title>Perfil Agricultor</title>
                </Head>
             <Navbar/>
-            <div className=" flex flex-col mb-20  gap-2 mt-[15%]  max-w-[1200px]
-             shadow-custom justify-center items-center">
+            <div className="shadow-custom flex flex-col mb-20  gap-2 mt-[15%]  max-w-[1200px] justify-center items-center">
                 
             <main className="my-8  p-8 max-w-[80rem] w-full bg-white rounded-[10px] shadow-custom flex flex-col gap-8">
-    <div className="flex  shadow-custom border-[1px] rounded-[10px] p-8 bg-white gap-8">
+    <div>
       
     <div className="absolute w-[12.5rem] h-[12.5rem] rounded-[50%] flex items-center text-[4rem]
  justify-center text-cortime bg-cinzab">
@@ -208,11 +207,11 @@ import { getUsuarioById } from "../Services/user";
 <input type="file" accept="image/*"   id="galeria" onChange={handleImageChange} className="hidden" ref={inputGalleryRef} />
 
            
+       
+          <div >
         <h1 className="text-[2rem] font-medium text-profile mb-2 " >
           {usuario?.nome || "Carregando..."}
           </h1>
-          <div >
-       
         <div className=" flex text-[1.2rem] ">
                                  <FaStar className=" text-amarela"/>
                                  <FaStar className=" text-amarela"/>
@@ -227,16 +226,12 @@ import { getUsuarioById } from "../Services/user";
         <p className="mb-2">Membro desde:
          { usuario?.data_criacao ? new Date(usuario.data_criacao).toLocaleDateString():"-"}</p>
         <p className="mb-2  ">Especialidade: <span className=" text-marieth font-medium">{usuario?.tipo_usuario || "Agricultor" }</span></p>
-        
         <div className=" flex gap-4">
-         
-            
+        
            <a href={`mailto:${usuario?.email}`}  className=" flex items-center gap-2 py-2 px-4 rounded-[0.3125rem] 
           text-[1rem] bg-marieth 
         transition-colors  cursor-pointer text-white hover:bg-verdeaceso"><MdEmail/>Email</a>
-            
         
-            
             <a href={`tel:${usuario?.contacto}`} className=" flex items-center gap-2 py-2 px-4 rounded-[0.3125rem] text-[1rem] bg-marieth 
         transition-colors  cursor-pointer text-white hover:bg-verdeaceso"><IoCall/>Ligar</a>
           
@@ -282,7 +277,7 @@ import { getUsuarioById } from "../Services/user";
          transition-shadow duration-300 rounded-[10px] hover:shadow-custom" >
          <MdMoreVert className="right-3 text-[15px] mt-1"/>
           <div className="w-full mb-4 rounded-[5px] flex items-center justify-center h-[150px] text-cortime" >
-            <Image src="/images/tomateorg.jpg" alt="Produto" width={200} height={200} className="object-cover" />
+            <Image src="/images/tomateorg.jpg" alt="Produto" width={200} height={200} className="object-cover w-full" />
           </div>
           <h3>Alface Fresca</h3>
           <p>Preço: 500 AOA</p>
