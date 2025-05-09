@@ -1,8 +1,9 @@
 "use client"
-import { FaCamera, FaRegHeart, FaStar } from "react-icons/fa";
+import { FaCamera, FaStar } from "react-icons/fa";
 import Navbar from "../Components/Navbar";
-import { FaCirclePlus, FaRegMessage, FaRegStarHalfStroke } from "react-icons/fa6"
+import { FaCirclePlus, FaRegStarHalfStroke } from "react-icons/fa6"
 import { IoCall } from "react-icons/io5";
+import { FaPlus } from "react-icons/fa";
 import { MdEmail, MdMoreVert } from "react-icons/md";
 import Footer from "../Components/Footer";
 import { FaUser } from "react-icons/fa"
@@ -13,12 +14,9 @@ import React, { useState,useCallback, useRef, useEffect  } from 'react';
 import { useRouter } from "next/navigation";
 import { atualizarUsuario } from "../Services/user";
 import Image from "next/image";
-import cookies from "js-cookie";
 import Link from "next/link";
 import {verificarAuth} from "../Services/auth"
 import { getUsuarioById } from "../Services/user";
-
-
 
  export default function PerfilAgricultor(){
   
@@ -152,8 +150,8 @@ import { getUsuarioById } from "../Services/user";
             <div className=" flex flex-col mb-20   gap-2 mt-[15%]  max-w-[1200px]
              shadow-custom justify-center items-center">
                 
-            <main className="my-8  p-8 max-w-[80rem] ">
-    <div  className="flex shadow-custom border-[1px] rounded-[10px] p-8 bg-white   gap-8">
+            <main className="my-8  p-8 max-w-[80rem] w-full bg-white rounded-[10px] shadow-custom flex flex-col gap-8">
+    <div>
       
     <div className="absolute w-[12.5rem] h-[12.5rem] rounded-[50%] flex items-center text-[4rem]
  justify-center text-cortime bg-cinzab">
@@ -249,7 +247,7 @@ import { getUsuarioById } from "../Services/user";
       </div>
 
 
-      <div className="grid grid-cols-1 gap-4 mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-8 mb-8">
       <div  className=" bg-white p-6 rounded-[10px] shadow-custom text-center  
       transition-transform  duration-300 hover:translate-y-[-5px]">
         <div  className=" text-[2rem]  text-marieth font-bold">250</div>
@@ -273,30 +271,28 @@ import { getUsuarioById } from "../Services/user";
     </div>
 
     <section className=" bg-white p-8 shadow-custom rounded-[10px]" >
-
-      <div  className=" flex  justify-between  items-center mb-2">
-        <h2 >Produtos Cadastrados</h2>
-      </div>
-
-        <Link href="/telaproduto">
+        <h2 className ="mb-6 text-profile font-semibold text-2xl">Produtos Cadastrados</h2>
       
-      <div className=" grid grid-cols-2 lg:grid-cols-1 gap-6" >
+
+        <Link href="/DetalhesProduto" >
+      
+      <div className="mt-2 grid grid-cols-1 mb-6 lg:grid-cols-3 gap-6" >
        
         <div className=" border-solid border-[1px] border-tab p-4
          transition-shadow duration-300 rounded-[10px] hover:shadow-custom" >
-         <MdMoreVert className="right-3 text-[12px] mt-1"/>
+         <MdMoreVert className="right-3 text-[15px] mt-1"/>
           <div className="w-full mb-4 rounded-[5px] flex items-center justify-center h-[150px] text-cortime" >
-            imagem aqui
+            <Image src="/images/tomateorg.jpg" alt="Produto" width={200} height={200} className="object-cover" />
           </div>
           <h3>Alface Fresca</h3>
           <p>Preço: 500 AOA</p>
           
-          <div >
+          <div className="flex justify-between" >
           
-            <button >
-               <FaRegHeart/> 12
+            <button  className="bg-amarela">
+               <FaStar/> 12
             </button>
-            <button className=" bg-padding text-white" >
+            <button className=" bg-marieth rounded-[5px] p-4 lg:p-8  text-white" >
                Promover Publicação
             </button>
            
@@ -315,7 +311,11 @@ import { getUsuarioById } from "../Services/user";
 <div>
     <button className=" fixed transition-transform duration-300 
     cursor-pointer border-none rounded-[50%] flex justify-center text-white
-    text-[1.5rem] h-[60px] w-[60px] hover:transform scale-110  bg-marieth bottom-8 right-8 shadow-custom items-center" title="Cadastrar Novo Produto"></button>
+    text-[1.5rem] h-[60px] w-[60px] hover:transform scale-110  bg-marieth bottom-8 right-8 shadow-custom items-center" title="Cadastrar Novo Produto">
+        <Link href="/ProdCad" className="flex items-center justify-center h-full w-full">
+          <FaPlus className="text-[2rem]"/>
+        </Link>
+    </button>
 </div>
           
            </main> 
