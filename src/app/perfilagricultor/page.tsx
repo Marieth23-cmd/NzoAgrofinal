@@ -147,11 +147,11 @@ import { getUsuarioById } from "../Services/user";
                <title>Perfil Agricultor</title>
                </Head>
             <Navbar/>
-            <div className=" flex flex-col mb-20   gap-2 mt-[15%]  max-w-[1200px]
+            <div className=" flex flex-col mb-20  gap-2 mt-[15%]  max-w-[1200px]
              shadow-custom justify-center items-center">
                 
             <main className="my-8  p-8 max-w-[80rem] w-full bg-white rounded-[10px] shadow-custom flex flex-col gap-8">
-    <div>
+    <div className="flex  shadow-custom border-[1px] rounded-[10px] p-8 bg-white gap-8">
       
     <div className="absolute w-[12.5rem] h-[12.5rem] rounded-[50%] flex items-center text-[4rem]
  justify-center text-cortime bg-cinzab">
@@ -287,12 +287,13 @@ import { getUsuarioById } from "../Services/user";
           <h3>Alface Fresca</h3>
           <p>Preço: 500 AOA</p>
           
-          <div className="flex justify-between" >
+          <div className="flex justify-between mt-2" >
           
-            <button  className="bg-amarela">
-               <FaStar/> 12
+            <button className="flex">
+               <FaStar className="text-amarela"/> 
+               12
             </button>
-            <button className=" bg-marieth rounded-[5px] p-4 lg:p-8  text-white" >
+            <button className=" bg-marieth rounded-[5px] p-4 text-white" >
                Promover Publicação
             </button>
            
