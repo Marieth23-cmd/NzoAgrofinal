@@ -244,7 +244,7 @@ export default function DetalhesProduto(){
         <title>Detalhes do Produto</title>
       </Head>
       <Navbar/>
-      <div className="mb-20 mt-[15%]">
+      <div className="mb-20 mt-[20%] lg:mt-[15%]">
         <main className="max-w-[1200px] my-8 mx-auto bg-white p-8 shadow-custom rounded-[10px]">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div>
@@ -260,7 +260,7 @@ export default function DetalhesProduto(){
 
             <div>
               <div className="flex gap-6 flex-col">
-                <h1 className="text-[2rem] text-profile font-bold">{produto.nome}</h1>
+                <h1 className=" text-[1.4rem] lg:text-[2rem]  text-profile font-bold">{produto.nome}</h1>
 
                 <div className="flex gap-2 text-[1.5rem] cursor-pointer text-tab">
                   {avaliacoes[produto.id_produtos] ? (

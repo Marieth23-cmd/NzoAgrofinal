@@ -147,7 +147,7 @@ import { getUsuarioById } from "../Services/user";
                <title>Perfil Agricultor</title>
                </Head>
             <Navbar/>
-            <div className="shadow-custom flex flex-col mb-20  gap-2 mt-[20%] lg:mt-[15%]  max-w-[1200px] justify-center items-center">
+            <div className="shadow-custom flex flex-col mb-20  gap-2 mt-[30%] lg:mt-[15%]  max-w-[1200px] justify-center items-center">
                 
             <main className="my-8 max-w-[80rem] w-full  flex flex-col gap-8">
     <div className="lg:flex shadow-custom border-[0.7px] rounded-[10px] p-8 bg-white gap-8">
@@ -206,7 +206,7 @@ import { getUsuarioById } from "../Services/user";
 <label htmlFor="galeria" className="sr-only">galeria </label>
 <input type="file" accept="image/*"   id="galeria" onChange={handleImageChange} className="hidden" ref={inputGalleryRef} />
 
-          <div >
+          <div className="mt-4 lg:mt-0">
         <h1 className="text-[2rem] font-medium text-profile mb-2 " >
           {usuario?.nome || "Carregando..."}
           </h1>
@@ -239,7 +239,7 @@ import { getUsuarioById } from "../Services/user";
       </div>
 
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-8 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mt-8 mb-8">
       <div  className=" bg-white p-6 rounded-[10px] shadow-custom text-center  
       transition-transform  duration-300 hover:translate-y-[-5px]">
         <div  className=" text-[2rem]  text-marieth font-bold">250</div>
@@ -271,7 +271,7 @@ import { getUsuarioById } from "../Services/user";
          transition-shadow duration-300 rounded-[10px] hover:shadow-custom" >
          <MdMoreVert className="right-3 text-[15px] mt-1"/>
           <div className="w-full mb-4 rounded-[5px] flex items-center justify-center h-[150px] text-cortime" >
-            <Image src="/images/tomateorg.jpg" alt="Produto" width={200} height={200} className="object-cover w-full" />
+            <Image src="/images/tomateorg.jpg" alt="Produto" width={250} height={200} className="object-cover w-full" />
           </div>
           <h3>Alface Fresca</h3>
           <p>Preço: 500 AOA</p>

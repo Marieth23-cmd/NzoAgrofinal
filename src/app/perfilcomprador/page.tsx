@@ -142,17 +142,20 @@ export default function PerfilComprador() {
         <title>Perfil Comprador</title>
       </Head>
       <Navbar />
-      <div className="flex flex-col mb-20 gap-2 mt-[15%] max-w-[1200px] shadow-custom justify-center items-center">
+         <div className="shadow-custom flex flex-col mb-20  gap-2 mt-[30%] lg:mt-[15%]  max-w-[1200px] justify-center items-center">
+                        
+                    <main className="my-8 max-w-[80rem] w-full  flex flex-col gap-8">
+            <div className="lg:flex shadow-custom border-[0.7px] rounded-[10px] p-8 bg-white gap-8">
+              
+            <div className="absolute w-[12.5rem] h-[12.5rem] rounded-[50%] flex items-center text-[4rem]
+         justify-center text-cortime bg-cinzab">
+          {imagemPerfil ?(
+            <Image src={imagemPerfil} alt="foto de Perfil" width={250} height={200}  fill className=" rounded-[50%] object-cover" />):
+          ( <FaUser />)
+          }
+         
+          </div>
         
-          <div className="flex max-w-[72rem] shadow-custom border-[1px] rounded-[10px] p-8 bg-white gap-8">
-            <div className="absolute w-[12.5rem] h-[12.5rem] rounded-[50%] flex items-center text-[4rem] justify-center text-cortime bg-cinzab">
-              {imagemPerfil ? (
-                <Image src={imagemPerfil} alt="foto de Perfil" width={250} height={200} fill className="rounded-[50%] object-cover" />
-              ) : (
-                <FaUser />
-              )}
-            </div>
-
             <div className="mt-40 ml-[10.7rem] relative z-[70]">
               <button onClick={togaleria} className="right-4 text-[1.5rem] text-marieth relative z-[50]" title="Editar Perfil">
                 <FaCirclePlus />
@@ -189,7 +192,7 @@ export default function PerfilComprador() {
             <label htmlFor="galeria" className="sr-only">galeria</label>
             <input type="file" accept="image/*" id="galeria" onChange={handleImageChange} className="hidden" ref={inputGalleryRef} />
 
-            <div>
+            <div className="mt-4 lg:mt-0">
               <h1 className="text-[2rem] font-medium text-profile mb-2">
                 {usuario?.nome || "Carregando..."}
               </h1>
@@ -231,7 +234,7 @@ export default function PerfilComprador() {
               </div>
             </div>
           </div>
-        
+        </main>
       </div>
       <Footer />
     </div>

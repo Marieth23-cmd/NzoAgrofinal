@@ -99,7 +99,7 @@ export default function Notificacoes() {
     <main>
       <Navbar />
       
-      <div className="flex flex-col mb-20 gap-2 mt-[15%] max-w-[1200px] shadow-custom">
+      <div className="flex flex-col mb-20 gap-2 mt-[25%] lg:mt-[15%] max-w-[1200px] shadow-custom">
         
         <div className="flex items-end">
           <h1 className="text-[2rem] text-marieth mt-[80px] p-4 font-bold">
