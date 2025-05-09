@@ -150,7 +150,7 @@ import { getUsuarioById } from "../Services/user";
             <div className="shadow-custom flex flex-col mb-20  gap-2 mt-[20%] lg:mt-[15%]  max-w-[1200px] justify-center items-center">
                 
             <main className="my-8 max-w-[80rem] w-full  flex flex-col gap-8">
-    <div className="flex shadow-custom border-[0.7px] rounded-[10px] p-8 bg-white gap-8">
+    <div className="lg:flex shadow-custom border-[0.7px] rounded-[10px] p-8 bg-white gap-8">
       
     <div className="absolute w-[12.5rem] h-[12.5rem] rounded-[50%] flex items-center text-[4rem]
  justify-center text-cortime bg-cinzab">
@@ -203,11 +203,9 @@ import { getUsuarioById } from "../Services/user";
    
 />
 
-<label htmlFor="galeria" className="sr-only">galeria</label>
+<label htmlFor="galeria" className="sr-only">galeria </label>
 <input type="file" accept="image/*"   id="galeria" onChange={handleImageChange} className="hidden" ref={inputGalleryRef} />
 
-           
-       
           <div >
         <h1 className="text-[2rem] font-medium text-profile mb-2 " >
           {usuario?.nome || "Carregando..."}
@@ -221,7 +219,6 @@ import { getUsuarioById } from "../Services/user";
                 <span className="text-amarela text-[1.2rem] mb-2" >(4.5)</span>
         
         </div>
-        
         
         <p className="mb-2">Membro desde:
          { usuario?.data_criacao ? new Date(usuario.data_criacao).toLocaleDateString():"-"}</p>
@@ -268,9 +265,6 @@ import { getUsuarioById } from "../Services/user";
     <section className=" bg-white p-8 shadow-custom rounded-[10px]" >
         <h2 className ="mb-6 text-profile font-semibold text-2xl">Produtos Cadastrados</h2>
       
-
-        <Link href="/DetalhesProduto" >
-      
       <div className="mt-2 grid grid-cols-1 mb-6 lg:grid-cols-3 gap-6" >
        
         <div className=" border-solid border-[1px] border-tab p-4
@@ -284,26 +278,17 @@ import { getUsuarioById } from "../Services/user";
           
           <div className="flex justify-between mt-2" >
           
-            <button className="flex">
+            <button className="flex text-2xl">
                <FaStar className="text-amarela"/> 
                12
             </button>
-            <button className=" bg-marieth rounded-[5px] p-4 text-white" >
-               Promover Publicação
+            <button className=" bg-marieth rounded-[5px] p-3 text-white" >
+               Promover Produto
             </button>
-           
           </div>
-          
         </div>
-        
         </div>
-        </Link>
         </section>
-
-
-
-    
-
 <div>
     <button className=" fixed transition-transform duration-300 
     cursor-pointer border-none rounded-[50%] flex justify-center text-white

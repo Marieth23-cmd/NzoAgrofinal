@@ -190,13 +190,17 @@ export default function DetalhesProduto(){
       router.push("/login");
     }
   };
-  
-  
   const handleAdicionarAoCarrinho = async () => {
     try {
-      // Verificar se o produto existe
+      // Verificar se o produto existe e tem um ID válido
       if (!produto) {
         alert("Erro: Produto não encontrado.");
+        return;
+      }
+      
+      // Verificar explicitamente se id_produtos existe
+      if (produto.id_produtos === undefined || produto.id_produtos === null) {
+        alert("Erro: ID do produto não encontrado.");
         return;
       }
   
@@ -211,10 +215,12 @@ export default function DetalhesProduto(){
         alert("Quantidade selecionada maior que o disponível.");
         return;
       }
+    
+      const idString = String(produto.id_produtos);
       
-      // CORREÇÃO PRINCIPAL: Enviar ID como string e garantir formato correto
+      // Adicionar ao carrinho usando o ID seguro
       await adicionarProdutoAoCarrinho(
-        produto.id_produtos.toString(),
+        idString,
         quantidadeSelecionada
       );
       
@@ -227,7 +233,7 @@ export default function DetalhesProduto(){
       console.log("Erro completo:", error);
     }
   };
-  
+
   if (!produto) {
     return <div>Carregando...</div>; 
   }

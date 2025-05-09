@@ -291,32 +291,35 @@ export default function Comprador() {
     <div>
       <Navbar/>
       
-      <div className="flex flex-col mb-20 gap-2 mt-[15%] max-w-[1200px] shadow-custom p-8 rounded-[10px] ml-8">
+      {/* Container principal com margens responsivas */}
+      <div className="flex flex-col mb-10 md:mb-20 gap-2 mt-16 md:mt-[15%] mx-4 md:mx-8 max-w-full md:max-w-[1200px] shadow-custom p-4 md:p-8 rounded-[10px]">
         
-        <div className="flex items-center mb-8">
-          <div className="flex gap-4 items-center">
-            <h1 className="text-marieth text-[2rem] font-bold">Relatório de Compras</h1>
-            <label htmlFor="data_inicial" className="sr-only">Data Inicial</label>
+        {/* Cabeçalho com layout responsivo */}
+        <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center mb-6 md:mb-8">
+          <h1 className="text-marieth text-xl md:text-[2rem] font-bold mb-4 sm:mb-0">Relatório de Compras</h1>
+          
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 w-full sm:w-auto sm:ml-auto items-start sm:items-center">
+            <label htmlFor="data_inicial" className="text-sm text-gray-600 sm:sr-only">Data Inicial</label>
             <input 
               type="date" 
               id="data_inicial" 
-              className="ml-80 p-2 rounded-[5px] items-center border-[1px] border-solid border-tab"
+              className="p-2 rounded-[5px] w-full sm:w-auto items-center border-[1px] border-solid border-tab"
               value={dataInicial}
               onChange={(e) => setDataInicial(e.target.value)}
             />
 
-            <label htmlFor="data_final" className="sr-only">Data Final</label>
+            <label htmlFor="data_final" className="text-sm text-gray-600 sm:sr-only">Data Final</label>
             <input 
               type="date" 
               id="data_final" 
               name="data_final" 
-              className="p-2 rounded-[5px] items-center border-[1px] border-solid border-tab"
+              className="p-2 rounded-[5px] w-full sm:w-auto items-center border-[1px] border-solid border-tab"
               value={dataFinal}
               onChange={(e) => setDataFinal(e.target.value)}
             />
 
             <button 
-              className="bg-marieth border-none hover:bg-verdeaceso text-white py-2 px-4 rounded-[5px] cursor-pointer"
+              className="bg-marieth border-none hover:bg-verdeaceso text-white py-2 px-4 rounded-[5px] cursor-pointer w-full sm:w-auto mt-2 sm:mt-0"
               onClick={aplicarFiltro}
               disabled={isLoading}
             >
@@ -331,36 +334,38 @@ export default function Comprador() {
           </div>
         )}
 
-        <div className="grid grid-cols-4 mb-8 gap-6">
-          <div className="p-6 rounded-[10px] text-center shadow-custom bg-white">
-            <h3 className="m-0 text-cortexto text-[1.17rem]">Total Gasto</h3>
-            <p className="text-marieth font-bold p-4 my-2 mx-0 text-[2rem]">
+        {/* Cards de estatísticas responsivos */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mb-6 md:mb-8 gap-4 md:gap-6">
+          <div className="p-4 md:p-6 rounded-[10px] text-center shadow-custom bg-white">
+            <h3 className="m-0 text-cortexto text-base md:text-[1.17rem]">Total Gasto</h3>
+            <p className="text-marieth font-bold p-2 md:p-4 my-2 mx-0 text-xl md:text-[2rem]">
               {estatisticas ? formatarMoeda(estatisticas.total_gasto) : 'kzs 0'}
             </p>
           </div>
-          <div className="p-6 rounded-[10px] text-center shadow-custom bg-white">
-            <h3 className="m-0 text-cortexto text-[1.17rem]">Quantidade de Pedidos</h3>
-            <p className="text-marieth font-bold p-4 my-2 mx-0 text-[2rem]">
+          <div className="p-4 md:p-6 rounded-[10px] text-center shadow-custom bg-white">
+            <h3 className="m-0 text-cortexto text-base md:text-[1.17rem]">Quantidade de Pedidos</h3>
+            <p className="text-marieth font-bold p-2 md:p-4 my-2 mx-0 text-xl md:text-[2rem]">
               {estatisticas ? estatisticas.total_pedidos : '0'}
             </p>
           </div>
-          <div className="p-6 rounded-[10px] text-center shadow-custom bg-white">
-            <h3 className="m-0 text-cortexto text-[1.17rem]">Média por Pedido</h3>
-            <p className="text-marieth font-bold p-4 my-2 mx-0 text-[2rem]">
+          <div className="p-4 md:p-6 rounded-[10px] text-center shadow-custom bg-white">
+            <h3 className="m-0 text-cortexto text-base md:text-[1.17rem]">Média por Pedido</h3>
+            <p className="text-marieth font-bold p-2 md:p-4 my-2 mx-0 text-xl md:text-[2rem]">
               {estatisticas ? formatarMoeda(estatisticas.media_por_pedido) : 'kzs 0'}
             </p>
           </div>
-          <div className="p-6 rounded-[10px] text-center shadow-custom bg-white">
-            <h3 className="m-0 text-cortexto text-[1.17rem]">Fornecedores</h3>
-            <p className="text-marieth font-bold p-4 my-2 mx-0 text-[2rem]">
+          <div className="p-4 md:p-6 rounded-[10px] text-center shadow-custom bg-white">
+            <h3 className="m-0 text-cortexto text-base md:text-[1.17rem]">Fornecedores</h3>
+            <p className="text-marieth font-bold p-2 md:p-4 my-2 mx-0 text-xl md:text-[2rem]">
               {estatisticas ? estatisticas.total_produtores : '0'}
             </p>
           </div>
         </div>
 
+        {/* Container do gráfico responsivo */}
         <div 
           ref={chartContainerRef} 
-          className="bg-white p-6 rounded-[10px] mb-8 border-[1px] border-solid border-tab h-[400px]" // Usando classe Tailwind para altura
+          className="bg-white p-4 md:p-6 rounded-[10px] mb-6 md:mb-8 border-[1px] border-solid border-tab h-[300px] md:h-[400px]"
         >
           <div className="h-full">
             <Bar 
@@ -371,16 +376,17 @@ export default function Comprador() {
           </div>
         </div>
 
-        <div className="overflow-x-auto">
+        {/* Tabela com scroll horizontal em telas pequenas */}
+        <div className="overflow-x-auto bg-white rounded-[10px] shadow-sm border border-gray-100">
           <table className="w-full border-collapse">
             <thead>
               <tr>
-                <th className="p-4 text-left border-b-[1px] border-b-solid border-b-tab text-cortexto bg-th">Data</th>
-                <th className="p-4 text-left border-b-[1px] border-b-solid border-b-tab text-cortexto bg-th">Produto</th>
-                <th className="p-4 text-left border-b-[1px] border-b-solid border-b-tab text-cortexto bg-th">Fornecedor</th>
-                <th className="p-4 text-left border-b-[1px] border-b-solid border-b-tab text-cortexto bg-th">Quantidade</th>
-                <th className="p-4 text-left border-b-[1px] border-b-solid border-b-tab text-cortexto bg-th">Valor Total</th>
-                <th className="p-4 text-left border-b-[1px] border-b-solid border-b-tab text-cortexto bg-th">Estado</th>
+                <th className="p-2 md:p-4 text-left border-b-[1px] border-b-solid border-b-tab text-cortexto bg-th text-xs md:text-sm">Data</th>
+                <th className="p-2 md:p-4 text-left border-b-[1px] border-b-solid border-b-tab text-cortexto bg-th text-xs md:text-sm">Produto</th>
+                <th className="p-2 md:p-4 text-left border-b-[1px] border-b-solid border-b-tab text-cortexto bg-th text-xs md:text-sm">Fornecedor</th>
+                <th className="p-2 md:p-4 text-left border-b-[1px] border-b-solid border-b-tab text-cortexto bg-th text-xs md:text-sm">Qtd</th>
+                <th className="p-2 md:p-4 text-left border-b-[1px] border-b-solid border-b-tab text-cortexto bg-th text-xs md:text-sm">Valor Total</th>
+                <th className="p-2 md:p-4 text-left border-b-[1px] border-b-solid border-b-tab text-cortexto bg-th text-xs md:text-sm">Estado</th>
               </tr>
             </thead>    
 
@@ -388,29 +394,29 @@ export default function Comprador() {
               {relatorio.length > 0 ? (
                 relatorio.map((item, index) => (
                   <tr key={index} className="hover:bg-th">
-                    <td className="p-4 text-left border-b-[1px] border-b-solid border-b-tab">
+                    <td className="p-2 md:p-4 text-left border-b-[1px] border-b-solid border-b-tab text-xs md:text-sm">
                       {formatarData(item.Data_Pedido)}
                     </td>
-                    <td className="p-4 text-left border-b-[1px] border-b-solid border-b-tab">
+                    <td className="p-2 md:p-4 text-left border-b-[1px] border-b-solid border-b-tab text-xs md:text-sm">
                       {item.Nome_Produto}
                     </td>
-                    <td className="p-4 text-left border-b-[1px] border-b-solid border-b-tab">
+                    <td className="p-2 md:p-4 text-left border-b-[1px] border-b-solid border-b-tab text-xs md:text-sm">
                       {item.Nome_Usuario || 'Não informado'}
                     </td>
-                    <td className="p-4 text-left border-b-[1px] border-b-solid border-b-tab">
+                    <td className="p-2 md:p-4 text-left border-b-[1px] border-b-solid border-b-tab text-xs md:text-sm">
                       {item.Quantidade_Total} un
                     </td>
-                    <td className="p-4 text-left border-b-[1px] border-b-solid border-b-tab">
+                    <td className="p-2 md:p-4 text-left border-b-[1px] border-b-solid border-b-tab text-xs md:text-sm">
                       {formatarMoeda(item.Valor_Total)}
                     </td>
-                    <td className="p-4 text-left border-b-[1px] border-b-solid border-b-tab">
+                    <td className="p-2 md:p-4 text-left border-b-[1px] border-b-solid border-b-tab text-xs md:text-sm">
                       {item.Estado}
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={6} className="p-4 text-center border-b-[1px] border-b-solid border-b-tab">
+                  <td colSpan={6} className="p-4 text-center border-b-[1px] border-b-solid border-b-tab text-xs md:text-sm">
                     {isLoading ? "Carregando..." : "Nenhum dado de compra encontrado no período selecionado"}
                   </td>
                 </tr>
@@ -419,10 +425,12 @@ export default function Comprador() {
           </table>
         </div>
         
-        <div className="relative mt-4">
+        {/* Botão de exportação responsivo */}
+        <div className="relative mt-4 flex justify-center sm:justify-start">
           <button 
             className={`bg-marieth cursor-pointer rounded-[10px] border-none
-            hover:bg-verdeaceso text-white py-[0.8rem] px-[1.5rem] ${relatorio.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+            hover:bg-verdeaceso text-white py-2 px-4 md:py-[0.8rem] md:px-[1.5rem] w-full sm:w-auto
+            ${relatorio.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
             onClick={() => setDropdownOpen(!dropdownOpen)}
             disabled={relatorio.length === 0 || exportLoading}
           >
@@ -430,7 +438,7 @@ export default function Comprador() {
           </button>
           
           {dropdownOpen && (
-            <div className="absolute z-10 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
+            <div className="absolute top-full left-0 sm:left-auto z-10 mt-2 w-full sm:w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
               <div className="py-1" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
                 <button
                   onClick={handleExportarPDF}
