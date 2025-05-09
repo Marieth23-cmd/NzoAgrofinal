@@ -147,10 +147,10 @@ import { getUsuarioById } from "../Services/user";
                <title>Perfil Agricultor</title>
                </Head>
             <Navbar/>
-            <div className="shadow-custom flex flex-col mb-20  gap-2 mt-[15%]  max-w-[1200px] justify-center items-center">
+            <div className="shadow-custom flex flex-col mb-20  gap-2 mt-[20%] lg:mt-[15%]  max-w-[1200px] justify-center items-center">
                 
-            <main className="my-8  p-8 max-w-[80rem] w-full bg-white rounded-[10px] shadow-custom flex flex-col gap-8">
-    <div>
+            <main className="my-8 max-w-[80rem] w-full  flex flex-col gap-8">
+    <div className="flex shadow-custom border-[0.7px] rounded-[10px] p-8 bg-white gap-8">
       
     <div className="absolute w-[12.5rem] h-[12.5rem] rounded-[50%] flex items-center text-[4rem]
  justify-center text-cortime bg-cinzab">
