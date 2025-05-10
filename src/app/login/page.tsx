@@ -4,6 +4,9 @@ import Image from "next/image";
 import { login } from "../Services/auth";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import { useRouter } from "next/navigation";
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 
 export default function Login() {
     const router=useRouter ();
@@ -37,6 +40,7 @@ export default function Login() {
                 router.push("/Administrador"); 
                 console.log("Tipo de usuário recebido:", response.tipo_usuario);
             } else {
+                toast.success("Login realizado com sucesso! ,Bem-vindo(a) de volta!");
                 router.push("/"); 
             }
 
@@ -44,10 +48,11 @@ export default function Login() {
             setErro(""); 
           
         } catch (error: any) {
-            setErro(error.mensagem || "Erro ao Iniciar Sessão!");
+            setErro(error.message || "Erro ao Iniciar Sessão!");
+            toast.error("Erro iniciar sessão. Tente novamente!");
         }
     };
-
+    <ToastContainer position="top-right" autoClose={5000} />
     return (
         <main className="flex flex-col justify-center mt-28 items-center lg:mt-20">
             <div className="bg-white p-8 w-full rounded-lg max-w-[400px] m-4 shadow-lg">

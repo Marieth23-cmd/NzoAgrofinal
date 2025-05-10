@@ -240,22 +240,22 @@ import { getUsuarioById } from "../Services/user";
 
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mt-8 mb-8">
-      <div  className=" bg-white p-6 rounded-[10px] shadow-custom text-center  
+      <div  className=" bg-white p-4 lg:p-6 rounded-[10px] shadow-custom text-center  
       transition-transform  duration-300 hover:translate-y-[-5px]">
         <div  className=" text-[2rem]  text-marieth font-bold">250</div>
         <div  className="text-profile mt-2">Produtos Vendidos</div>
       </div >
-      <div  className=" bg-white p-6 rounded-[10px] shadow-custom text-center  
+      <div  className=" bg-white p-4 lg:p-6 rounded-[10px] shadow-custom text-center  
       transition-transform duration-300 hover:translate-y-[-5px]">
         <div className=" text-[2rem]  text-marieth font-bold" >20</div>
         <div  className="text-profile mt-2">Produtos Ativos</div>
       </div>
-      <div  className=" bg-white p-6 rounded-[10px] shadow-custom text-center  
+      <div  className=" bg-white p-4 lg:p-6 rounded-[10px] shadow-custom text-center  
       transition-transform  duration-300 hover:translate-y-[-5px]">
         <div  className=" text-[2rem]  text-marieth font-bold">4.5</div>
         <div  className="text-profile mt-2">Avaliação Média</div>
       </div>
-      <div   className=" bg-white p-6 rounded-[10px] shadow-custom text-center  
+      <div   className=" bg-white p-4 lg:p-6 rounded-[10px] shadow-custom text-center  
       transition-transform  duration-300 hover:translate-y-[-5px]">
         <div  className=" text-[2rem]  text-marieth font-bold">98%</div>
         <div  className="text-profile mt-2">Taxa de Resposta</div>
@@ -273,13 +273,13 @@ import { getUsuarioById } from "../Services/user";
           <div className="w-full mb-4 rounded-[5px] flex items-center justify-center h-[150px] text-cortime" >
             <Image src="/images/tomateorg.jpg" alt="Produto" width={250} height={200} className="object-cover w-full" />
           </div>
-          <h3>Alface Fresca</h3>
+          <h3 className="mt-4">Alface Fresca</h3>
           <p>Preço: 500 AOA</p>
           
           <div className="flex justify-between mt-2" >
           
             <button className="flex text-2xl">
-               <FaStar className="text-amarela"/> 
+               <FaStar className="text-amarela mt-2"/> 
                12
             </button>
             <button className=" bg-marieth rounded-[5px] p-3 text-white" >

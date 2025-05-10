@@ -157,7 +157,7 @@ export default function CriarProduto() {
             <div className="flex justify-center px-4 py-8">
                 <form
                     onSubmit={handleSubmit}
-                    className="bg-white rounded-[10px] p-8 w-full max-w-[800px] mb-20 mt-[5%] shadow-custom"
+                    className="bg-white rounded-[10px] p-8 w-full max-w-[800px] mb-20 mt-[30%] lg:mt-[15%] shadow-custom"
                 >
                     <h3 className="mb-6 text-marieth text-[1.8rem] font-bold">Cadastrar Novo Produto</h3>
 
@@ -249,7 +249,7 @@ export default function CriarProduto() {
                                 required
                                 className="w-full p-[0.8rem] border-[1px] border-solid border-tab rounded-[10px] text-base transition-colors duration-150 cursor-pointer font-medium text-profile"
                             >
-                                <option value="Unidade">Unidade</option>
+                                <option value="Unidade" disabled hidden>Unidade</option>
                                 <option value="Tonelada">Tonelada (1000Kg)</option>
                                 <option value="kg">Kilograma (kg)</option>
                             </select>
@@ -334,11 +334,11 @@ export default function CriarProduto() {
                         </div>
                     </div>
 
-                    <div className="flex justify-between mt-6">
+                    <div className="flex justify-between mt-6 gap-4">
                         <button
                             type="button"
                             onClick={() => router.back()}
-                            className="bg-vermelho text-white py-3 px-6 text-base cursor-pointer font-medium transition-colors duration-150 hover:bg-red-500 flex border-none rounded-[10px]"
+                            className="bg-vermelho text-white lg:py-3 lg:px-6 py-2 px-5 text-sm lg:text-base cursor-pointer font-medium transition-colors duration-150 hover:bg-red-500 flex border-none rounded-[10px]"
                             disabled={loading}
                         >
                             Cancelar
@@ -346,7 +346,7 @@ export default function CriarProduto() {
                         <button
                             type="submit"
                             disabled={loading}
-                            className={`bg-marieth text-white py-3 px-6 text-base cursor-pointer font-medium transition-colors duration-150 hover:bg-verdeaceso flex border-none rounded-[10px] ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
+                            className={`bg-marieth text-white py:2 lg:py-3 px-5 lg:px-6 text-sm lg:text-base cursor-pointer font-medium transition-colors duration-150 hover:bg-verdeaceso flex border-none rounded-[10px] ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
                         >
                             {loading ? (
                                 <>
