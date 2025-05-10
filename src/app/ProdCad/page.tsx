@@ -31,23 +31,24 @@ export default function CriarProduto() {
         checar();
     }, [router]);
 
-    // Estado do formulário
+    // Estado do formulário - Ajustado para valores padrão válidos
     const [formData, setFormData] = useState({
-        provincia: "",
-        categoria: "",
+        provincia: "", // Será validado mais tarde
+        categoria: "", // Será validado mais tarde
         nome: "",
         quantidade: "",
-        Unidade: "Unidade", // Valor padrão
+        Unidade: "kg", // Valor padrão válido para o ENUM do banco de dados
         preco: "",
         descricao: ""
     });
 
     // Manipulador de mudanças em campos de texto e seleção
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-        const { name, value, type } = e.target;
+        const { name, value } = e.target;
+        console.log(`Campo alterado: ${name}, Valor: ${value}`); // Log para debug
         setFormData(prev => ({
             ...prev,
-            [name]: type === 'number' ? value : value
+            [name]: value
         }));
     };
 
@@ -55,66 +56,69 @@ export default function CriarProduto() {
     const handleImagemChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
+            console.log("Imagem selecionada:", file.name); // Log para debug
             setFotoProduto(file);
             setPreviewUrl(URL.createObjectURL(file));
         }
     };
 
-    // Envio do formulário
+    // Envio do formulário (com logs extras para debug)
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        console.log("Formulário submetido. Dados:", formData); // Log para debug
         setLoading(true);
 
-        // Validações
-        if (!formData.nome || !formData.preco || !formData.quantidade) {
-            toast.error("Por favor, preencha todos os campos obrigatórios.");
-            setLoading(false);
-            return;
-        }
-
-        if (!formData.provincia || formData.provincia === "Escolha sua Provincia") {
-            toast.error("Por favor, selecione uma província válida.");
-            setLoading(false);
-            return;
-        }
-        
-        if (!formData.categoria || formData.categoria === "Escolha uma Categoria") {
-            toast.error("Por favor, selecione uma categoria válida.");
-            setLoading(false);
-            return;
-        }
-
-        const precoNumerico = Number(formData.preco);
-        const quantidadeNumerica = Number(formData.quantidade);
-        
-        if (isNaN(precoNumerico) || precoNumerico <= 0) {
-            toast.error("O preço deve ser um número válido e maior que zero.");
-            setLoading(false);
-            return;
-        }
-    
-        if (isNaN(quantidadeNumerica) || quantidadeNumerica <= 0) {
-            toast.error("A quantidade deve ser um número válido e maior que zero.");
-            setLoading(false);
-            return;
-        }
-
-        // Preparação dos dados para envio
-        const formDataToSend = new FormData();
-        formDataToSend.append("provincia", formData.provincia);
-        formDataToSend.append("categoria", formData.categoria);
-        formDataToSend.append("nome", formData.nome);
-        formDataToSend.append("quantidade", formData.quantidade);
-        formDataToSend.append("Unidade", formData.Unidade);
-        formDataToSend.append("preco", formData.preco);
-        formDataToSend.append("descricao", formData.descricao);
-        
-        if (foto_produto) {
-            formDataToSend.append("foto_produto", foto_produto);
-        }
-    
         try {
-            await criarProduto(formDataToSend);
+            // Validações
+            if (!formData.nome) {
+                throw new Error("Por favor, informe o nome do produto.");
+            }
+            
+            if (!formData.preco) {
+                throw new Error("Por favor, informe o preço do produto.");
+            }
+            
+            if (!formData.quantidade) {
+                throw new Error("Por favor, informe a quantidade do produto.");
+            }
+            
+            if (!formData.provincia || formData.provincia === "Escolha sua Provincia") {
+                throw new Error("Por favor, selecione uma província válida.");
+            }
+            
+            if (!formData.categoria || formData.categoria === "Escolha uma Categoria") {
+                throw new Error("Por favor, selecione uma categoria válida.");
+            }
+    
+            const precoNumerico = Number(formData.preco);
+            const quantidadeNumerica = Number(formData.quantidade);
+            
+            if (isNaN(precoNumerico) || precoNumerico <= 0) {
+                throw new Error("O preço deve ser um número válido e maior que zero.");
+            }
+        
+            if (isNaN(quantidadeNumerica) || quantidadeNumerica <= 0) {
+                throw new Error("A quantidade deve ser um número válido e maior que zero.");
+            }
+    
+            // Preparação dos dados para envio
+            const formDataToSend = new FormData();
+            formDataToSend.append("provincia", formData.provincia);
+            formDataToSend.append("categoria", formData.categoria);
+            formDataToSend.append("nome", formData.nome);
+            formDataToSend.append("quantidade", formData.quantidade);
+            formDataToSend.append("Unidade", formData.Unidade);
+            formDataToSend.append("preco", formData.preco);
+            formDataToSend.append("descricao", formData.descricao);
+            
+            if (foto_produto) {
+                formDataToSend.append("foto_produto", foto_produto);
+            }
+        
+            console.log("Enviando dados para o backend..."); // Log para debug
+            const resultado = await criarProduto(formDataToSend);
+            console.log("Resposta do backend:", resultado); // Log para debug
+            
             toast.success("Produto cadastrado com sucesso!");
             
             // Reset do formulário após sucesso
@@ -123,19 +127,16 @@ export default function CriarProduto() {
                 categoria: "",
                 nome: "",
                 quantidade: "",
-                Unidade: "Unidade",
+                Unidade: "kg", // Mantendo um valor válido para o ENUM
                 preco: "",
                 descricao: ""
             });
             setFotoProduto(null);
             setPreviewUrl(null);
             
-            // Opcional: redirecionar para lista de produtos
-            // setTimeout(() => router.push("/produtos"), 2000);
-            
         } catch (error: any) {
-            toast.error(error.mensagem || "Erro ao cadastrar produto");
-            console.error(error);
+            console.error("Erro durante o cadastro:", error); // Log detalhado para debug
+            toast.error(error.message || error.mensagem || "Erro ao cadastrar produto");
         } finally {
             setLoading(false);
         }
@@ -171,7 +172,7 @@ export default function CriarProduto() {
                             onChange={handleChange}
                             className="w-full p-[0.8rem] border-[1px] border-solid border-tab rounded-[10px] text-base transition-colors duration-150 cursor-pointer font-medium text-profile"
                         >
-                            <option value="Escolha sua Provincia" disabled>Escolha sua Província</option>
+                            <option value="">Escolha sua Província</option>
                             <option value="Bengo">Bengo</option>
                             <option value="Benguela">Benguela</option>
                             <option value="Bié">Bié</option>
@@ -203,7 +204,7 @@ export default function CriarProduto() {
                             onChange={handleChange}
                             className="w-full p-[0.8rem] border-[1px] border-solid border-tab rounded-[10px] text-base transition-colors duration-150 cursor-pointer font-medium text-profile"
                         >
-                            <option value="Escolha uma Categoria" disabled>Escolha uma Categoria</option>
+                            <option value="">Escolha uma Categoria</option>
                             <option value="Frutas">Frutas</option>
                             <option value="Verduras">Verduras</option>
                             <option value="Insumos">Insumos Agrícolas</option>
@@ -249,9 +250,8 @@ export default function CriarProduto() {
                                 required
                                 className="w-full p-[0.8rem] border-[1px] border-solid border-tab rounded-[10px] text-base transition-colors duration-150 cursor-pointer font-medium text-profile"
                             >
-                                <option value="Unidade" disabled hidden>Unidade</option>
-                                <option value="Tonelada">Tonelada (1000Kg)</option>
                                 <option value="kg">Kilograma (kg)</option>
+                                <option value="Tonelada">Tonelada (1000Kg)</option>
                             </select>
                         </div>
                     </div>
