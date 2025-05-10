@@ -244,7 +244,7 @@ export default function DetalhesProduto(){
         <title>Detalhes do Produto</title>
       </Head>
       <Navbar/>
-      <div className="mb-20 mt-[30%] lg:mt-[15%]">
+      <div className="mb-20 mt-[38%] lg:mt-[15%]">
         <main className="max-w-[1200px] my-8 mx-auto bg-white p-8 shadow-custom rounded-[10px]">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div>

@@ -157,7 +157,7 @@ export default function CriarProduto() {
             <div className="flex justify-center px-4 py-8">
                 <form
                     onSubmit={handleSubmit}
-                    className="bg-white rounded-[10px] p-8 w-full max-w-[800px] mb-20 mt-[30%] lg:mt-[15%] shadow-custom"
+                    className="bg-white rounded-[10px] p-8 w-full max-w-[800px] mb-20 mt-[35%] lg:mt-[15%] shadow-custom"
                 >
                     <h3 className="mb-6 text-marieth text-[1.8rem] font-bold">Cadastrar Novo Produto</h3>
 
@@ -171,7 +171,7 @@ export default function CriarProduto() {
                             onChange={handleChange}
                             className="w-full p-[0.8rem] border-[1px] border-solid border-tab rounded-[10px] text-base transition-colors duration-150 cursor-pointer font-medium text-profile"
                         >
-                            <option value="Escolha sua Provincia" disabled hidden>Escolha sua Província</option>
+                            <option value="Escolha sua Provincia" disabled>Escolha sua Província</option>
                             <option value="Bengo">Bengo</option>
                             <option value="Benguela">Benguela</option>
                             <option value="Bié">Bié</option>
@@ -203,7 +203,7 @@ export default function CriarProduto() {
                             onChange={handleChange}
                             className="w-full p-[0.8rem] border-[1px] border-solid border-tab rounded-[10px] text-base transition-colors duration-150 cursor-pointer font-medium text-profile"
                         >
-                            <option value="Escolha uma Categoria" disabled hidden>Escolha uma Categoria</option>
+                            <option value="Escolha uma Categoria" disabled>Escolha uma Categoria</option>
                             <option value="Frutas">Frutas</option>
                             <option value="Verduras">Verduras</option>
                             <option value="Insumos">Insumos Agrícolas</option>
