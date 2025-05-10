@@ -54,12 +54,7 @@ export interface Produto {
       const response = await axios.post(
         `${API_URL}/produtos/produtos`,
         produtoData,
-        {
-          headers: {
-            "Authorization": `Bearer ${token}`,
-            },
-          withCredentials: true
-        }
+        {withCredentials: true}
       );
   
       return response.data;
@@ -74,10 +69,6 @@ export interface Produto {
       
   
 
-
-
-
- 
 export const atualizarProduto = async (id: number, produtoData: any): Promise<any> => {
     try {
         const response = await axios.put(`${API_URL}/produtos/atualizar/${id}`, produtoData, {
