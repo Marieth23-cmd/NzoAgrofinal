@@ -1,4 +1,5 @@
 import axios from "axios"
+import Cookies from 'js-cookie';
  const API_URL=process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"
 
  export const getProdutos= async(): Promise<any> =>{
@@ -44,24 +45,33 @@ export interface Produto {
   }
   
   
-
-  export const criarProduto = async (produtoData: any): Promise<any> => {
+  
+  
+  export const criarProduto = async (produtoData: FormData): Promise<any> => {
     try {
-        const response = await axios.post(`${API_URL}/produtos/produtos`, produtoData, {
-            headers: { "Content-Type": "application/json" },
-            withCredentials: true, 
-        });
-
-        return response.data;
-    }  catch (error: any) {
-        console.log("Erro ao criar produto:", error.response?.data || error.message);
-        throw { 
-          mensagem: error.response?.data?.erro || "Erro ao criar o produto",
-          detalhes: error.response?.data?.detalhe || error.message
-        };
-      }
+      const token = Cookies.get("token"); 
+  
+      const response = await axios.post(
+        `${API_URL}/produtos/produtos`,
+        produtoData,
+        {
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "multipart/form-data"
+          }
+        }
+      );
+  
+      return response.data;
+    } catch (error: any) {
+      console.log("Erro ao criar produto:", error.response?.data || error.message);
+      throw {
+        mensagem: error.response?.data?.erro || "Erro ao criar o produto",
+        detalhes: error.response?.data?.detalhe || error.message
+      };
     }
-    
+  };
+      
   
 
 

@@ -120,7 +120,7 @@ export default function CriarProduto() {
             console.log("Resposta do backend:", resultado); // Log para debug
             
             toast.success("Produto cadastrado com sucesso!");
-            
+            router.push("/TelaProdutos"); // Redireciona para a tela de produtos após sucesso
             // Reset do formulário após sucesso
             setFormData({
                 provincia: "",
@@ -135,7 +135,7 @@ export default function CriarProduto() {
             setPreviewUrl(null);
             
         } catch (error: any) {
-            console.error("Erro durante o cadastro:", error); // Log detalhado para debug
+            console.log("Erro durante o cadastro:", error); // Log detalhado para debug
             toast.error(error.message || error.mensagem || "Erro ao cadastrar produto");
         } finally {
             setLoading(false);
