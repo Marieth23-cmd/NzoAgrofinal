@@ -142,7 +142,7 @@ export default function PerfilComprador() {
         <title>Perfil Comprador</title>
       </Head>
       <Navbar />
-         <div className="shadow-custom flex flex-col mb-20  gap-2 mt-[30%] lg:mt-[15%]  max-w-[1200px] justify-center items-center">
+         <div className="shadow-custom flex flex-col mb-20  gap-2 mt-[35%] lg:mt-[15%]  max-w-[1200px] justify-center items-center">
                         
                     <main className="my-8 max-w-[80rem] w-full  flex flex-col gap-8">
             <div className="lg:flex shadow-custom border-[0.7px] rounded-[10px] p-8 bg-white gap-8">
@@ -213,8 +213,8 @@ export default function PerfilComprador() {
               <h2 className="mt-4"> <a href="">{usuario?.descricao}</a></h2>
             </div>
           </div>
-            
-          <div className="max-w-[72rem] mt-4 shadow-custom p-8 bg-white">
+{/*             
+          <div className="max-w-[72rem] mt-4 p-8 bg-white">
             <h2 className="mb-6 text-profile font-semibold text-2xl">Histórico de Compras</h2>
             <div className="grid gap-4">
               <div className="flex gap-8 rounded-[0.625rem] p-6 bg-list">
@@ -233,7 +233,77 @@ export default function PerfilComprador() {
                 </div>
               </div>
             </div>
+          </div> */}
+          <div className="w-full max-w-[72rem] mt-4 p-4 md:p-8 bg-white">
+  <h2 className="mb-4 md:mb-6 text-profile font-semibold text-xl md:text-2xl">Histórico de Compras</h2>
+  <div className="grid gap-4">
+    <div className="rounded-[0.625rem] p-4 md:p-6 bg-list">
+      {/* Layout responsivo para data e detalhes */}
+      <div className="flex flex-col md:flex-row md:gap-8">
+        {/* Data - fica no topo em telas pequenas */}
+        <div className="font-medium text-cortime mb-2 md:mb-0 md:flex-[0_0_100px]">
+          15 Mai 2023
+        </div>
+
+        {/* Conteúdo principal */}
+        <div className="flex-1">
+          <h3 className="text-lg md:text-[1.17rem] m-0 mb-2">Pedido #12345</h3>
+          
+          {/* Produtos - já tem flex-wrap, mantemos isso */}
+          <div className="flex gap-2 md:gap-4 mb-2 flex-wrap">
+            <span className="bg-white rounded-[0.625rem] text-xs md:text-[0.9rem] text-cortime py-[0.3rem] px-[0.8rem]">
+              Tomates (50kg)
+            </span>
+            <span className="bg-white rounded-[0.625rem] text-xs md:text-[0.9rem] text-cortime py-[0.3rem] px-[0.8rem]">
+              Batatas (100kg)
+            </span>
+            <span className="bg-white rounded-[0.625rem] text-xs md:text-[0.9rem] text-cortime py-[0.3rem] px-[0.8rem]">
+              Cebolas (30kg)
+            </span>
           </div>
+          
+          {/* Status e preço - colocamos em linha mesmo em mobile */}
+          <div className="flex flex-wrap items-center justify-between">
+            <div className="text-white bg-marieth text-center font-medium rounded-[5px] p-1 w-20 text-sm">
+              Entregue
+            </div>
+            <div className="font-semibold text-profile text-base md:text-lg mt-2 md:mt-0">
+              kzs 2.500,00
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    {/* Exemplo de segundo item para mostrar layout consistente */}
+    <div className="rounded-[0.625rem] p-4 md:p-6 bg-list">
+      <div className="flex flex-col md:flex-row md:gap-8">
+        <div className="font-medium text-cortime mb-2 md:mb-0 md:flex-[0_0_100px]">
+          10 Mai 2023
+        </div>
+        <div className="flex-1">
+          <h3 className="text-lg md:text-[1.17rem] m-0 mb-2">Pedido #12340</h3>
+          <div className="flex gap-2 md:gap-4 mb-2 flex-wrap">
+            <span className="bg-white rounded-[0.625rem] text-xs md:text-[0.9rem] text-cortime py-[0.3rem] px-[0.8rem]">
+              Cenouras (20kg)
+            </span>
+            <span className="bg-white rounded-[0.625rem] text-xs md:text-[0.9rem] text-cortime py-[0.3rem] px-[0.8rem]">
+              Alface (15kg)
+            </span>
+          </div>
+          <div className="flex flex-wrap items-center justify-between">
+            <div className="text-white bg-marieth text-center font-medium rounded-[5px] p-1 w-20 text-sm">
+              Entregue
+            </div>
+            <div className="font-semibold text-profile text-base md:text-lg mt-2 md:mt-0">
+              kzs 1.200,00
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
         </main>
       </div>
       <Footer />

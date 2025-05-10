@@ -244,7 +244,7 @@ export default function DetalhesProduto(){
         <title>Detalhes do Produto</title>
       </Head>
       <Navbar/>
-      <div className="mb-20 mt-[20%] lg:mt-[15%]">
+      <div className="mb-20 mt-[25%] lg:mt-[15%]">
         <main className="max-w-[1200px] my-8 mx-auto bg-white p-8 shadow-custom rounded-[10px]">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div>
@@ -260,7 +260,7 @@ export default function DetalhesProduto(){
 
             <div>
               <div className="flex gap-6 flex-col">
-                <h1 className=" text-[1.4rem] lg:text-[2rem]  text-profile font-bold">{produto.nome}</h1>
+                <h1 className=" text-[1.8rem] lg:text-[2rem] text-profile font-bold">{produto.nome}</h1>
 
                 <div className="flex gap-2 text-[1.5rem] cursor-pointer text-tab">
                   {avaliacoes[produto.id_produtos] ? (
@@ -283,7 +283,7 @@ export default function DetalhesProduto(){
                   )}                      
                 </div>
                 
-                <div className="text-[1.8rem] font-bold text-marieth">
+                <div className="text-[1.6rem] lg:text-[1.8rem] font-bold text-marieth">
                   <span>{produto.preco}AOA/</span> 
                   <span>{produto.quantidade}{produto.Unidade}</span>
                 </div>
@@ -296,7 +296,7 @@ export default function DetalhesProduto(){
                     + / -
                   </button>
               
-                  <div className="flex items-center gap-4 p-4 mb-2 rounded-[10px] bg-pretobranco">
+                  <div className="flex items-center gap-4 p-3 lg:p-4 mb-2 rounded-[10px] bg-pretobranco">
                     <div className="flex w-[60px] h-[60px] rounded-[50%] items-center justify-center bg-back">
                       <AiFillHome/>
                     </div>

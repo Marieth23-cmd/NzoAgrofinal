@@ -79,7 +79,7 @@ export default function CadastroComprador() {
     
             console.log("Usuário criado com sucesso:", resposta);
             setSucesso(true);
-            alert("Conta criada com Sucesso. Bem-vindo(a) à NzoAgro");
+            
             
             // Usar um timeout mais longo para garantir que o alerta seja visto
             setTimeout(() => {
@@ -104,7 +104,7 @@ export default function CadastroComprador() {
         if (sucesso) {
             const timer = setTimeout(() => {
                 router.push("/");
-            }, 1500);
+            }, 2500);
             
             return () => clearTimeout(timer);
         }

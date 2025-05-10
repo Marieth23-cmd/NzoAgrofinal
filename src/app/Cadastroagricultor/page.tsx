@@ -93,7 +93,7 @@ export default function CadastroAgricultor() {
     
             console.log("Usuário criado com sucesso:", resposta);
             setSucesso(true);
-            alert("Conta criada com Sucesso. Bem-vindo(a) à NzoAgro");
+            
             
             // Usar um timeout mais longo para garantir que o alerta seja visto
             setTimeout(() => {
@@ -118,7 +118,7 @@ export default function CadastroAgricultor() {
         if (sucesso) {
             const timer = setTimeout(() => {
                 router.push("/");
-            }, 1500);
+            }, 2500);
             
             return () => clearTimeout(timer);
         }
@@ -283,7 +283,7 @@ export default function CadastroAgricultor() {
                                         <button 
                                             type="button"
                                             onClick={handleNext}
-                                            className="bg-gradient-to-r from-purple-500 to-violet-600 text-white py-[0.8rem] border-none font-medium cursor-pointer rounded-[5px] text-base px-8 hover:bg-verdeaceso"
+                                            className="bg-gradient-to-r from-green-500 to-green-600 text-white py-[0.8rem] border-none font-medium cursor-pointer rounded-[5px] text-base px-8 hover:bg-verdeaceso"
                                         >
                                             Próximo Passo
                                         </button>

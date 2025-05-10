@@ -283,7 +283,7 @@ export default function CadastroFornecedor() {
                                         <button 
                                             type="button"
                                             onClick={handleNext}
-                                            className="bg-gradient-to-r from-purple-500 to-violet-600 text-white py-[0.8rem] border-none font-medium cursor-pointer rounded-[5px] text-base px-8 hover:bg-verdeaceso"
+                                            className="bg-gradient-to-r from-green-500 to-green-600 text-white py-[0.8rem] border-none font-medium cursor-pointer rounded-[5px] text-base px-8 hover:bg-verdeaceso"
                                         >
                                             Próximo Passo
                                         </button>

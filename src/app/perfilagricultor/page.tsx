@@ -147,7 +147,7 @@ import { getUsuarioById } from "../Services/user";
                <title>Perfil Agricultor</title>
                </Head>
             <Navbar/>
-            <div className="shadow-custom flex flex-col mb-20  gap-2 mt-[30%] lg:mt-[15%]  max-w-[1200px] justify-center items-center">
+            <div className="shadow-custom flex flex-col mb-20  gap-2 mt-[35%] lg:mt-[15%]  max-w-[1200px] justify-center items-center">
                 
             <main className="my-8 max-w-[80rem] w-full  flex flex-col gap-8">
     <div className="lg:flex shadow-custom border-[0.7px] rounded-[10px] p-8 bg-white gap-8">
@@ -262,7 +262,7 @@ import { getUsuarioById } from "../Services/user";
       </div>
     </div>
 
-    <section className=" bg-white p-8 shadow-custom rounded-[10px]" >
+    <section className=" bg-white p-8 rounded-[10px]" >
         <h2 className ="mb-6 text-profile font-semibold text-2xl">Produtos Cadastrados</h2>
       
       <div className="mt-2 grid grid-cols-1 mb-6 lg:grid-cols-3 gap-6" >

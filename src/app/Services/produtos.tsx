@@ -30,6 +30,21 @@ import axios from "axios"
   }
 
 
+  // Interface para o tipo de produto
+export interface Produto {
+    id?: number;
+    nome: string;
+    descricao?: string;
+    preco: number;
+    quantidade: number;
+    foto_produto?: string;
+    categoria: string;
+    Unidade: string;
+    provincia: string;
+  }
+  
+  
+
   export const criarProduto = async (produtoData: any): Promise<any> => {
     try {
         const response = await axios.post(`${API_URL}/produtos/produtos`, produtoData, {
@@ -38,11 +53,17 @@ import axios from "axios"
         });
 
         return response.data;
-    } catch (error: any) {
-        console.log( error.message);
-        throw { mensagem: "Erro ao criar o produto" };
+    }  catch (error: any) {
+        console.log("Erro ao criar produto:", error.response?.data || error.message);
+        throw { 
+          mensagem: error.response?.data?.erro || "Erro ao criar o produto",
+          detalhes: error.response?.data?.detalhe || error.message
+        };
+      }
     }
-};
+    
+  
+
 
 
 

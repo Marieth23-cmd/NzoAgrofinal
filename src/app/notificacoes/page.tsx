@@ -55,7 +55,7 @@ export default function Notificacoes() {
       await deletarNotificacao(id);
       setNotificacoes((prev) => prev.filter((n) => n.id_notificacoes !== id));
     } catch (error) {
-      console.error("Erro ao apagar notificação:", error);
+      console.log("Erro ao apagar notificação:", error);
     }
   };
 

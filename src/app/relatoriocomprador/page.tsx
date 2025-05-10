@@ -253,8 +253,8 @@ export default function Comprador() {
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-    } catch (err: any) {
-      setError(err.mensagem || "Erro ao exportar PDF");
+    } catch (error: any) {
+      setError(error.mensagem || "Erro ao exportar PDF");
     } finally {
       setExportLoading(false);
       setDropdownOpen(false);
@@ -279,8 +279,8 @@ export default function Comprador() {
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-    } catch (err: any) {
-      setError(err.mensagem || "Erro ao exportar CSV");
+    } catch (error: any) {
+      setError(error.mensagem || "Erro ao exportar CSV");
     } finally {
       setExportLoading(false);
       setDropdownOpen(false);
@@ -292,7 +292,7 @@ export default function Comprador() {
       <Navbar/>
       
       {/* Container principal com margens responsivas */}
-      <div className="flex flex-col mb-10 md:mb-20 gap-2 mt-16 md:mt-[15%] mx-4 md:mx-8 max-w-full md:max-w-[1200px] shadow-custom p-4 md:p-8 rounded-[10px]">
+      <div className="flex flex-col mb-20 md:mb-20 gap-2 mt-[35%] md:mt-[15%] mx-4 md:mx-8 max-w-full md:max-w-[1200px] shadow-custom p-4 md:p-8 rounded-[10px]">
         
         {/* Cabeçalho com layout responsivo */}
         <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center mb-6 md:mb-8">
