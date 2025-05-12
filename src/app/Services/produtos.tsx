@@ -33,7 +33,7 @@ import Cookies from 'js-cookie';
 
   // Interface para o tipo de produto
 export interface Produto {
-    id?: number;
+    id_usuario?: number;
     nome: string;
     descricao?: string;
     preco: number;
@@ -49,8 +49,7 @@ export interface Produto {
   
   export const criarProduto = async (produtoData: FormData): Promise<any> => {
     try {
-      const token = Cookies.get("token"); 
-  
+    
       const response = await axios.post(
         `${API_URL}/produtos/produtos`,
         produtoData,
@@ -61,7 +60,7 @@ export interface Produto {
     } catch (error: any) {
       console.log("Erro ao criar produto:", error.response?.data || error.message);
       throw {
-        mensagem: error.response?.data?.erro || "Erro ao criar o produto",
+        mensagem: error.response?.data?.error || "Erro ao criar o produto",
         detalhes: error.response?.data?.detalhe || error.message
       };
     }
