@@ -120,7 +120,7 @@ export default function CriarProduto() {
             console.log("Resposta do backend:", resultado); // Log para debug
             
             toast.success("Produto cadastrado com sucesso!");
-            router.push("/TelaProdutos"); // Redireciona para a tela de produtos após sucesso
+            router.push("/TodosProdutos"); // Redireciona para a tela de produtos após sucesso
             // Reset do formulário após sucesso
             setFormData({
                 provincia: "",
@@ -346,7 +346,7 @@ export default function CriarProduto() {
                         <button
                             type="submit"
                             disabled={loading}
-                            className={`bg-marieth text-white py:2 lg:py-3 px-5 lg:px-6 text-sm lg:text-base cursor-pointer font-medium transition-colors duration-150 hover:bg-verdeaceso flex border-none rounded-[10px] ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
+                            className={`bg-marieth text-white py:2 lg:py-3 px-6 lg:px-6 text-sm lg:text-base cursor-pointer font-medium transition-colors duration-150 hover:bg-verdeaceso flex border-none rounded-[10px] ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
                         >
                             {loading ? (
                                 <>

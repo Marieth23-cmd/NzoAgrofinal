@@ -7,20 +7,17 @@ import { useRouter } from "next/navigation";
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-
 export default function Login() {
-    const router=useRouter ();
+    const router = useRouter();
     const [email, setEmail] = useState("");
     const [senha, setSenha] = useState("");
     const [senhaVisivel, setSenhaVisivel] = useState(false);
     const [erro, setErro] = useState("");
     
-
-    
     const handleInputChange = (setter: React.Dispatch<React.SetStateAction<string>>) => 
         (e: React.ChangeEvent<HTMLInputElement>) => {
             setter(e.target.value);
-            setErro(""); 
+            setErro(""); // Limpa o erro quando o usuário modifica os campos
         };
 
     const handleLogin = async (e: React.FormEvent) => {
@@ -34,27 +31,35 @@ export default function Login() {
         try {
             const response = await login(email, senha);
             console.log("Usuário logado:", response);
-            console.log("Resposta completa:", response);
-
+            
+            // Verifica o tipo de usuário e redireciona adequadamente
             if (response.tipo_usuario?.trim() === "Administrador") {
-                router.push("/Administrador"); 
-                console.log("Tipo de usuário recebido:", response.tipo_usuario);
+                toast.success("Login realizado com sucesso! Redirecionando para área administrativa...");
+                // Importante: espere o toast ser exibido antes de redirecionar
+                setTimeout(() => {
+                    router.push("/Administrador");
+                }, 1000);
             } else {
-                toast.success("Login realizado com sucesso! ,Bem-vindo(a) de volta!");
-                router.push("/"); 
+                toast.success("Login realizado com sucesso! Bem-vindo(a) de volta!");
+                setTimeout(() => {
+                    router.push("/");
+                }, 1000);
             }
-
-
+            
             setErro(""); 
           
         } catch (error: any) {
+            console.error("Erro de login:", error);
             setErro(error.message || "Erro ao Iniciar Sessão!");
-            toast.error("Erro iniciar sessão. Tente novamente!");
+            toast.error("Erro ao iniciar sessão. Tente novamente!");
         }
     };
-    <ToastContainer position="top-right" autoClose={5000} />
+
     return (
         <main className="flex flex-col justify-center mt-28 items-center lg:mt-20">
+            {/* ToastContainer deve estar dentro do return */}
+            <ToastContainer position="top-right" autoClose={5000} />
+            
             <div className="bg-white p-8 w-full rounded-lg max-w-[400px] m-4 shadow-lg">
                 <div className="flex mb-8 items-center justify-center">
                     <Image src="/images/logo.jpg" alt="logotipo" width={150} height={150} />
