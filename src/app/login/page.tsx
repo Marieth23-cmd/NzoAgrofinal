@@ -33,16 +33,13 @@ export default function Login() {
             console.log("Usuário logado:", response);
             
             // Verifica o tipo de usuário e redireciona adequadamente
-            if (response.tipo_usuario?.trim() === "Comprador") {
+            if (response.tipo_usuario?.trim() === "Administrador") {
                 toast.success("Login realizado com sucesso! Redirecionando para área administrativa...");
-                
+                // Importante: espere o toast ser exibido antes de 
                 setTimeout(() => {
                     router.push("/");
                 }, 1000);
-               
-                
             } else {
-
                 toast.success("Login realizado com sucesso! Bem-vindo(a) de volta!");
                 setTimeout(() => {
                     router.push("/Administrador");
