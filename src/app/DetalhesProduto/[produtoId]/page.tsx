@@ -284,7 +284,8 @@ export default function DetalhesProduto(){
                 
                 <div className="text-[1.6rem] lg:text-[1.8rem] font-bold text-marieth">
                   <span>{produto.preco}AOA/</span> 
-                  <span>{produto.quantidade}{produto.Unidade}</span>
+                  <span>{produto.quantidade}</span>
+                  <span>{produto.Unidade}</span>
                 </div>
 
                 <div>
