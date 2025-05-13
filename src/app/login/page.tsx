@@ -34,25 +34,14 @@ export default function Login() {
             
             // Verifica o tipo de usuário e redireciona adequadamente
             if (response.tipo_usuario?.trim() === "Comprador") {
-
                 toast.success("Login realizado com sucesso! Redirecionando para área administrativa...");
                 
                 setTimeout(() => {
                     router.push("/");
                 }, 1000);
-              }  if (response.tipo_usuario === "Fornecedor") {
-                     toast.success("Login realizado com sucesso! Redirecionando para área administrativa...");
+               
                 
-                setTimeout(() => {
-                    router.push("/");
-                }, 1000);
-        } else if (response.tipo_usuario === "Agricultor") {
-           toast.success("Login realizado com sucesso! Redirecionando para área administrativa...");
-                
-                setTimeout(() => {
-                    router.push("/");
-                }, 1000);
-        } else {
+            } else {
 
                 toast.success("Login realizado com sucesso! Bem-vindo(a) de volta!");
                 setTimeout(() => {
