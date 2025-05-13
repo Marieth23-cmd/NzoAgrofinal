@@ -37,12 +37,12 @@ export default function Login() {
                 toast.success("Login realizado com sucesso! Redirecionando para área administrativa...");
                 // Importante: espere o toast ser exibido antes de 
                 setTimeout(() => {
-                    router.push("/");
+                    router.push("/Administrador");
                 }, 1000);
             } else {
                 toast.success("Login realizado com sucesso! Bem-vindo(a) de volta!");
                 setTimeout(() => {
-                    router.push("/Administrador");
+                    router.push("/");
                 }, 1000);
             }
             
