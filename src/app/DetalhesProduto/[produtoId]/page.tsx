@@ -216,11 +216,10 @@ export default function DetalhesProduto(){
         return;
       }
     
-      const idString = String(produto.id_produtos);
-      
-      // Adicionar ao carrinho usando o ID seguro
+      // const idString = String(produto.id_produtos);
+      // Adicionar produto ao carrinho
       await adicionarProdutoAoCarrinho(
-        idString,
+        produto.id_produtos,
         quantidadeSelecionada
       );
       
