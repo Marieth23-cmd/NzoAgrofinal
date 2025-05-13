@@ -42,7 +42,7 @@ export default function Login() {
             } else {
                 toast.success("Login realizado com sucesso! Bem-vindo(a) de volta!");
                 setTimeout(() => {
-                    router.push("/");
+                    router.push("/Administrador");
                 }, 1000);
             }
             
