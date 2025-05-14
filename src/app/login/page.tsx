@@ -43,13 +43,13 @@ export default function Login() {
                 // Usar push com await para garantir o redirecionamento
                 setTimeout(() => {
                     router.push("/Administrador");
-                }, 1000);
+                }, 1500);
             } else {
                 toast.success("Login realizado com sucesso! Bem-vindo(a) de volta!");
                 console.log("Redirecionando para página inicial");
                 setTimeout(() => {
                     router.push("/");
-                }, 1000);
+                }, 1500);
             }
             
             setErro(""); 

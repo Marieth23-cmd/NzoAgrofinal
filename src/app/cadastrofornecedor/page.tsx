@@ -93,9 +93,6 @@ export default function CadastroFornecedor() {
     
             console.log("Usuário criado com sucesso:", resposta);
             setSucesso(true);
-            alert("Conta criada com Sucesso. Bem-vindo(a) à NzoAgro");
-            
-            // Usar um timeout mais longo para garantir que o alerta seja visto
             setTimeout(() => {
                 router.push("/");
             }, 1000);
@@ -118,7 +115,7 @@ export default function CadastroFornecedor() {
         if (sucesso) {
             const timer = setTimeout(() => {
                 router.push("/");
-            }, 1500);
+            }, 3000);
             
             return () => clearTimeout(timer);
         }

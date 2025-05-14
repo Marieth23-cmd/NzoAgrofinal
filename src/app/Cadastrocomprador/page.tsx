@@ -104,7 +104,7 @@ export default function CadastroComprador() {
         if (sucesso) {
             const timer = setTimeout(() => {
                 router.push("/");
-            }, 2500);
+            }, 3000);
             
             return () => clearTimeout(timer);
         }
