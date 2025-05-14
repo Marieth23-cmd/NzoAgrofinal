@@ -32,15 +32,21 @@ export default function Login() {
             const response = await login(email, senha);
             console.log("Usuário logado:", response);
             
+            // Verificação mais robusta do tipo de usuário
+            const tipoUsuario = response.tipo_usuario?.trim().toLowerCase() || "";
+            console.log("Tipo de usuário detectado:", tipoUsuario);
             
-            if (response.tipo_usuario?.trim() === "Administrador") {
+            if (tipoUsuario === "administrador") {
                 toast.success("Login realizado com sucesso! Redirecionando para área administrativa...");
+                console.log("Redirecionando para /Administrador");
                 
+                // Usar push com await para garantir o redirecionamento
                 setTimeout(() => {
                     router.push("/Administrador");
                 }, 1000);
             } else {
                 toast.success("Login realizado com sucesso! Bem-vindo(a) de volta!");
+                console.log("Redirecionando para página inicial");
                 setTimeout(() => {
                     router.push("/");
                 }, 1000);

@@ -25,8 +25,7 @@ export default function Notificacoes() {
   const [notificacoes, setNotificacoes] = useState<Notificacao[]>([]);
   const [abaSelecionada, setAbaSelecionada] = useState<"todas" | "nao-lidas">("todas");
   const [carregando, setCarregando] = useState(true);
-  const [quantidadeNaoLidas, setQuantidadeNaoLidas] = useState<number>(0);
-
+  
 
   // Função que carrega as notificações da API
   const carregarNotificacoes = async () => {
@@ -99,7 +98,7 @@ export default function Notificacoes() {
     <main>
       <Navbar />
       
-      <div className="flex flex-col mb-20 gap-2 mt-[25%] lg:mt-[15%] max-w-[1200px] shadow-custom">
+      <div className="flex flex-col mb-20 gap-2 mt-[30%] lg:mt-[15%] max-w-[1200px] shadow-custom">
         
         <div className="flex items-end">
           <h1 className="text-[2rem] text-marieth mt-[80px] p-4 font-bold">
@@ -162,14 +161,14 @@ export default function Notificacoes() {
               <div className="flex">
                 {!n.is_lida && (
                   <button
-                    className="flex bg-marieth text-white m-2 rounded-[5px] items-center gap-2 cursor-pointer py-2 px-4"
+                    className="flex bg-marieth text-white m-2 rounded-[5px] items-center gap-2 cursor-pointer py-[0.4rem] px-[0.8rem] lg:py-2 lg:px-4"
                     onClick={() => handleMarcarComoLida(n.id_notificacoes)}
                   >
                     <IoCheckmark className="text-2xl" /> Marcar como lida
                   </button>
                 )}
                 <button
-                  className="flex bg-vermelho text-white border-none m-2 rounded-[5px] items-center gap-2 cursor-pointer py-2 px-4"
+                  className="flex bg-vermelho text-white border-none m-2 rounded-[5px] items-center gap-2 cursor-pointer py-[0.4rem] px-[0.8rem] lg:py-2 lg:px-4"
                   onClick={() => handleApagar(n.id_notificacoes)}
                 >
                   <FaTrash /> Apagar

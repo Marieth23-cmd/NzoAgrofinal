@@ -4,7 +4,7 @@ import Head from "next/head";
 import Image from "next/image";
 import { AiFillHome } from "react-icons/ai";
 import { CiLocationOn } from "react-icons/ci";
-import { FaRegStar } from "react-icons/fa";
+import { FaStar, FaPaperPlane } from "react-icons/fa";
 import { useParams, useRouter } from "next/navigation";
 import { FaRegStarHalfStroke } from "react-icons/fa6";
 import { CgShoppingCart } from "react-icons/cg";
@@ -15,7 +15,6 @@ import { getProdutoById } from "../../Services/produtos";
 import { verificarAuth } from "../../Services/auth";
 import { buscarMediaEstrelas } from "../../Services/avaliacoes";
 import { enviarAvaliacao } from "../../Services/avaliacoes";
-import { FaStar } from "react-icons/fa";
 import { adicionarProdutoAoCarrinho } from '@/app/Services/cart';
 
 export default function DetalhesProduto(){
@@ -34,6 +33,7 @@ export default function DetalhesProduto(){
   const [total, setTotal] = useState<number>(0);
   const [percentagem, setPercentagem] = useState<number>(0);
   const [notaSelecionada, setNotaSelecionada] = useState<number>(0);
+  const [notaTemporaria, setNotaTemporaria] = useState<number>(0);
 
   type Produto = {
     id_produtos: number;
@@ -108,15 +108,27 @@ export default function DetalhesProduto(){
     }
   }, [produto, quantidadeSelecionada]);
 
-  // Função para avaliar produtos
-  const handleAvaliar = async (nota: number) => {
+  // Função para selecionar estrela temporariamente (sem enviar)
+  const handleSelecionarEstrela = (nota: number) => {
     if (!autenticado) {
       alert("Você precisa estar logado para avaliar.");
+      router.push("/login");
+      return;
+    }
+    
+    setNotaTemporaria(nota);
+  };
+  
+  // Função para enviar avaliação
+  const handleEnviarAvaliacao = async () => {
+    if (!autenticado) {
+      alert("Você precisa estar logado para avaliar.");
+      router.push("/login");
       return;
     }
   
-    if (!produtoId) {
-      alert("ID do produto não encontrado.");
+    if (!produtoId || notaTemporaria === 0) {
+      alert(notaTemporaria === 0 ? "Selecione uma nota para avaliar." : "ID do produto não encontrado.");
       return;
     }
   
@@ -127,11 +139,18 @@ export default function DetalhesProduto(){
         throw new Error("ID do produto inválido");
       }
       
+      // Debug para acompanhar o envio
+      console.log("Enviando avaliação:", {
+        produtoId: idProdutoNumerico,
+        nota: notaTemporaria
+      });
+      
       // Enviar avaliação
-      await enviarAvaliacao(idProdutoNumerico, nota);
+      await enviarAvaliacao(idProdutoNumerico, notaTemporaria);
       
       // Atualizar UI após sucesso
-      setNotaSelecionada(nota);
+      setNotaSelecionada(notaTemporaria);
+      setNotaTemporaria(0); // Reset do temporário após envio
       
       // Recarregar dados de avaliação
       const resultado = await buscarMediaEstrelas(idProdutoNumerico);
@@ -147,31 +166,16 @@ export default function DetalhesProduto(){
   
     } catch (error: any) {
       console.log("Erro detalhado ao avaliar:", error);
-      alert(error.mensagem || "Erro ao enviar avaliação. Tente novamente.");
+      
+      // Mensagem de erro mais específica baseada na resposta do servidor
+      if (error.status === 500) {
+        alert("Erro interno do servidor. Por favor, tente novamente mais tarde.");
+      } else {
+        alert(error.mensagem || "Erro ao enviar avaliação. Tente novamente.");
+      }
     }
   };
 
-  // Verificar login antes de avaliar
-  const verificarLoginAntesDeAvaliar = async (nota: number) => {
-    try {
-      if (!autenticado) {
-        try {
-          await verificarAuth();
-          setAutenticado(true);
-        } catch (error:any) {
-          alert(error.mensagem || "Você precisa estar logado para avaliar.");
-          router.push("/login");
-          return;
-        }
-      }
-      
-      await handleAvaliar(nota);
-    } catch (error) {
-      console.log("Erro ao verificar login:", error);
-      alert("Ocorreu um erro. Por favor, tente novamente.");
-    }
-  };
-  
   // Exibir popup de ajuste de quantidade
   const handleBotaoMaisMenos = async () => {
     if (!autenticado) {
@@ -190,19 +194,26 @@ export default function DetalhesProduto(){
       router.push("/login");
     }
   };
+  
   const handleAdicionarAoCarrinho = async () => {
     try {
-      // Verificar se o produto existe e tem um ID válido
       if (!produto) {
         alert("Erro: Produto não encontrado.");
         return;
       }
       
-      // Verificar explicitamente se id_produtos existe
-      if (produto.id_produtos === undefined || produto.id_produtos === null) {
-        alert("Erro: ID do produto não encontrado.");
+      // Verificar explicitamente se o id está disponível
+      const produtoId = produto.id_produtos;
+      
+      // Validar que o ID existe e é um número
+      if (produtoId === undefined || produtoId === null || typeof produtoId !== 'number') {
+        console.error("ID do produto inválido:", produtoId);
+        alert("Erro: ID do produto inválido.");
         return;
       }
+  
+      // Debug - exibir o ID para verificação antes de enviar
+      console.log("Tentando adicionar produto com ID:", produtoId);
   
       // Verificar se a quantidade é válida
       if (quantidadeSelecionada <= 0) {
@@ -216,10 +227,9 @@ export default function DetalhesProduto(){
         return;
       }
     
-      // const idString = String(produto.id_produtos);
-      // Adicionar produto ao carrinho
+      // Adicionar produto ao carrinho com o ID numérico
       await adicionarProdutoAoCarrinho(
-        produto.id_produtos,
+        produtoId,
         quantidadeSelecionada
       );
       
@@ -228,8 +238,8 @@ export default function DetalhesProduto(){
         setMensagemSucesso(null);
       }, 3000);
     } catch (error: any) {
+      console.error("Erro ao adicionar ao carrinho:", error);
       alert(error.mensagem || "Erro ao adicionar ao carrinho.");
-      console.log("Erro completo:", error);
     }
   };
 
@@ -244,35 +254,32 @@ export default function DetalhesProduto(){
       </Head>
       <Navbar/>
       <div className="mb-20 mt-[38%] lg:mt-[15%]">
-        <main className="max-w-[1200px] my-8 mx-auto bg-white p-8 shadow-custom rounded-[10px]">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <main className="max-w-[1200px] my-8 mx-auto bg-white p-4 lg:p-8 shadow-custom rounded-[10px]">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-8">
             <div>
               <Image 
                 src={produto.foto_produto || "/default-image.jpg"} 
                 alt={produto.nome} 
                 width={500} 
                 height={400}  
-                className="flex w-full h-[400px] rounded-[10px] items-center justify-center 
+                className="flex w-full h-[300px] lg:h-[400px] rounded-[10px] items-center justify-center 
                 text-[3rem] text-cortime bg-pretobranco" 
               />
             </div>
 
             <div>
-              <div className="flex gap-6 flex-col">
-                <h1 className=" text-[1.8rem] lg:text-[2rem] text-profile font-bold">{produto.nome}</h1>
+              <div className="flex gap-4 lg:gap-6 flex-col">
+                <h1 className="text-[1.5rem] lg:text-[2rem] text-profile font-bold">{produto.nome}</h1>
 
-                <div className="flex gap-2 text-[1.5rem] cursor-pointer text-tab">
+                <div className="flex gap-2 text-[1.2rem] lg:text-[1.5rem] cursor-pointer text-tab">
                   {avaliacoes[produto.id_produtos] ? (
                     <>
-                      {[1, 2, 3, 4, 5].map((i) =>
-                        i <= Math.floor(avaliacoes[produto.id_produtos]!) ? (
-                          <FaStar key={i} className="text-amarela" />
-                        ) : i - 0.5 === avaliacoes[produto.id_produtos] ? (
-                          <FaRegStarHalfStroke key={i} className="text-amarela" />
-                        ) : (
-                          <FaRegStarHalfStroke key={i} className="text-gray-300" />
-                        )
-                      )}
+                      {[1, 2, 3, 4, 5].map((i) => (
+                        <FaStar
+                          key={i}
+                          className={i <= Math.floor(avaliacoes[produto.id_produtos] || 0) ? "text-amarela" : "text-gray-300"}
+                        />
+                      ))}
                       <span className="text-amarela -mt-[4px] ml-2">
                         ({avaliacoes[produto.id_produtos]?.toFixed(1)})
                       </span>
@@ -282,7 +289,7 @@ export default function DetalhesProduto(){
                   )}                      
                 </div>
                 
-                <div className="text-[1.6rem] lg:text-[1.8rem] font-bold text-marieth">
+                <div className="text-[1.4rem] lg:text-[1.8rem] font-bold text-marieth">
                   <span>{produto.preco}AOA/</span> 
                   <span>{produto.quantidade}</span>
                   <span>{produto.Unidade}</span>
@@ -297,12 +304,12 @@ export default function DetalhesProduto(){
                   </button>
               
                   <div className="flex items-center gap-4 p-3 lg:p-4 mb-2 rounded-[10px] bg-pretobranco">
-                    <div className="flex w-[60px] h-[60px] rounded-[50%] items-center justify-center bg-back">
+                    <div className="flex w-[50px] h-[50px] lg:w-[60px] lg:h-[60px] rounded-[50%] items-center justify-center bg-back">
                       <AiFillHome/>
                     </div>
                     <div>
                       <h3>{produto.nome}</h3>
-                      <div className="flex items-center gap-2 text-cortexto">
+                      <div className="flex items-center gap-2 text-cortexto text-sm lg:text-base">
                         <CiLocationOn/>
                         <span>{produto.provincia}</span>
                         <span>/Angola</span>
@@ -311,9 +318,9 @@ export default function DetalhesProduto(){
                   </div>
                 
                   {showcaixa && (
-                    <div className="flex items-center">
-                      <div className="top-[30%] left-[70%] min-w-[300px] bg-white shadow-custom rounded-[10px] p-8 absolute z-10">
-                        <h2 className="font-bold text-2xl mb-4">Alterar Quantidade</h2>
+                    <div className="flex items-center justify-center fixed inset-0 bg-black bg-opacity-50 z-50">
+                      <div className="bg-white shadow-custom rounded-[10px] p-4 lg:p-8 w-[90%] max-w-[400px] m-auto">
+                        <h2 className="font-bold text-xl lg:text-2xl mb-4">Alterar Quantidade</h2>
                         
                         <div className="mb-4 gap-2 grid grid-cols-2">
                           <button onClick={() => setQuantidadeSelecionada(prev => prev + 0.5)} className="p-2 bg-marieth rounded-[5px] border-none cursor-pointer text-white text-[0.9rem] hover:bg-verdeaceso">+0.5</button>
@@ -388,20 +395,12 @@ export default function DetalhesProduto(){
                   )} 
                 
                 <button
-                  onClick={async () => {
-                    if (!autenticado) {
-                      alert("É necessário estar autenticado para adicionar ao carrinho.");
-                      router.push("/login");
-                      return;
-                    }
-                    
-                    handleAdicionarAoCarrinho();
-                  }}
-                  className="bg-marieth w-full py-2 px-1 border-none mt-4 rounded-[5px] text-white text-[1.5rem] cursor-pointer transition-colors duration-300
+                  onClick={handleAdicionarAoCarrinho}
+                  className="bg-marieth w-full py-2 px-1 border-none mt-4 rounded-[5px] text-white text-[1.2rem] lg:text-[1.5rem] cursor-pointer transition-colors duration-300
                   hover:bg-verdeaceso mb-2"
                 >
                   <div className="flex items-center justify-center gap-2">
-                    <CgShoppingCart className="text-[1.8rem]" />
+                    <CgShoppingCart className="text-[1.5rem] lg:text-[1.8rem]" />
                     Adicionar ao Carrinho
                   </div>
                 </button>
@@ -424,40 +423,48 @@ export default function DetalhesProduto(){
 
           <div className="mt-8 pt-8 border-t-[1px] border-solid border-tab">
             <h2>Avaliações</h2>
-            <div className="flex gap-8 mb-4">
+            <div className="flex flex-wrap gap-4 lg:gap-8 mb-4">
               <div className="text-center">
-                <div className="text-[1.5rem] text-marieth font-bold">{media.toFixed(1)}</div>
-                <div>Média Geral</div>
+                <div className="text-[1.3rem] lg:text-[1.5rem] text-marieth font-bold">{media.toFixed(1)}</div>
+                <div className="text-sm lg:text-base">Média Geral</div>
               </div>
               <div className="text-center">
-                <div className="text-[1.5rem] text-marieth font-bold">{total}</div>
-                <div>Avaliações</div>
+                <div className="text-[1.3rem] lg:text-[1.5rem] text-marieth font-bold">{total}</div>
+                <div className="text-sm lg:text-base">Avaliações</div>
               </div>
               <div className="text-center">
-                <div className="text-[1.5rem] text-marieth font-bold">{percentagem}%</div>
-                <div>Recomendações</div>
+                <div className="text-[1.3rem] lg:text-[1.5rem] text-marieth font-bold">{percentagem}%</div>
+                <div className="text-sm lg:text-base">Recomendações</div>
               </div>
             </div>
             
             <div className="mt-4 p-4 rounded-[10px] bg-back2">
-              <h3 className="mb-4 text-[1.2rem]">Avalie este Produto</h3>
-              <div className="flex gap-2 text-[1.5rem] cursor-pointer text-tab">
-                {[1, 2, 3, 4, 5].map((num) =>
-                  notaSelecionada >= num ? (
+              <h3 className="mb-4 text-[1.1rem] lg:text-[1.2rem]">Avalie este Produto</h3>
+              <div className="flex items-center gap-2">
+                <div className="flex gap-2 text-[1.3rem] lg:text-[1.5rem] cursor-pointer text-tab">
+                  {[1, 2, 3, 4, 5].map((num) => (
                     <FaStar
                       key={num}
-                      className="text-yellow-500 hover:text-yellow-600 transition-colors duration-200"
-                      onClick={() => verificarLoginAntesDeAvaliar(num)}
+                      className={notaTemporaria >= num ? "text-yellow-500" : "text-gray-300"}
+                      onClick={() => handleSelecionarEstrela(num)}
                     />
-                  ) : (
-                    <FaRegStar
-                      key={num}
-                      className="hover:text-yellow-500 transition-colors duration-200"
-                      onClick={() => verificarLoginAntesDeAvaliar(num)}
-                    />
-                  )
-                )}
+                  ))}
+                </div>
+                <button 
+                  onClick={handleEnviarAvaliacao}
+                  className="ml-4 bg-marieth hover:bg-verdeaceso text-white rounded-full p-2 flex items-center justify-center"
+                  title="Enviar avaliação"
+                  disabled={notaTemporaria === 0}
+                >
+                  <FaPaperPlane className="text-lg" />
+                </button>
               </div>
+              
+              {notaSelecionada > 0 && (
+                <div className="mt-2 text-marieth">
+                  Sua avaliação: {notaSelecionada} {notaSelecionada === 1 ? 'estrela' : 'estrelas'}
+                </div>
+              )}
             </div>
           </div>
         </main>
