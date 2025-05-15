@@ -1,11 +1,11 @@
 "use client"
 import { MouseEvent } from "react";
-import { FaCamera, FaStar, FaCog } from "react-icons/fa";
+import { FaCamera, FaStar, FaCog, FaBullhorn } from "react-icons/fa";
 import Navbar from "../Components/Navbar";
 import { FaCirclePlus, FaRegStarHalfStroke } from "react-icons/fa6"
 import { IoCall } from "react-icons/io5";
 import { FaPlus } from "react-icons/fa";
-import { MdEmail, MdMoreVert } from "react-icons/md";
+import { MdEmail, MdMoreVert, MdOutlinePersonOff } from "react-icons/md";
 import Footer from "../Components/Footer";
 import { FaUser } from "react-icons/fa"
 import { GrGallery, GrUpdate } from "react-icons/gr";
@@ -18,10 +18,11 @@ import { useRouter } from "next/navigation";
 import { atualizarUsuario } from "../Services/user";
 import Image from "next/image";
 import Link from "next/link";
-import { verificarAuth } from "../Services/auth"
+import { verificarAuth ,logout} from "../Services/auth"
 import { getUsuarioById } from "../Services/user";
 import {  deletarProduto } from "../Services/produtos";
 import { getProdutosPorUsuario } from "../Services/produtos";
+
 
 export default function PerfilAgricultor() {
   const boxref = useRef<HTMLDivElement>(null);
@@ -159,7 +160,7 @@ export default function PerfilAgricultor() {
   };
 
   const editarProduto = (produtoId: number) => {
-    router.push(`/editar-produto/${produtoId}`);
+    router.push(`/EditarProduto/${produtoId}`);
   };
 
   const excluirProduto = async (produtoId: number) => {
@@ -264,6 +265,11 @@ export default function PerfilAgricultor() {
     setIsConfigOpen(false);
   };
 
+   const irParaPromoverProduto = () => {
+    router.push("/Promoverproduto");
+    setIsConfigOpen(false);
+  };
+
   // Mostrar tela de carregamento enquanto verifica autenticação
   if (carregando) {
     return <div className="text-center mt-20">Carregando dados...</div>;
@@ -278,6 +284,19 @@ export default function PerfilAgricultor() {
   if (!usuario) {
     return <div className="text-center mt-20">Carregando dados do usuário...</div>;
   }
+
+  
+    const handleLogout = async () => {
+      try {
+        await logout();
+        setAutenticado(false); 
+        router.push("/login");
+      } catch (error) {
+        console.log("Erro ao terminar sessão:", error);
+      }
+    };
+    
+  
 
 
   return (
@@ -372,8 +391,9 @@ export default function PerfilAgricultor() {
                       <button onClick={irParaEditarPerfil} className="flex items-center gap-2 w-full cursor-pointer border-none py-2 px-4 bg-none transition-colors duration-100 text-profile hover:bg-light text-left">
                         <FiEdit /> Editar Perfil
                       </button>
-                      <button className="flex items-center gap-2 w-full cursor-pointer border-none py-2 px-4 bg-none transition-colors duration-100 text-profile hover:bg-light text-left">
-                        <FaCog /> Configurações
+                      
+                       <button onClick={handleLogout} className="flex items-center gap-2 w-full cursor-pointer border-none py-2 px-4 bg-none transition-colors duration-100 text-vermelho hover:bg-light text-left">
+                        <MdOutlinePersonOff /> Terminar Sessão
                       </button>
                     </div>
                   )}
@@ -480,10 +500,10 @@ export default function PerfilAgricultor() {
                           <IoMdTrash /> Excluir produto
                         </button>
                         <button 
-                          onClick={() => excluirProduto(produto.id_produtos)} 
-                          className="flex items-center gap-2 w-full cursor-pointer border-none py-2 px-4 bg-none transition-colors duration-100 text-red-500 hover:bg-light text-left"
+                          onClick={() => irParaPromoverProduto()} 
+                          className="flex items-center gap-2 w-full cursor-pointer border-none py-2 px-4 bg-none transition-colors duration-100 text-profile hover:bg-light text-left"
                         >
-                          <IoMdTrash /> Promover Produto
+                          <FaBullhorn /> Promover Produto
                         </button>
                       </div>
                     )}
@@ -563,7 +583,7 @@ export default function PerfilAgricultor() {
                   <div className="bg-gray-100 p-4 rounded-md">
                     <div className="flex justify-between">
                       <span className="font-medium">Status:</span>
-                      <span className={estatsProduto.status === "Ativo" ? "text-green-500" : "text-red-500"}>
+                      <span className={estatsProduto.status === "Ativo" ? "text-marieth" : "text-vermelho"}>
                         {estatsProduto.status || "Ativo"}
                       </span>
                     </div>

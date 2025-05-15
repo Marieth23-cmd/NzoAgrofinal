@@ -5,7 +5,7 @@ import Navbar from "../Components/Navbar";
 import { FaCirclePlus, FaRegStarHalfStroke } from "react-icons/fa6"
 import { IoCall } from "react-icons/io5";
 import { FaPlus } from "react-icons/fa";
-import { MdEmail, MdMoreVert } from "react-icons/md";
+import { MdEmail, MdMoreVert, MdOutlinePersonOff } from "react-icons/md";
 import Footer from "../Components/Footer";
 import { FaUser } from "react-icons/fa"
 import { GrGallery, GrUpdate } from "react-icons/gr";
@@ -18,7 +18,7 @@ import { useRouter } from "next/navigation";
 import { atualizarUsuario } from "../Services/user";
 import Image from "next/image";
 import Link from "next/link";
-import { verificarAuth } from "../Services/auth"
+import { verificarAuth , logout } from "../Services/auth"
 import { getUsuarioById } from "../Services/user";
 import {  deletarProduto } from "../Services/produtos";
 import { getProdutosPorUsuario } from "../Services/produtos";
@@ -159,7 +159,7 @@ export default function PerfilFornecedor() {
   };
 
   const editarProduto = (produtoId: number) => {
-    router.push(`/editar-produto/${produtoId}`);
+    router.push(`/EditarProduto/${produtoId}`);
   };
 
   const excluirProduto = async (produtoId: number) => {
@@ -279,6 +279,23 @@ export default function PerfilFornecedor() {
     return <div className="text-center mt-20">Carregando dados do usuário...</div>;
   }
 
+  
+    const handleLogout = async () => {
+      try {
+        await logout();
+        setAutenticado(false); 
+        router.push("/login");
+      } catch (error) {
+        console.log("Erro ao terminar sessão:", error);
+      }
+    };
+    
+  
+   const irParaPromoverProduto = () => {
+    router.push("/Promoverproduto");
+    setIsConfigOpen(false);
+  };
+
 
   return (
     <div>
@@ -372,8 +389,9 @@ export default function PerfilFornecedor() {
                       <button onClick={irParaEditarPerfil} className="flex items-center gap-2 w-full cursor-pointer border-none py-2 px-4 bg-none transition-colors duration-100 text-profile hover:bg-light text-left">
                         <FiEdit /> Editar Perfil
                       </button>
-                      <button className="flex items-center gap-2 w-full cursor-pointer border-none py-2 px-4 bg-none transition-colors duration-100 text-profile hover:bg-light text-left">
-                        <FaCog /> Configurações
+                      
+                      <button  onClick={handleLogout} className="flex items-center gap-2 w-full cursor-pointer border-none py-2 px-4 bg-none transition-colors duration-100 text-vermelho hover:bg-light text-left">
+                        <MdOutlinePersonOff /> Terminar Sessão
                       </button>
                     </div>
                   )}
@@ -480,8 +498,8 @@ export default function PerfilFornecedor() {
                           <IoMdTrash /> Excluir produto
                         </button>
                         <button 
-                          onClick={() => excluirProduto(produto.id_produtos)} 
-                          className="flex items-center gap-2 w-full cursor-pointer border-none py-2 px-4 bg-none transition-colors duration-100 text-red-500 hover:bg-light text-left"
+                          onClick={() => irParaPromoverProduto()} 
+                          className="flex items-center gap-2 w-full cursor-pointer border-none py-2 px-4 bg-none transition-colors duration-100 text-profile hover:bg-light text-left"
                         >
                           <FaBullhorn /> Promover produto
                         </button>

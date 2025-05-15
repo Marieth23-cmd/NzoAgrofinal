@@ -3,7 +3,7 @@ import { FaCamera, FaStar, FaCog } from "react-icons/fa";
 import Navbar from "../Components/Navbar";
 import { FaCirclePlus, FaRegStarHalfStroke } from "react-icons/fa6"
 import { IoCall } from "react-icons/io5";
-import { MdEmail } from "react-icons/md";
+import { MdEmail, MdOutlinePersonOff } from "react-icons/md";
 import Footer from "../Components/Footer";
 import { FaUser } from "react-icons/fa"
 import { GrGallery, GrUpdate } from "react-icons/gr";
@@ -14,7 +14,7 @@ import { useRouter } from "next/navigation";
 import { atualizarUsuario } from "../Services/user";
 import Image from "next/image";
 import { getUsuarioById } from "../Services/user";
-import { verificarAuth } from "../Services/auth";
+import { verificarAuth , logout} from "../Services/auth";
 import { getPedidosUsuario } from "../Services/pedidos"; // Importe a função para buscar pedidos
 
 export default function PerfilComprador() {
@@ -156,7 +156,7 @@ export default function PerfilComprador() {
 
   // Ir para página de edição de perfil
   const irParaEditarPerfil = () => {
-    router.push("/editar-perfil");
+    router.push("/editarperfil");
     setIsConfigOpen(false);
   };
 
@@ -175,6 +175,18 @@ export default function PerfilComprador() {
     return <div className="text-center mt-20">Carregando dados do usuário...</div>;
   }
 
+  
+    const handleLogout = async () => {
+      try {
+        await logout();
+        setAutenticado(false); 
+        router.push("/login");
+      } catch (error) {
+        console.log("Erro ao terminar sessão:", error);
+      }
+    };
+    
+  
   return (
     <div>
       <Head>
@@ -250,8 +262,9 @@ export default function PerfilComprador() {
                       <button onClick={irParaEditarPerfil} className="flex items-center gap-2 w-full cursor-pointer border-none py-2 px-4 bg-none transition-colors duration-100 text-profile hover:bg-light text-left">
                         Editar Perfil
                       </button>
-                      <button className="flex items-center gap-2 w-full cursor-pointer border-none py-2 px-4 bg-none transition-colors duration-100 text-profile hover:bg-light text-left">
-                        Configurações
+                      
+                        <button onClick={handleLogout} className="flex items-center gap-2 w-full cursor-pointer border-none py-2 px-4 bg-none transition-colors duration-100 text-vermelho hover:bg-light text-left">
+                        <MdOutlinePersonOff /> Terminar Sessão
                       </button>
                     </div>
                   )}
@@ -284,7 +297,7 @@ export default function PerfilComprador() {
               <div className="text-center p-8 bg-list rounded-[0.625rem]">
                 <p className="text-lg text-gray-600">Você ainda não realizou nenhuma compra.</p>
                 <button 
-                  onClick={() => router.push('/produtos')} 
+                  onClick={() => router.push('/TodosProdutos')} 
                   className="mt-4 bg-marieth text-white py-2 px-4 rounded-md hover:bg-verdeaceso transition-colors"
                 >
                   Explorar produtos
