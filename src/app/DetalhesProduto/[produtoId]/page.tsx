@@ -44,11 +44,11 @@ export default function DetalhesProduto(){
     Unidade: string;
     quantidade: number;
   };
-  
+
   const [produto, setProduto] = useState<Produto | null>(null);
   const [avaliacoes, setAvaliacoes] = useState<{ [key: number]: number | null }>({});
   const [precoTotal, setPrecoTotal] = useState(0);
-  
+
   // Verificar autenticação quando o componente montar
   useEffect(() => {
     const verificarLogin = async () => {
@@ -59,10 +59,10 @@ export default function DetalhesProduto(){
         setAutenticado(false);
       }
     };
-    
+
     verificarLogin();
   }, []);
-  
+
   // Buscar dados do produto
   useEffect(() => {
     if (!produtoId) return;
@@ -70,35 +70,25 @@ export default function DetalhesProduto(){
     const fetchProduto = async () => {
       try {
         const data = await getProdutoById(Number(produtoId));
+        console.log("Produto carregado:", data); // Debug para verificar o produto
         setProduto(data);
         setUnidadeSelecionada(data.Unidade);
 
+        // Carregar avaliações imediatamente
         const mediaResult = await buscarMediaEstrelas(data.id_produtos);
+        console.log("Avaliação carregada:", mediaResult); // Debug para verificar avaliação
+        
+        // Atualizar os estados de avaliação
         setAvaliacoes({ [data.id_produtos]: mediaResult?.media_estrelas || null });
+        setMedia(mediaResult?.media || 0);
+        setTotal(mediaResult?.total || 0);
+        setPercentagem(mediaResult?.recomendacoes || 0);
       } catch (error) {
-        console.log("Erro ao buscar produto:", error);
+        console.error("Erro ao buscar produto:", error);
       }
     };
 
     fetchProduto();
-  }, [produtoId]);
-
-  // Buscar avaliações
-  useEffect(() => {
-    if (!produtoId) return;
-
-    const carregarDados = async () => {
-      try {
-        const resultado = await buscarMediaEstrelas(Number(produtoId));
-        setMedia(resultado.media || 0);
-        setTotal(resultado.total || 0);
-        setPercentagem(resultado.recomendacoes || 0);
-      } catch (error) {
-        console.log("Erro ao carregar dados:", error);
-      }
-    };
-
-    carregarDados();
   }, [produtoId]);
 
   // Calcular preço total baseado na quantidade
@@ -115,10 +105,10 @@ export default function DetalhesProduto(){
       router.push("/login");
       return;
     }
-    
+
     setNotaTemporaria(nota);
   };
-  
+
   // Função para enviar avaliação
   const handleEnviarAvaliacao = async () => {
     if (!autenticado) {
@@ -126,12 +116,12 @@ export default function DetalhesProduto(){
       router.push("/login");
       return;
     }
-  
+
     if (!produtoId || notaTemporaria === 0) {
       alert(notaTemporaria === 0 ? "Selecione uma nota para avaliar." : "ID do produto não encontrado.");
       return;
     }
-  
+
     try {
       // Converter produtoId para número com segurança
       const idProdutoNumerico = Number(produtoId);
@@ -158,14 +148,20 @@ export default function DetalhesProduto(){
       setTotal(resultado.total || 0);
       setPercentagem(resultado.recomendacoes || 0);
       
+      // Importante: Atualizar também o estado de avaliações usado no topo da página
+      setAvaliacoes(prev => ({
+        ...prev, 
+        [idProdutoNumerico]: resultado.media || null
+      }));
+      
       // Mostrar mensagem de sucesso
       setMensagemSucesso("Avaliação enviada com sucesso!");
       setTimeout(() => {
         setMensagemSucesso(null);
       }, 3000);
-  
+
     } catch (error: any) {
-      console.log("Erro detalhado ao avaliar:", error);
+      console.error("Erro detalhado ao avaliar:", error);
       
       // Mensagem de erro mais específica baseada na resposta do servidor
       if (error.status === 500) {
@@ -194,27 +190,25 @@ export default function DetalhesProduto(){
       router.push("/login");
     }
   };
-  
+
   const handleAdicionarAoCarrinho = async () => {
+    if (!produto || !produtoId) {
+      alert("Erro: Produto não encontrado.");
+      return;
+    }
+
     try {
-      if (!produto) {
-        alert("Erro: Produto não encontrado.");
-        return;
-      }
-      
-      // Verificar explicitamente se o id está disponível
-      const produtoId = produto.id_produtos;
-      
-      // Validar que o ID existe e é um número
-      if (produtoId === undefined || produtoId === null || typeof produtoId !== 'number') {
+      // Usar diretamente o ID da URL para garantir consistência
+      const idProdutoNumerico = Number(produtoId);
+      if (isNaN(idProdutoNumerico)) {
         console.error("ID do produto inválido:", produtoId);
         alert("Erro: ID do produto inválido.");
         return;
       }
-  
+
       // Debug - exibir o ID para verificação antes de enviar
-      console.log("Tentando adicionar produto com ID:", produtoId);
-  
+      console.log("Tentando adicionar produto com ID:", idProdutoNumerico);
+
       // Verificar se a quantidade é válida
       if (quantidadeSelecionada <= 0) {
         alert("Por favor, selecione uma quantidade válida.");
@@ -226,10 +220,10 @@ export default function DetalhesProduto(){
         alert("Quantidade selecionada maior que o disponível.");
         return;
       }
-    
+
       // Adicionar produto ao carrinho com o ID numérico
       await adicionarProdutoAoCarrinho(
-        produtoId,
+        idProdutoNumerico,
         quantidadeSelecionada
       );
       
@@ -244,7 +238,7 @@ export default function DetalhesProduto(){
   };
 
   if (!produto) {
-    return <div>Carregando...</div>; 
+    return <div>Carregando...</div>;
   }
 
   return(
@@ -257,13 +251,12 @@ export default function DetalhesProduto(){
         <main className="max-w-[1200px] my-8 mx-auto bg-white p-4 lg:p-8 shadow-custom rounded-[10px]">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-8">
             <div>
-              <Image 
-                src={produto.foto_produto || "/default-image.jpg"} 
-                alt={produto.nome} 
-                width={500} 
-                height={400}  
-                className="flex w-full h-[300px] lg:h-[400px] rounded-[10px] items-center justify-center 
-                text-[3rem] text-cortime bg-pretobranco" 
+              <Image
+                src={produto.foto_produto || "/default-image.jpg"}
+                alt={produto.nome}
+                width={500}
+                height={400}
+                className="flex w-full h-[300px] lg:h-[400px] rounded-[10px] items-center justify-center text-[3rem] text-cortime bg-pretobranco"
               />
             </div>
 
@@ -292,7 +285,7 @@ export default function DetalhesProduto(){
                 <div className="text-[1.4rem] lg:text-[1.8rem] font-bold text-marieth">
                   <span>{produto.preco}AOA/</span> 
                   <span>{produto.quantidade}</span>
-                  <span>{produto.Unidade}</span>
+                  <span> {produto.Unidade}</span>
                 </div>
 
                 <div>
@@ -300,7 +293,7 @@ export default function DetalhesProduto(){
                     className="hover:bg-verdeaceso bg-marieth rounded-[5px] cursor-pointer text-white p-2 text-[0.9rem] border-none bottom-4 mb-4"
                     onClick={handleBotaoMaisMenos}
                   >
-                    + / -
+                    Alterar Quantidade
                   </button>
               
                   <div className="flex items-center gap-4 p-3 lg:p-4 mb-2 rounded-[10px] bg-pretobranco">
