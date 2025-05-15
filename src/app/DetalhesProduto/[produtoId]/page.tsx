@@ -34,6 +34,7 @@ export default function DetalhesProduto(){
   const [percentagem, setPercentagem] = useState<number>(0);
   const [notaSelecionada, setNotaSelecionada] = useState<number>(0);
   const [notaTemporaria, setNotaTemporaria] = useState<number>(0);
+  const [avaliacaoRealizada, setAvaliacaoRealizada] = useState<boolean>(false);
 
   type Produto = {
     id_produtos: number;
@@ -83,6 +84,11 @@ export default function DetalhesProduto(){
         setMedia(mediaResult?.media || 0);
         setTotal(mediaResult?.total || 0);
         setPercentagem(mediaResult?.recomendacoes || 0);
+        
+        // Se tiver avaliações, não deve mostrar "Sem avaliações"
+        if (mediaResult?.total > 0) {
+          setAvaliacaoRealizada(true);
+        }
       } catch (error) {
         console.error("Erro ao buscar produto:", error);
       }
@@ -153,6 +159,9 @@ export default function DetalhesProduto(){
         ...prev, 
         [idProdutoNumerico]: resultado.media || null
       }));
+      
+      // Marcamos que houve avaliação para exibir as estrelas corretamente
+      setAvaliacaoRealizada(true);
       
       // Mostrar mensagem de sucesso
       setMensagemSucesso("Avaliação enviada com sucesso!");
@@ -265,7 +274,8 @@ export default function DetalhesProduto(){
                 <h1 className="text-[1.5rem] lg:text-[2rem] text-profile font-bold">{produto.nome}</h1>
 
                 <div className="flex gap-2 text-[1.2rem] lg:text-[1.5rem] cursor-pointer text-tab">
-                  {avaliacoes[produto.id_produtos] ? (
+                  {/* Condição melhorada para exibir avaliações */}
+                  {(avaliacoes[produto.id_produtos] !== null && avaliacoes[produto.id_produtos] !== undefined) || avaliacaoRealizada ? (
                     <>
                       {[1, 2, 3, 4, 5].map((i) => (
                         <FaStar
@@ -274,7 +284,7 @@ export default function DetalhesProduto(){
                         />
                       ))}
                       <span className="text-amarela -mt-[4px] ml-2">
-                        ({avaliacoes[produto.id_produtos]?.toFixed(1)})
+                        ({(avaliacoes[produto.id_produtos] || media)?.toFixed(1)})
                       </span>
                     </>
                   ) : (
@@ -282,10 +292,10 @@ export default function DetalhesProduto(){
                   )}                      
                 </div>
                 
+                {/* Exibir preço e unidade corretamente */}
                 <div className="text-[1.4rem] lg:text-[1.8rem] font-bold text-marieth">
-                  <span>{produto.preco}AOA/</span> 
-                  <span>{produto.quantidade}</span>
-                  <span> {produto.Unidade}</span>
+                  <span>{produto.preco} AOA/</span> 
+                  <span>{produto.quantidade}{produto.Unidade}</span>
                 </div>
 
                 <div>

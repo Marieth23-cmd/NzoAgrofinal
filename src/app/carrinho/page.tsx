@@ -39,31 +39,55 @@ export default function Carrinho() {
       const dados = await listarProdutosDoCarrinho();
       console.log("Dados recebidos da API:", dados); 
       
-      if (dados && dados.produtos) {
+      if (dados && dados.produtos && Array.isArray(dados.produtos)) {
         setProdutos(dados.produtos);
         // Cálculo imediato do subtotal ao carregar os produtos
         const calculoSubtotal = dados.produtos.reduce((total: number, produto: any) => {
-          return total + (parseFloat(produto.preco) * produto.quantidade);
+          // Certifique-se de que produto.preco seja um número válido
+          const preco = produto.preco ? parseFloat(produto.preco) : 0;
+          const quantidade = produto.quantidade || 0;
+          return total + (preco * quantidade);
         }, 0);
         setSubtotal(calculoSubtotal);
         
         // Calcular peso total
         const calculoPesoTotal = dados.produtos.reduce((total: number, produto: any) => {
-          return total + ((produto.peso_kg || 0) * produto.quantidade);
+          const peso = produto.peso_kg ? parseFloat(produto.peso_kg) : 0;
+          const quantidade = produto.quantidade || 0;
+          return total + (peso * quantidade);
         }, 0);
         setPesoTotal(calculoPesoTotal);
         console.log("Peso total calculado:", calculoPesoTotal);
+
+        // Calcular frete e comissão imediatamente quando carregamos os produtos
+        if (calculoPesoTotal >= 10) {
+          const { frete, comissao } = calcularFretePorPeso(calculoPesoTotal);
+          setFreteTotal(frete);
+          setComissaoTotal(comissao);
+          setTotalFinal(calculoSubtotal + frete + comissao);
+          console.log("Frete:", frete, "Comissão:", comissao);
+        } else {
+          setFreteTotal(0);
+          setComissaoTotal(0);
+          setTotalFinal(calculoSubtotal);
+        }
       } else {
         console.log("Nenhum produto encontrado ou formato de resposta inválido");
         setProdutos([]);
         setSubtotal(0);
         setPesoTotal(0);
+        setFreteTotal(0);
+        setComissaoTotal(0);
+        setTotalFinal(0);
       }
     } catch (error) {
       console.log("Erro ao carregar produtos:", error);
       setProdutos([]);
       setSubtotal(0);
       setPesoTotal(0);
+      setFreteTotal(0);
+      setComissaoTotal(0);
+      setTotalFinal(0);
     } finally {
       setLoading(false);
     }

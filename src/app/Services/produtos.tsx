@@ -72,8 +72,8 @@ export const atualizarProduto = async (id: number, produtoData: any): Promise<an
     try {
         const response = await axios.put(`${API_URL}/produtos/atualizar/${id}`, produtoData, {
             headers: { "Content-Type": "application/json" },
-            withCredentials:true
-        });
+            
+            withCredentials: true});
         return response.data;
     } catch (error: any) {
         console.log("Erro ao atualizar produto:", error.response?.data || error.message);
@@ -84,7 +84,9 @@ export const atualizarProduto = async (id: number, produtoData: any): Promise<an
 
 export const deletarProduto = async (id: number): Promise<any> => {
     try {
-        const response = await axios.delete(`${API_URL}/produtos/${id}`);
+        const response = await axios.delete(`${API_URL}/produtos/${id}`,
+            { withCredentials: true } // Adicionando withCredentials aqui
+        );
         return response.data;
     } catch (error: any) {
         console.log( error.message);
@@ -111,5 +113,22 @@ export const buscarProdutosPorCategoria = async (
       throw { mensagem: "Erro ao buscar produtos da categoria" };
     }
   };
-  
 
+// Função para buscar produtos por usuário
+// Essa função faz uma requisição GET para a API, passando o ID do usuário como parâmetro na URL
+// e retorna a lista de produtos associados a esse usuário.
+// O ID do usuário é passado como argumento para a função
+// O retorno da função é uma Promise que resolve para um array de produtos
+// O tratamento de erros é feito com um bloco try-catch, onde se houver um erro na requisição,
+// ele é capturado e uma mensagem de erro é exibida no console
+ export const getProdutosPorUsuario = async (): Promise<any[]> => {
+  try {
+    const response = await axios.get(`${API_URL}/produtos/meus-produtos`, {
+      withCredentials: true
+    });
+    return response.data;
+  } catch (error: any) {
+    console.log("Erro ao buscar produtos do usuário:", error.response?.data || error.message);
+    throw { mensagem: "Erro ao buscar produtos do usuário" };
+  }
+};
