@@ -49,7 +49,7 @@ export default function Login() {
                 console.log("Redirecionando para página inicial");
                 setTimeout(() => {
                     router.push("/");
-                }, 1500);
+                }, 2000);
             }
             
             setErro(""); 
@@ -114,7 +114,7 @@ export default function Login() {
 
                     <button
                         type="submit"
-                        className="bg-green-600 text-white p-3 rounded w-full hover:bg-green-700"
+                        className="bg-marieth text-white p-3 rounded w-full hover:bg-green-700"
                     >
                         Entrar
                     </button>

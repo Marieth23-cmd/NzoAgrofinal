@@ -80,7 +80,7 @@ export default function PerfilAgricultor() {
         buscarProdutosDoUsuario();
 
       } catch (error) {
-        console.error("Erro ao verificar autenticação:", error);
+        console.log("Erro ao verificar autenticação:", error);
         setAutenticado(false);
         router.push("/login");
       } finally {
@@ -126,7 +126,7 @@ export default function PerfilAgricultor() {
         });
       }
     } catch (error) {
-      console.error("Erro ao buscar produtos do usuário:", error);
+      console.log("Erro ao buscar produtos do usuário:", error);
       // Tratamento de erro, talvez exibir uma mensagem para o usuário
     } finally {
       setCarregandoProdutos(false);
@@ -254,7 +254,7 @@ export default function PerfilAgricultor() {
       alert("Imagem removida com sucesso!");
       setIsOpen(false);
     } catch (error) {
-      console.error("Erro ao remover imagem", error);
+      console.log("Erro ao remover imagem", error);
       setErroAtualizacao("Erro ao remover imagem. Tente novamente mais tarde.");
     }
   };
@@ -460,7 +460,7 @@ export default function PerfilAgricultor() {
             ) : produtos.length === 0 ? (
               <div className="text-center p-8 bg-list rounded-[10px]">
                 <p className="text-lg text-gray-600 mb-4">Você ainda não cadastrou nenhum produto.</p>
-                <Link href="/ProdCad" className="bg-marieth text-white py-2 px-4 rounded-md hover:bg-verdeaceso transition-colors">
+                <Link href="/ProdCad" className="bg-marieth text-white px-6 py-4 lg:py-2 lg:px-4 rounded-md hover:bg-verdeaceso transition-colors">
                   Cadastrar primeiro produto
                 </Link>
               </div>

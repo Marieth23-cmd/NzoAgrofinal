@@ -6,32 +6,35 @@ import { FaTrash } from "react-icons/fa6"
 import Footer from "../Components/Footer"
 import Navbar from "../Components/Navbar"
 import Image from "next/image"
-import { listarProdutosDoCarrinho } from "../Services/cart"
-import { atualizarQuantidadeProduto } from "../Services/cart"
-import { removerProdutoDoCarrinho } from "../Services/cart"
-import { finalizarCompra } from "../Services/cart"
-import { calcularPrecoProduto } from "../Services/cart"
-import { esvaziarCarrinho } from "../Services/cart"
+import { 
+  listarProdutosDoCarrinho, 
+  atualizarQuantidadeProduto, 
+  removerProdutoDoCarrinho, 
+  finalizarCompra, 
+  calcularPrecoProduto, 
+  esvaziarCarrinho 
+} from "../Services/cart";
 
 export default function Carrinho() {
   // Definindo os estados necessários
-  const [produtos, setProdutos] = useState<any[]>([]);
+  const [produtos, setProdutos] = useState([]);
   const [quantidade, setQuantidade] = useState(1);
   const [loading, setLoading] = useState(true);
-  const router = useRouter()
+  const router = useRouter();
   
   const [showcaixa, setshowcaixa] = useState(false);
-  const [produtoSelecionado, setProdutoSelecionado] = useState<any>(null);
+  const [produtoSelecionado, setProdutoSelecionado] = useState(null);
   const [loadingFinalizarCompra, setLoadingFinalizarCompra] = useState(false);
-  const [quantidadeDisponivel, setQuantidadeDisponivel] = useState(0); // Para controle de estoque
+  const [quantidadeDisponivel, setQuantidadeDisponivel] = useState(0);
 
   // Adicione estados para controlar os totais de maneira mais explícita
   const [freteTotal, setFreteTotal] = useState(0);
   const [comissaoTotal, setComissaoTotal] = useState(0);
   const [totalFinal, setTotalFinal] = useState(0);
   const [subtotal, setSubtotal] = useState(0);
-  const [pesoTotal, setPesoTotal] = useState(0); // Adicionado para monitorar o peso total
-  const [errorMessage, setErrorMessage] = useState(''); // Para mensagens de erro mais claras
+  const [pesoTotal, setPesoTotal] = useState(0);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [calculoRealizado, setCalculoRealizado] = useState(false); // Flag para controlar se o cálculo já foi realizado
 
   // Função para carregar os produtos do carrinho
   const carregarProdutos = async () => {
@@ -42,62 +45,96 @@ export default function Carrinho() {
       
       if (dados && dados.produtos && Array.isArray(dados.produtos)) {
         setProdutos(dados.produtos);
-         // Cálculo imediato do subtotal ao carregar os produtos
-         const calculoSubtotal = dados.produtos.reduce((total: number, produto: any) => {
-           // Certifique-se de que produto.preco seja um número válido
-           const preco = produto.preco ? parseFloat(produto.preco) : 0;
-           const quantidade = produto.quantidade || 0;
-            return total + (preco * quantidade);
-
-         }, 0);
-         setSubtotal(calculoSubtotal);
-          console.log("Subtotal calculado:", calculoSubtotal);
+        // Cálculo imediato do subtotal ao carregar os produtos
+        const calculoSubtotal = dados.produtos.reduce((total, produto) => {
+          // Certifique-se de que produto.preco seja um número válido
+          const preco = produto.preco ? parseFloat(produto.preco) : 0;
+          const quantidade = produto.quantidade || 0;
+          return total + (preco * quantidade);
+        }, 0);
+        setSubtotal(calculoSubtotal);
+        console.log("Subtotal calculado:", calculoSubtotal);
         
-         // Calcular peso total
-         const calculoPesoTotal = dados.produtos.reduce((total: number, produto: any) => {
-           const peso = produto.peso_kg ? parseFloat(produto.peso_kg) : 0;
-         const quantidade = produto.quantidade || 0;
-           return total + (peso * quantidade);
-         }, 0);
-         setPesoTotal(calculoPesoTotal);
-       console.log("Peso total calculado:", calculoPesoTotal);
+        // Calcular peso total
+        const calculoPesoTotal = dados.produtos.reduce((total, produto) => {
+          const peso = produto.peso_kg ? parseFloat(produto.peso_kg) : 0;
+          const quantidade = produto.quantidade || 0;
+          return total + (peso * quantidade);
+        }, 0);
+        setPesoTotal(calculoPesoTotal);
+        console.log("Peso total calculado:", calculoPesoTotal);
 
-         // Calcular frete e comissão imediatamente quando carregamos os produtos
-         if (calculoPesoTotal >= 10) {
-           const { frete, comissao } = calcularFretePorPeso(calculoPesoTotal);
-           setFreteTotal(frete);
-           setComissaoTotal(comissao);
-           setTotalFinal(calculoSubtotal + frete + comissao);
-           console.log("Frete:", frete, "Comissão:", comissao);
-         } else {
-           setFreteTotal(0);
-           setComissaoTotal(0);
-           setTotalFinal(calculoSubtotal);
-         }
-       } else {
-         console.log("Nenhum produto encontrado ou formato de resposta inválido");
-         setProdutos([]);
-          setSubtotal(0);
-          setPesoTotal(0);
-          setFreteTotal(0);
-          setComissaoTotal(0);
-          setTotalFinal(0);
-          ;
+        // Se tiver produtos, chama a API para calcular valores
+        if (dados.produtos.length > 0) {
+          await atualizarCalculoPrecoTotal(dados.produtos);
+        } else {
+          resetarTotais();
+        }
+      } else {
+        console.log("Nenhum produto encontrado ou formato de resposta inválido");
+        setProdutos([]);
+        resetarTotais();
       }
     } catch (error) {
       console.log("Erro ao carregar produtos:", error);
       setProdutos([]);
-      setSubtotal(0);
-      setPesoTotal(0);
-      setFreteTotal(0);
-      setComissaoTotal(0);
-      setTotalFinal(0);
+      resetarTotais();
     } finally {
       setLoading(false);
     }
- 
-  }
-  ;
+  };
+
+  // Função para resetar os totais
+  const resetarTotais = () => {
+    setSubtotal(0);
+    setPesoTotal(0);
+    setFreteTotal(0);
+    setComissaoTotal(0);
+    setTotalFinal(0);
+    setCalculoRealizado(false);
+  };
+
+  // Função para atualizar o cálculo de preço total usando a API
+  const atualizarCalculoPrecoTotal = async (produtosAtuais) => {
+    try {
+      // Resetamos os valores para não acumular de cálculos anteriores
+      let freteCalculado = 0;
+      let comissaoCalculada = 0;
+      let totalCalculado = 0;
+      
+      // Só fazemos o cálculo se tiver produtos
+      if (produtosAtuais && produtosAtuais.length > 0) {
+        // Para cada produto no carrinho, calculamos e somamos os valores
+        for (const produto of produtosAtuais) {
+          const resultado = await calcularPrecoProduto(
+            produto.id_produtos || produto.id, 
+            produto.quantidade
+          );
+          
+          // Somamos os valores retornados pela API
+          freteCalculado += resultado.frete || 0;
+          comissaoCalculada += resultado.comissao || 0;
+          totalCalculado += resultado.totalFinal || 0;
+        }
+        
+        console.log("Resultados do cálculo da API:");
+        console.log("Frete calculado:", freteCalculado);
+        console.log("Comissão calculada:", comissaoCalculada);
+        console.log("Total final calculado:", totalCalculado);
+        
+        // Atualizar os estados com os valores vindos da API
+        setFreteTotal(freteCalculado);
+        setComissaoTotal(comissaoCalculada);
+        setTotalFinal(totalCalculado);
+        setCalculoRealizado(true);
+      } else {
+        resetarTotais();
+      }
+    } catch (error) {
+      console.log("Erro ao calcular preço total:", error);
+      // Caso haja erro, mantemos os valores atuais
+    }
+  };
 
   useEffect(() => {
     carregarProdutos();
@@ -109,200 +146,23 @@ export default function Carrinho() {
       const resposta = await esvaziarCarrinho();
       alert(resposta.mensagem);
       setProdutos([]); // Limpa a lista de produtos na interface
-      // Resetar os valores quando não houver produtos
-      setTotalFinal(0);
-      setFreteTotal(0);
-      setComissaoTotal(0);
-      setSubtotal(0);
-      setPesoTotal(0);
-    } catch (error: any) {
+      resetarTotais();
+    } catch (error) {
       console.log("Erro ao esvaziar carrinho:", error);
       alert(error.mensagem || "Erro ao esvaziar o carrinho.");
     }
   };
 
+  const handleEditar = (produto) => {
+    setProdutoSelecionado(produto);
+    setQuantidade(produto.quantidade || 1);
+    setQuantidadeDisponivel(produto.quantidade_estoque || 0);
+    setshowcaixa(true);
+    setErrorMessage('');
+  };
+
   const handleConfirmar = async () => {
     if (!produtoSelecionado) return;
-
-    try {
-      setErrorMessage('');
-      // Verificar se a quantidade excede o estoque disponível
-      if (quantidade > quantidadeDisponivel) {
-        setErrorMessage(`Quantidade excede o estoque disponível (${quantidadeDisponivel} ${getUnidadePadrao(produtoSelecionado.categoria)})`);
-        return;
-      }
-      // Verificar se a quantidade é zero ou negativa
-      if (quantidade <= 0) {
-        setErrorMessage("A quantidade deve ser maior que zero");
-        return;
-      }
-      
-      await atualizarQuantidadeProduto(produtoSelecionado.id, quantidade);
-      await carregarProdutos(); // Recarrega todos os produtos com as quantidades atualizadas
-      setshowcaixa(false);
-    } catch (error: any) {
-      console.log("Erro ao atualizar produto:", error);
-      if (error.erro) {
-        setErrorMessage(error.erro);
-      } else {
-        setErrorMessage("Erro ao atualizar quantidade do produto");
-      }
-    }
-  };
-
-  const handleRemover = async (id_produto: string) => {
-    try {
-      await removerProdutoDoCarrinho(id_produto);
-      await carregarProdutos(); // Recarrega todos os produtos após remover
-    } catch (error) {
-      console.log("Erro ao remover produto:", error);
-      alert("Erro ao remover produto do carrinho");
-    }
-  };
-
-  const handleIncrementoRapido = (valor: number) => {
-    setQuantidade((prevQuantidade) => {
-      const novaQuantidade = prevQuantidade + valor;
-      // Verificar se excede o estoque disponível
-      if (novaQuantidade > quantidadeDisponivel) {
-        setErrorMessage(`Não é possível adicionar mais que ${quantidadeDisponivel} ${produtoSelecionado ? getUnidadePadrao(produtoSelecionado.categoria) : 'unidades'}`);
-        return prevQuantidade;
-      }
-      // Verificar se é menor ou igual a zero
-      if (novaQuantidade <= 0) {
-        setErrorMessage("A quantidade deve ser maior que zero");
-        return prevQuantidade;
-      }
-      
-      setErrorMessage(''); // Limpar mensagem de erro se estiver tudo bem
-      return novaQuantidade;
-    });
-  };
-
-  // Função para calcular o subtotal
-  const calcularSubtotal = () => {
-    if (!produtos || produtos.length === 0) return 0;
-    
-    return produtos.reduce((total, produto) => {
-      const preco = parseFloat(produto.preco) || 0;
-      const qty = produto.quantidade || 0;
-      return total + (preco * qty);
-    }, 0);
-  };
-
-  // Função para tratar o erro de finalização de compra
-  const handleFinalizarCompra = async () => {
-    setErrorMessage('');
-    
-    if (produtos.length === 0) {
-      setErrorMessage("Seu carrinho está vazio!");
-      return;
-    }
-    
-    // Verificar se há produtos com peso total menor que 10kg
-    if (pesoTotal < 10) {
-      setErrorMessage("O peso total dos produtos deve ser de pelo menos 10kg para realizar a compra.");
-      return;
-    }
-    
-    try {
-      setLoadingFinalizarCompra(true);
-      const resposta = await finalizarCompra();
-      alert(resposta.mensagem);
-      setProdutos([]); // Limpa a lista de produtos na interface
-      // Resetar os totais
-      setTotalFinal(0);
-      setFreteTotal(0);
-      setComissaoTotal(0);
-      setSubtotal(0);
-      setPesoTotal(0);
-      router.push("/enderecopedido");
-    } catch (error: any) {
-      console.log("Erro ao finalizar compra:", error);
-      // Verifica se o erro tem uma mensagem específica ou usa uma mensagem genérica
-      if (error.mensagem) {
-        setErrorMessage(error.mensagem);
-      } else if (error.erro) {
-        setErrorMessage(error.erro);
-      } else {
-        setErrorMessage("Erro ao finalizar a compra. Verifique se há itens no carrinho ou se há estoque suficiente.");
-      }
-    } finally {
-      setLoadingFinalizarCompra(false);
-    }
-  };
-
-  // Usar useEffect para calcular totais sempre que os produtos mudarem
-  useEffect(() => {
-    const calcularTotais = async () => {
-      // Primeiro calculamos o subtotal diretamente
-      const subTotalCalculado = calcularSubtotal();
-      setSubtotal(subTotalCalculado);
-      
-      // Recalculamos o peso total
-      const pesoCaculado = produtos.reduce((total, produto) => {
-        return total + ((produto.peso_kg || 0) * produto.quantidade);
-      }, 0);
-      setPesoTotal(pesoCaculado);
-      
-      // Reiniciamos os valores para não acumular de cálculos anteriores
-      let totalCalculado = 0;
-      let freteCalculado = 0;
-      let comissaoCalculada = 0;
-
-      // Apenas calcule os preços se houver produtos e peso suficiente
-      if (produtos && produtos.length > 0 && pesoCaculado >= 10) {
-        // Calculamos o frete e comissão baseado no peso total
-        const { frete, comissao } = calcularFretePorPeso(pesoCaculado);
-        freteCalculado = frete;
-        comissaoCalculada = comissao;
-          
-        // O total final é o subtotal + frete + comissão
-        totalCalculado = subTotalCalculado + freteCalculado + comissaoCalculada;
-        
-        console.log("Peso total:", pesoCaculado, "kg");
-        console.log("Frete calculado:", freteCalculado);
-        console.log("Comissão calculada:", comissaoCalculada);
-        console.log("Total final calculado:", totalCalculado);
-      }
-
-      // Atualizar todos os estados com os novos valores calculados
-      setTotalFinal(totalCalculado);
-      setFreteTotal(freteCalculado);
-      setComissaoTotal(comissaoCalculada);
-    };
-
-    calcularTotais();
-  }, [produtos]);
-
-  // Função para calcular o frete e comissão com base no peso total
-  const calcularFretePorPeso = (peso: number) => {
-    if (peso >= 10 && peso <= 30) return { frete: 10000, comissao: 1000 };
-    if (peso >= 31 && peso <= 50) return { frete: 15000, comissao: 1500 };
-    if (peso >= 51 && peso <= 70) return { frete: 20000, comissao: 2000 };
-    if (peso >= 71 && peso <= 100) return { frete: 25000, comissao: 2500 };
-    if (peso >= 101 && peso <= 300) return { frete: 35000, comissao: 3500 };
-    if (peso >= 301 && peso <= 500) return { frete: 50000, comissao: 5000 };
-    if (peso >= 501 && peso <= 1000) return { frete: 80000, comissao: 8000 };
-    if (peso >= 1001 && peso <= 2000) return { frete: 120000, comissao: 12000 };
-    return { frete: 0, comissao: 0 }; // Fora do intervalo
-  };
-
-  // Determinar a unidade padrão com base na categoria do produto
-  const getUnidadePadrao = (categoria: string) => {
-    if (!categoria) return 'unidade';
-    
-    switch (categoria.toLowerCase()) {
-      case 'frutas':
-      case 'verduras':
-      case 'tuberculos':
-        return 'kg';
-      case 'graos':
-        return 'kg';
-      default:
-        return 'unidade';
-    }
-  };
 
   return (
     <>

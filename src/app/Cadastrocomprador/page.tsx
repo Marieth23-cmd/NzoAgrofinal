@@ -162,7 +162,9 @@ export default function CadastroComprador() {
                                             placeholder="Ex.: marieth@example.com"
                                             onChange={handleInputChange}
                                         />
+                                        
                                     </div>
+                                     {erros.email && <p className="text-red-500 text-sm mb-4">{erros}</p>}
 
                                     <div className="mb-4">
                                         <label htmlFor="contacto" className="mb-2 font-medium block text-profile">Telefone</label>

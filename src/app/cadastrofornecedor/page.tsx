@@ -24,7 +24,7 @@ export default function CadastroFornecedor() {
     const [confirmarSenhaVisivel, setConfirmarSenhaVisivel] = useState(false);
     const [loading, setLoading] = useState(false);
     const [sucesso, setSucesso] = useState(false);
-
+     
     interface Erros {
         contacto?: string;
         confirmarSenha?: string;
@@ -174,6 +174,7 @@ export default function CadastroFornecedor() {
                                             onChange={handleInputChange}
                                         />
                                     </div>
+                                         {erros.email && <p className="text-red-500 text-sm mb-4">{erros}</p>}
 
                                     <div className="mb-4">
                                         <label htmlFor="contacto" className="mb-2 font-medium block text-profile">Telefone</label>
