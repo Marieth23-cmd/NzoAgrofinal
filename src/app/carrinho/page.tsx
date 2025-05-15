@@ -29,6 +29,7 @@ export default function Carrinho() {
   const [comissaoTotal, setComissaoTotal] = useState(0);
   const [totalFinal, setTotalFinal] = useState(0);
   const [subtotal, setSubtotal] = useState(0);
+  const [pesoTotal, setPesoTotal] = useState(0); // Adicionado para monitorar o peso total
   const [errorMessage, setErrorMessage] = useState(''); // Para mensagens de erro mais claras
 
   // Função para carregar os produtos do carrinho
@@ -45,15 +46,24 @@ export default function Carrinho() {
           return total + (parseFloat(produto.preco) * produto.quantidade);
         }, 0);
         setSubtotal(calculoSubtotal);
+        
+        // Calcular peso total
+        const calculoPesoTotal = dados.produtos.reduce((total: number, produto: any) => {
+          return total + ((produto.peso_kg || 0) * produto.quantidade);
+        }, 0);
+        setPesoTotal(calculoPesoTotal);
+        console.log("Peso total calculado:", calculoPesoTotal);
       } else {
         console.log("Nenhum produto encontrado ou formato de resposta inválido");
         setProdutos([]);
         setSubtotal(0);
+        setPesoTotal(0);
       }
     } catch (error) {
       console.log("Erro ao carregar produtos:", error);
       setProdutos([]);
       setSubtotal(0);
+      setPesoTotal(0);
     } finally {
       setLoading(false);
     }
@@ -74,6 +84,7 @@ export default function Carrinho() {
       setFreteTotal(0);
       setComissaoTotal(0);
       setSubtotal(0);
+      setPesoTotal(0);
     } catch (error: any) {
       console.log("Erro ao esvaziar carrinho:", error);
       alert(error.mensagem || "Erro ao esvaziar o carrinho.");
@@ -159,13 +170,6 @@ export default function Carrinho() {
     }
     
     // Verificar se há produtos com peso total menor que 10kg
-    let pesoTotal = 0;
-    for (const produto of produtos) {
-      if (produto.peso_kg) {
-        pesoTotal += produto.peso_kg * produto.quantidade;
-      }
-    }
-    
     if (pesoTotal < 10) {
       setErrorMessage("O peso total dos produtos deve ser de pelo menos 10kg para realizar a compra.");
       return;
@@ -181,6 +185,7 @@ export default function Carrinho() {
       setFreteTotal(0);
       setComissaoTotal(0);
       setSubtotal(0);
+      setPesoTotal(0);
       router.push("/enderecopedido");
     } catch (error: any) {
       console.log("Erro ao finalizar compra:", error);
@@ -204,37 +209,31 @@ export default function Carrinho() {
       const subTotalCalculado = calcularSubtotal();
       setSubtotal(subTotalCalculado);
       
+      // Recalculamos o peso total
+      const pesoCaculado = produtos.reduce((total, produto) => {
+        return total + ((produto.peso_kg || 0) * produto.quantidade);
+      }, 0);
+      setPesoTotal(pesoCaculado);
+      
       // Reiniciamos os valores para não acumular de cálculos anteriores
       let totalCalculado = 0;
       let freteCalculado = 0;
       let comissaoCalculada = 0;
 
-      // Apenas calcule os preços se houver produtos
-      if (produtos && produtos.length > 0) {
-        // Para cada produto calculamos o transporte e comissão
-        try {
-          // Calculamos o peso total para determinar o frete/comissão
-          let pesoTotal = 0;
+      // Apenas calcule os preços se houver produtos e peso suficiente
+      if (produtos && produtos.length > 0 && pesoCaculado >= 10) {
+        // Calculamos o frete e comissão baseado no peso total
+        const { frete, comissao } = calcularFretePorPeso(pesoCaculado);
+        freteCalculado = frete;
+        comissaoCalculada = comissao;
           
-          // Primeiro vamos somar o peso total de todos os itens
-          for (const produto of produtos) {
-            if (produto.peso_kg) {
-              pesoTotal += produto.peso_kg * produto.quantidade;
-            }
-          }
-          
-          if (pesoTotal >= 10) { // Verificação do requisito mínimo de 10kg
-            // Calculamos o frete e comissão baseado no peso total
-            const { frete, comissao } = calcularFretePorPeso(pesoTotal);
-            freteCalculado = frete;
-            comissaoCalculada = comissao;
-          }
-          
-          // O total final é o subtotal + frete + comissão
-          totalCalculado = subTotalCalculado + freteCalculado + comissaoCalculada;
-        } catch (error: any) {
-          console.log("Erro ao calcular totais:", error);
-        }
+        // O total final é o subtotal + frete + comissão
+        totalCalculado = subTotalCalculado + freteCalculado + comissaoCalculada;
+        
+        console.log("Peso total:", pesoCaculado, "kg");
+        console.log("Frete calculado:", freteCalculado);
+        console.log("Comissão calculada:", comissaoCalculada);
+        console.log("Total final calculado:", totalCalculado);
       }
 
       // Atualizar todos os estados com os novos valores calculados
@@ -316,14 +315,14 @@ export default function Carrinho() {
                 <Image
                   src={produto.foto_produto || '/placeholder.jpg'}
                   alt={produto.nome || 'Produto'}
-                  height={95}
+                  height={100}
                   width={100}
                   className="object-cover rounded-[5px]"
                 />
                 <div className="flex-1 py-0 px-4 relative">
                   <h3 className="font-bold mb-2">{produto.nome}</h3>
                   <p className="font-bold text-marieth">
-                    Kzs {parseFloat(produto.preco).toFixed(2)}/<span>1</span> {getUnidadePadrao(produto.categoria)}
+                    Kzs {parseFloat(produto.preco).toFixed(2)}/{getUnidadePadrao(produto.categoria)}
                   </p>
                   <p>Quantidade: <span className="font-semibold">{produto.quantidade}</span> {getUnidadePadrao(produto.categoria)}</p>
                   <p>Subtotal: <span className="font-bold">Kzs {(parseFloat(produto.preco) * produto.quantidade).toFixed(2)}</span></p>
@@ -354,24 +353,40 @@ export default function Carrinho() {
           {produtos.length > 0 && (
             <div className="mt-8 p-4 bg-white rounded-[10px] shadow-custom">
               <div className="flex justify-between border-b-[1px] border-solid border-tab py-2 px-0">
-                <span>Subtotal:</span>
+                <span>Subtotal dos produtos:</span>
                 <span>kzs {subtotal.toFixed(2)}</span>
               </div>
 
               <div className="flex justify-between border-b-[1px] border-solid border-tab py-2 px-0">
-                <span>Transporte:</span>
-                <span>kzs {(freteTotal + comissaoTotal).toFixed(2)}</span>
+                <span>Frete:</span>
+                <span>kzs {freteTotal.toFixed(2)}</span>
+              </div>
+
+              <div className="flex justify-between border-b-[1px] border-solid border-tab py-2 px-0">
+                <span>Comissão:</span>
+                <span>kzs {comissaoTotal.toFixed(2)}</span>
+              </div>
+              
+              <div className="flex justify-between border-b-[1px] border-solid border-tab py-2 px-0">
+                <span>Peso total:</span>
+                <span>{pesoTotal.toFixed(2)} kg</span>
               </div>
 
               <div className="flex justify-between border-b-[1px] border-solid mt-[1rem] border-tab py-2 px-0">
-                <span className="text-marieth text-[1.2rem] font-bold">Total:</span>
+                <span className="text-marieth text-[1.2rem] font-bold">Total a pagar:</span>
                 <span>kzs {totalFinal.toFixed(2)}</span>
               </div>
 
+              {pesoTotal < 10 && (
+                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded my-4">
+                  <p>O peso total mínimo para efetivar a compra é de 10kg. Adicione mais produtos.</p>
+                </div>
+              )}
+
               <button 
-                className={`transition-all ${loadingFinalizarCompra ? 'bg-gray-400' : 'hover:bg-verdeaceso bg-marieth'} text-[1.1rem] mt-4 block w-full p-4 text-white border-none rounded-[5px] cursor-pointer`}
+                className={`transition-all ${loadingFinalizarCompra || pesoTotal < 10 ? 'bg-gray-400' : 'hover:bg-verdeaceso bg-marieth'} text-[1.1rem] mt-4 block w-full p-4 text-white border-none rounded-[5px] cursor-pointer`}
                 onClick={handleFinalizarCompra}
-                disabled={produtos.length === 0 || loadingFinalizarCompra}
+                disabled={produtos.length === 0 || loadingFinalizarCompra || pesoTotal < 10}
               >
                 {loadingFinalizarCompra ? 'Processando...' : 'Finalizar Compra'}
               </button>
