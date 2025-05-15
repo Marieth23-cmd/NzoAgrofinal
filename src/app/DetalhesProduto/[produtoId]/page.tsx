@@ -90,7 +90,7 @@ export default function DetalhesProduto(){
           setAvaliacaoRealizada(true);
         }
       } catch (error) {
-        console.error("Erro ao buscar produto:", error);
+        console.log("Erro ao buscar produto:", error);
       }
     };
 
@@ -256,7 +256,7 @@ export default function DetalhesProduto(){
         <title>Detalhes do Produto</title>
       </Head>
       <Navbar/>
-      <div className="mb-20 mt-[38%] lg:mt-[15%]">
+      <div className="mb-20 mt-[40%] lg:mt-[15%]">
         <main className="max-w-[1200px] my-8 mx-auto bg-white p-4 lg:p-8 shadow-custom rounded-[10px]">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-8">
             <div>

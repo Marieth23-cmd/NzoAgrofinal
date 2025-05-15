@@ -33,7 +33,69 @@ export default function Carrinho() {
   const [errorMessage, setErrorMessage] = useState(''); // Para mensagens de erro mais claras
 
   // Função para carregar os produtos do carrinho
-  const carregarProdutos = async () => {
+  // const carregarProdutos = async () => {
+  //   try {
+  //     setLoading(true);
+  //     const dados = await listarProdutosDoCarrinho();
+  //     console.log("Dados recebidos da API:", dados); 
+      
+  //     if (dados && dados.produtos && Array.isArray(dados.produtos)) {
+  //       setProdutos(dados.produtos);
+  //       // // Cálculo imediato do subtotal ao carregar os produtos
+  //       // const calculoSubtotal = dados.produtos.reduce((total: number, produto: any) => {
+  //       //   // Certifique-se de que produto.preco seja um número válido
+  //       //   const preco = produto.preco ? parseFloat(produto.preco) : 0;
+  //       //   const quantidade = produto.quantidade || 0;
+  //       //   return total + (preco * quantidade);
+  //       // }, 0);
+  //       // setSubtotal(calculoSubtotal);
+        
+  //       // // Calcular peso total
+  //       // const calculoPesoTotal = dados.produtos.reduce((total: number, produto: any) => {
+  //       //   const peso = produto.peso_kg ? parseFloat(produto.peso_kg) : 0;
+  //       //   const quantidade = produto.quantidade || 0;
+  //       //   return total + (peso * quantidade);
+  //       // }, 0);
+  //       // setPesoTotal(calculoPesoTotal);
+  //       // console.log("Peso total calculado:", calculoPesoTotal);
+
+  //       // // Calcular frete e comissão imediatamente quando carregamos os produtos
+  //       // if (calculoPesoTotal >= 10) {
+  //       //   const { frete, comissao } = calcularFretePorPeso(calculoPesoTotal);
+  //       //   setFreteTotal(frete);
+  //       //   setComissaoTotal(comissao);
+  //       //   setTotalFinal(calculoSubtotal + frete + comissao);
+  //       //   console.log("Frete:", frete, "Comissão:", comissao);
+  //       // } else {
+  //       //   setFreteTotal(0);
+  //       //   setComissaoTotal(0);
+  //       //   setTotalFinal(calculoSubtotal);
+  //       // }
+  //     // } else {
+  //       // console.log("Nenhum produto encontrado ou formato de resposta inválido");
+  //       // setProdutos([]);
+  //       // setSubtotal(0);
+  //       // setPesoTotal(0);
+  //       // setFreteTotal(0);
+  //       // setComissaoTotal(0);
+  //       // setTotalFinal(0);
+  //     }
+  //   } catch (error) {
+  //     console.log("Erro ao carregar produtos:", error);
+  //     setProdutos([]);
+  //     setSubtotal(0);
+  //     setPesoTotal(0);
+  //     setFreteTotal(0);
+  //     setComissaoTotal(0);
+  //     setTotalFinal(0);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+ 
+  // }
+  // ;
+
+const carregarProdutos = async () => {
     try {
       setLoading(true);
       const dados = await listarProdutosDoCarrinho();
@@ -41,44 +103,35 @@ export default function Carrinho() {
       
       if (dados && dados.produtos && Array.isArray(dados.produtos)) {
         setProdutos(dados.produtos);
-        // Cálculo imediato do subtotal ao carregar os produtos
-        const calculoSubtotal = dados.produtos.reduce((total: number, produto: any) => {
-          // Certifique-se de que produto.preco seja um número válido
-          const preco = produto.preco ? parseFloat(produto.preco) : 0;
-          const quantidade = produto.quantidade || 0;
-          return total + (preco * quantidade);
-        }, 0);
-        setSubtotal(calculoSubtotal);
-        
-        // Calcular peso total
-        const calculoPesoTotal = dados.produtos.reduce((total: number, produto: any) => {
-          const peso = produto.peso_kg ? parseFloat(produto.peso_kg) : 0;
-          const quantidade = produto.quantidade || 0;
-          return total + (peso * quantidade);
-        }, 0);
-        setPesoTotal(calculoPesoTotal);
-        console.log("Peso total calculado:", calculoPesoTotal);
+ // Após setProdutos(dados.produtos), adicione:
+let totalFrete = 0;
+let totalComissao = 0;
+let totalFinalCompra = 0;
+let subtotalCalculado = 0;
+let pesoTotalCalculado = 0;
 
-        // Calcular frete e comissão imediatamente quando carregamos os produtos
-        if (calculoPesoTotal >= 10) {
-          const { frete, comissao } = calcularFretePorPeso(calculoPesoTotal);
-          setFreteTotal(frete);
-          setComissaoTotal(comissao);
-          setTotalFinal(calculoSubtotal + frete + comissao);
-          console.log("Frete:", frete, "Comissão:", comissao);
-        } else {
-          setFreteTotal(0);
-          setComissaoTotal(0);
-          setTotalFinal(calculoSubtotal);
-        }
-      } else {
-        console.log("Nenhum produto encontrado ou formato de resposta inválido");
-        setProdutos([]);
-        setSubtotal(0);
-        setPesoTotal(0);
-        setFreteTotal(0);
-        setComissaoTotal(0);
-        setTotalFinal(0);
+for (const produto of dados.produtos) {
+  try {
+    const resultado = await calcularPrecoProduto(produto.id_produto, produto.quantidade);
+
+    subtotalCalculado += resultado.precoCliente;
+    totalFrete += resultado.frete;
+    totalComissao += resultado.comissao;
+    totalFinalCompra += resultado.totalFinal;
+    pesoTotalCalculado += resultado.pesoTotal;
+
+  } catch (error) {
+    console.log(`Erro ao calcular preço do produto ${produto.nome}:`, error);
+  }
+
+}
+
+setSubtotal(subtotalCalculado);
+setFreteTotal(totalFrete);
+setComissaoTotal(totalComissao);
+setTotalFinal(totalFinalCompra);
+setPesoTotal(pesoTotalCalculado);
+
       }
     } catch (error) {
       console.log("Erro ao carregar produtos:", error);
@@ -92,6 +145,7 @@ export default function Carrinho() {
       setLoading(false);
     }
   };
+
 
   useEffect(() => {
     carregarProdutos();
@@ -473,7 +527,7 @@ export default function Carrinho() {
                 </p>
                 <p className="text-gray-600 text-sm">
                   Disponível em estoque: <span className="font-semibold">{quantidadeDisponivel}</span> {produtoSelecionado && getUnidadePadrao(produtoSelecionado.categoria)}
-                </p>
+                </p> 
 
                 <p className="font-bold text-marieth">
                   Subtotal estimado: Kzs {(produtoSelecionado ? parseFloat(produtoSelecionado.preco) * quantidade : 0).toFixed(2)}

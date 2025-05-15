@@ -1,6 +1,6 @@
 "use client"
 import { MouseEvent } from "react";
-import { FaCamera, FaStar, FaCog } from "react-icons/fa";
+import { FaCamera, FaStar, FaCog, FaBullhorn } from "react-icons/fa";
 import Navbar from "../Components/Navbar";
 import { FaCirclePlus, FaRegStarHalfStroke } from "react-icons/fa6"
 import { IoCall } from "react-icons/io5";
@@ -286,7 +286,7 @@ export default function PerfilFornecedor() {
         <title>Perfil Agricultor</title>
       </Head>
       <Navbar />
-      <div className="shadow-custom flex flex-col mb-20 gap-2 mt-[35%] lg:mt-[15%] max-w-[1200px] mx-auto justify-center items-center">
+      <div className="shadow-custom flex flex-col mb-20 gap-2 mt-[36%] lg:mt-[15%] max-w-[1200px] mx-auto justify-center items-center">
 
         <main className="my-8 max-w-[80rem] w-full px-4 sm:px-6 flex flex-col gap-8">
           <div className="lg:flex shadow-custom border-[0.7px] rounded-[10px] p-4 sm:p-8 bg-white gap-8">
@@ -478,6 +478,12 @@ export default function PerfilFornecedor() {
                           className="flex items-center gap-2 w-full cursor-pointer border-none py-2 px-4 bg-none transition-colors duration-100 text-red-500 hover:bg-light text-left"
                         >
                           <IoMdTrash /> Excluir produto
+                        </button>
+                        <button 
+                          onClick={() => excluirProduto(produto.id_produtos)} 
+                          className="flex items-center gap-2 w-full cursor-pointer border-none py-2 px-4 bg-none transition-colors duration-100 text-red-500 hover:bg-light text-left"
+                        >
+                          <FaBullhorn /> Promover produto
                         </button>
                       </div>
                     )}
