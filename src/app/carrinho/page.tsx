@@ -15,26 +15,54 @@ import {
   esvaziarCarrinho 
 } from "../Services/cart";
 
+// Define tipos para melhorar a tipagem do código
+interface Produto {
+  id: number;
+  id_produtos?: number;
+  nome: string;
+  preco: number;
+  quantidade: number;
+  peso_kg?: number;
+  categoria: string;
+  foto_produto?: string;
+  quantidade_estoque?: number;
+  estoque_atual?: number;
+}
+
+// Função para obter a unidade padrão baseada na categoria
+const getUnidadePadrao = (categoria: string): string => {
+  switch (categoria?.toLowerCase()) {
+    case 'verduras':
+    case 'legumes':
+    case 'frutas':
+      return 'kg';
+    case 'sementes':
+      return 'pacote';
+    default:
+      return 'unidade';
+  }
+};
+
 export default function Carrinho() {
   // Definindo os estados necessários
-  const [produtos, setProdutos] = useState([]);
-  const [quantidade, setQuantidade] = useState(1);
-  const [loading, setLoading] = useState(true);
+  const [produtos, setProdutos] = useState<Produto[]>([]);
+  const [quantidade, setQuantidade] = useState<number>(1);
+  const [loading, setLoading] = useState<boolean>(true);
   const router = useRouter();
   
-  const [showcaixa, setshowcaixa] = useState(false);
-  const [produtoSelecionado, setProdutoSelecionado] = useState(null);
-  const [loadingFinalizarCompra, setLoadingFinalizarCompra] = useState(false);
-  const [quantidadeDisponivel, setQuantidadeDisponivel] = useState(0);
+  const [showcaixa, setshowcaixa] = useState<boolean>(false);
+  const [produtoSelecionado, setProdutoSelecionado] = useState<Produto | null>(null);
+  const [loadingFinalizarCompra, setLoadingFinalizarCompra] = useState<boolean>(false);
+  const [quantidadeDisponivel, setQuantidadeDisponivel] = useState<number>(0);
 
   // Adicione estados para controlar os totais de maneira mais explícita
-  const [freteTotal, setFreteTotal] = useState(0);
-  const [comissaoTotal, setComissaoTotal] = useState(0);
-  const [totalFinal, setTotalFinal] = useState(0);
-  const [subtotal, setSubtotal] = useState(0);
-  const [pesoTotal, setPesoTotal] = useState(0);
-  const [errorMessage, setErrorMessage] = useState('');
-  const [calculoRealizado, setCalculoRealizado] = useState(false); // Flag para controlar se o cálculo já foi realizado
+  const [freteTotal, setFreteTotal] = useState<number>(0);
+  const [comissaoTotal, setComissaoTotal] = useState<number>(0);
+  const [totalFinal, setTotalFinal] = useState<number>(0);
+  const [subtotal, setSubtotal] = useState<number>(0);
+  const [pesoTotal, setPesoTotal] = useState<number>(0);
+  const [errorMessage, setErrorMessage] = useState<string>('');
+  const [calculoRealizado, setCalculoRealizado] = useState<boolean>(false); // Flag para controlar se o cálculo já foi realizado
 
   // Função para carregar os produtos do carrinho
   const carregarProdutos = async () => {
@@ -46,9 +74,9 @@ export default function Carrinho() {
       if (dados && dados.produtos && Array.isArray(dados.produtos)) {
         setProdutos(dados.produtos);
         // Cálculo imediato do subtotal ao carregar os produtos
-        const calculoSubtotal = dados.produtos.reduce((total, produto) => {
+        const calculoSubtotal = dados.produtos.reduce((total: number, produto: Produto) => {
           // Certifique-se de que produto.preco seja um número válido
-          const preco = produto.preco ? parseFloat(produto.preco) : 0;
+          const preco = produto.preco ? parseFloat(produto.preco.toString()) : 0;
           const quantidade = produto.quantidade || 0;
           return total + (preco * quantidade);
         }, 0);
@@ -56,8 +84,8 @@ export default function Carrinho() {
         console.log("Subtotal calculado:", calculoSubtotal);
         
         // Calcular peso total
-        const calculoPesoTotal = dados.produtos.reduce((total, produto) => {
-          const peso = produto.peso_kg ? parseFloat(produto.peso_kg) : 0;
+        const calculoPesoTotal = dados.produtos.reduce((total: number, produto: Produto) => {
+          const peso = produto.peso_kg ? parseFloat(produto.peso_kg.toString()) : 0;
           const quantidade = produto.quantidade || 0;
           return total + (peso * quantidade);
         }, 0);
@@ -95,7 +123,7 @@ export default function Carrinho() {
   };
 
   // Função para atualizar o cálculo de preço total usando a API
-  const atualizarCalculoPrecoTotal = async (produtosAtuais) => {
+  const atualizarCalculoPrecoTotal = async (produtosAtuais: Produto[]) => {
     try {
       // Resetamos os valores para não acumular de cálculos anteriores
       let freteCalculado = 0;
@@ -106,8 +134,10 @@ export default function Carrinho() {
       if (produtosAtuais && produtosAtuais.length > 0) {
         // Para cada produto no carrinho, calculamos e somamos os valores
         for (const produto of produtosAtuais) {
+          const produtoId = produto.id_produtos || produto.id;
+          // Fix 1: Converting number to string for the first error
           const resultado = await calcularPrecoProduto(
-            produto.id_produtos || produto.id, 
+            String(produtoId), 
             produto.quantidade
           );
           
@@ -147,22 +177,120 @@ export default function Carrinho() {
       alert(resposta.mensagem);
       setProdutos([]); // Limpa a lista de produtos na interface
       resetarTotais();
-    } catch (error) {
+    } catch (error: any) {
       console.log("Erro ao esvaziar carrinho:", error);
       alert(error.mensagem || "Erro ao esvaziar o carrinho.");
     }
   };
 
-  const handleEditar = (produto) => {
+  // Função para editar quantidade de um produto
+  const handleEditar = (produto: Produto) => {
     setProdutoSelecionado(produto);
     setQuantidade(produto.quantidade || 1);
-    setQuantidadeDisponivel(produto.quantidade_estoque || 0);
+    setQuantidadeDisponivel(produto.quantidade_estoque || produto.estoque_atual || 0);
     setshowcaixa(true);
     setErrorMessage('');
   };
 
+  // Função para incrementar rapidamente a quantidade
+  const handleIncrementoRapido = (incremento: number) => {
+    if (produtoSelecionado) {
+      const novaQuantidade = quantidade + incremento;
+      
+      if (novaQuantidade <= 0) {
+        setErrorMessage("A quantidade deve ser maior que zero");
+        return;
+      }
+      
+      if (novaQuantidade > quantidadeDisponivel) {
+        setErrorMessage(`Não é possível adicionar mais que ${quantidadeDisponivel} ${getUnidadePadrao(produtoSelecionado.categoria)}`);
+        return;
+      }
+      
+      setQuantidade(novaQuantidade);
+      setErrorMessage('');
+    }
+  };
+
+  // Função para confirmar a alteração de quantidade
   const handleConfirmar = async () => {
     if (!produtoSelecionado) return;
+    
+    try {
+      if (quantidade <= 0) {
+        setErrorMessage("A quantidade deve ser maior que zero");
+        return;
+      }
+      
+      if (quantidade > quantidadeDisponivel) {
+        setErrorMessage(`Não é possível adicionar mais que ${quantidadeDisponivel} ${getUnidadePadrao(produtoSelecionado.categoria)}`);
+        return;
+      }
+      
+      // Fix 2: Converting number to string for the second error
+      // Atualizar a quantidade do produto no carrinho
+      const resposta = await atualizarQuantidadeProduto(
+        String(produtoSelecionado.id), 
+        quantidade
+      );
+      
+      console.log("Resposta da atualização:", resposta);
+      
+      // Recarregar produtos após atualização
+      await carregarProdutos();
+      
+      // Fechar o modal
+      setshowcaixa(false);
+    } catch (error: any) {
+      console.log("Erro ao atualizar quantidade:", error);
+      setErrorMessage(error.mensagem || "Erro ao atualizar quantidade do produto.");
+    }
+  };
+
+  // Função para remover um produto do carrinho
+  const handleRemover = async (produtoId: number) => {
+    try {
+      const confirmacao = window.confirm("Tem certeza que deseja remover este produto do carrinho?");
+      
+      if (confirmacao) {
+        // Fix 3: Converting number to string for the third error
+        const resposta = await removerProdutoDoCarrinho(String(produtoId));
+        alert(resposta.mensagem || "Produto removido com sucesso!");
+        await carregarProdutos(); // Recarrega os produtos após remover
+      }
+    } catch (error: any) {
+      console.log("Erro ao remover produto:", error);
+      alert(error.mensagem || "Erro ao remover produto do carrinho.");
+    }
+  };
+
+  // Função para finalizar a compra
+  const handleFinalizarCompra = async () => {
+    if (produtos.length === 0) {
+      alert("Seu carrinho está vazio. Adicione produtos antes de finalizar a compra.");
+      return;
+    }
+    
+    if (pesoTotal < 10) {
+      alert("O peso total mínimo para efetivar a compra é de 10kg. Adicione mais produtos.");
+      return;
+    }
+    
+    try {
+      setLoadingFinalizarCompra(true);
+      const resposta = await finalizarCompra();
+      
+      alert(resposta.mensagem || "Compra finalizada com sucesso!");
+      setProdutos([]);
+      resetarTotais();
+      router.push("/confirmacao-pedido"); // Redireciona para página de confirmação
+    } catch (error: any) {
+      console.log("Erro ao finalizar compra:", error);
+      alert(error.mensagem || "Erro ao finalizar compra. Tente novamente.");
+    } finally {
+      setLoadingFinalizarCompra(false);
+    }
+  };
 
   return (
     <>
@@ -212,10 +340,10 @@ export default function Carrinho() {
                 <div className="flex-1 py-0 px-4 relative">
                   <h3 className="font-bold mb-2">{produto.nome}</h3>
                   <p className="font-bold text-marieth">
-                    Kzs {parseFloat(produto.preco).toFixed(2)}/{getUnidadePadrao(produto.categoria)}
+                    Kzs {parseFloat(produto.preco.toString()).toFixed(2)}/{getUnidadePadrao(produto.categoria)}
                   </p>
                   <p>Quantidade: <span className="font-semibold">{produto.quantidade}</span> {getUnidadePadrao(produto.categoria)}</p>
-                  <p>Subtotal: <span className="font-bold">Kzs {(parseFloat(produto.preco) * produto.quantidade).toFixed(2)}</span></p>
+                  <p>Subtotal: <span className="font-bold">Kzs {(parseFloat(produto.preco.toString()) * produto.quantidade).toFixed(2)}</span></p>
                   {produto.peso_kg && (
                     <p>Peso: {(produto.peso_kg * produto.quantidade).toFixed(2)} kg</p>
                   )}
@@ -225,13 +353,7 @@ export default function Carrinho() {
                   />
                   <button
                     className="hover:bg-verdeaceso bg-marieth rounded-[5px] cursor-pointer text-white p-2 text-[0.9rem] mt-2"
-                    onClick={() => {
-                      setProdutoSelecionado(produto);
-                      setQuantidade(produto.quantidade);
-                      setQuantidadeDisponivel(produto.estoque_atual || 100); // Configurar o estoque disponível
-                      setErrorMessage(''); // Limpar mensagens de erro anteriores
-                      setshowcaixa(true);
-                    }}
+                    onClick={() => handleEditar(produto)}
                   >
                     Alterar Quantidade
                   </button>
@@ -289,9 +411,11 @@ export default function Carrinho() {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="min-w-[300px] bg-white shadow-custom rounded-[10px] p-8 relative">
               <h2 className="font-bold text-2xl mb-4">Alterar Quantidade</h2>
-              <p className="text-sm text-gray-600 mb-4">
-                Produto: {produtoSelecionado?.nome} - Preço: Kzs {produtoSelecionado?.preco}/{getUnidadePadrao(produtoSelecionado?.categoria)}
-              </p>
+              {produtoSelecionado && (
+                <p className="text-sm text-gray-600 mb-4">
+                  Produto: {produtoSelecionado.nome} - Preço: Kzs {parseFloat(produtoSelecionado.preco.toString()).toFixed(2)}/{getUnidadePadrao(produtoSelecionado.categoria)}
+                </p>
+              )}
 
               {errorMessage && (
                 <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
@@ -342,7 +466,7 @@ export default function Carrinho() {
                 </p> 
 
                 <p className="font-bold text-marieth">
-                  Subtotal estimado: Kzs {(produtoSelecionado ? parseFloat(produtoSelecionado.preco) * quantidade : 0).toFixed(2)}
+                  Subtotal estimado: Kzs {(produtoSelecionado ? parseFloat(produtoSelecionado.preco.toString()) * quantidade : 0).toFixed(2)}
                 </p>
               </div>
 
