@@ -20,7 +20,7 @@ const PromoPage = () => {
         <title>Promover Produto</title>
       </Head>
       <Navbar />
-      <main className="bg-white min-h-screen py-10 px-4">
+      <main className="bg-white min-h-screen py-10 px-4 mb-20 mt-[30%] lg:mt-[15%]">
         <div className="max-w-screen-lg mx-auto">
           <div className="text-center mb-12">
             <img src="/promotion_icon.png" alt="Promoção" className="w-12 h-12 mx-auto mb-4" />

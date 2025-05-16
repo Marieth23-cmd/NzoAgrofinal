@@ -67,77 +67,80 @@ export default function Vitrine() {
   
 
   return (
-    <div>
+    <div className="min-h-screen flex flex-col">
       <head>
         <title>Ver todos os Produtos</title>
       </head>
 
       <Navbar />
 
-      <div className="flex flex-col mb-20 gap-2 mt-[30%] lg:mt-[15%] max-w-[1200px] shadow-custom p-4 lg:p-8 rounded-[10px] ml-0 lg:ml-8">
-        <div className="p-4 lg:p-8">
-          <div className="grid grid-cols-1 gap-8 p-4 lg:grid-cols-3 ">
+      <div className="flex-grow flex flex-col mb-20 gap-2 mt-[30%] md:mt-[20%] lg:mt-[15%] mx-auto w-full max-w-[1200px] shadow-custom p-2 md:p-4 lg:p-8 rounded-[10px]">
+        <div className="w-full p-2 md:p-4 lg:p-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
             {produtosVisiveis.map((produto) => 
               <div
                 key={produto.id_produtos}
-                className="overflow-hidden bg-white rounded-[0.625rem]  shadow-custom transition-transform duration-150 ease-in-out transform hover:translate-y-[0.3125rem]"
+                className="overflow-hidden bg-white rounded-[0.625rem] shadow-custom transition-transform duration-150 ease-in-out transform hover:translate-y-[0.3125rem]"
               >
-                {produto.foto_produto?(
-                  <Image
-                  src={produto.foto_produto}
-                  alt={produto.nome}
-                  height={200}
-                  width={380}
-                  className="w-full object-cover"
-                />) : (
-                  <div className="h-[200px] w-[380px] bg-gray-200 flex items-center text-center justify-center text-sm text-gray-500">
+                {produto.foto_produto ? (
+                  <div className="relative w-full h-40 sm:h-44 md:h-48">
+                    <Image
+                      src={produto.foto_produto}
+                      alt={produto.nome}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div className="h-40 sm:h-44 md:h-48 w-full bg-gray-200 flex items-center justify-center text-sm text-gray-500">
                     Imagem indisponível
                   </div>
                 )}
                 
-                <div className="p-6">
-                  <h3 className="text-[1.2rem] mb-2 text-profile font-semibold">
+                <div className="p-3 sm:p-4 md:p-6">
+                  <h3 className="text-base sm:text-lg md:text-xl mb-2 text-profile font-semibold line-clamp-2">
                     {produto.nome}
                   </h3>
 
                   <div className="flex gap-1 mb-2">
-                  {avaliacoes[produto.id_produtos] ? (
-                    <>
-                    {[1, 2, 3, 4, 5].map((i) =>
-                        i <= Math.floor(avaliacoes[produto.id_produtos]!) ? (
-                        <FaStar key={i} className="text-amarela" />
-                        ) : i - 0.5 === avaliacoes[produto.id_produtos] ? (
-                        <FaRegStarHalfStroke key={i} className="text-amarela" />
-                        ) : (
-                        <FaRegStarHalfStroke key={i} className="text-gray-300" />
-                        )
+                    {avaliacoes[produto.id_produtos] ? (
+                      <>
+                        {[1, 2, 3, 4, 5].map((i) =>
+                          i <= Math.floor(avaliacoes[produto.id_produtos]!) ? (
+                            <FaStar key={i} className="text-amarela text-sm md:text-base" />
+                          ) : i - 0.5 === avaliacoes[produto.id_produtos] ? (
+                            <FaRegStarHalfStroke key={i} className="text-amarela text-sm md:text-base" />
+                          ) : (
+                            <FaRegStarHalfStroke key={i} className="text-gray-300 text-sm md:text-base" />
+                          )
+                        )}
+                        <span className="text-amarela -mt-[4px] ml-2 text-xs md:text-sm">
+                          ({avaliacoes[produto.id_produtos]?.toFixed(1)})
+                        </span>
+                      </>
+                    ) : (
+                      <p className="text-gray-500 text-xs md:text-sm">Sem avaliações</p>
                     )}
-                    <span className="text-amarela -mt-[4px] ml-2">
-                        ({avaliacoes[produto.id_produtos]?.toFixed(1)})
-                    </span>
-                    </>
-                ) : (
-                    <p className="text-gray-500 text-sm">Sem avaliações</p>
-                )}
-                    </div>
+                  </div>
 
-
-                  <p className="text-[1.3rem] font-bold mb-4 text-marieth">
+                  <p className="text-base sm:text-lg md:text-xl font-bold mb-2 text-marieth">
                     AOA {produto.preco.toLocaleString()}
                   </p>
-                  <span>
+                  <span className="text-xs md:text-sm">
                     {produto.quantidade}/{produto.Unidade}
                   </span>
 
-                  <div className="flex flex-col gap-2 mt-4">
+                  <div className="flex flex-col gap-2 mt-3">
                     <Link
                       href={`/DetalhesProduto/${produto.id_produtos}`}
-                      className="text-marieth text-center py-2 cursor-pointer px-4 transition-all duration-150 ease-in-out border-[1px] border-solid bg-cinza rounded-[0.3125rem] hover:bg-marieth hover:text-white"
+                      className="text-marieth text-center py-1.5 md:py-2 text-sm md:text-base cursor-pointer px-4 transition-all duration-150 ease-in-out border-[1px] border-solid bg-cinza rounded-[0.3125rem] hover:bg-marieth hover:text-white"
                     >
                       Ver detalhes
                     </Link>
-                    <button  onClick={() => handleAdicionarAoCarrinho(produto.id_produtos)}
-                     className="hover:bg-verdeaceso py-2 cursor-pointer px-4 text-white bg-marieth transition-colors duration-150 ease-in-out rounded-[0.3125rem]">
+                    <button
+                      onClick={() => handleAdicionarAoCarrinho(produto.id_produtos)}
+                      className="hover:bg-verdeaceso py-1.5 md:py-2 text-sm md:text-base cursor-pointer px-4 text-white bg-marieth transition-colors duration-150 ease-in-out rounded-[0.3125rem]"
+                    >
                       Adicionar ao Carrinho
                     </button>
                   </div>
@@ -148,18 +151,17 @@ export default function Vitrine() {
         </div>
 
         {haMaisProdutos ? (
-        <button
-          onClick={mostrarMaisProdutos}
-          className="block my-8 mx-auto bg-marieth cursor-pointer text-[1.1rem] text-white py-4 px-8 rounded-[0.3125rem] transition-colors ease-in-out hover:bg-verdeaceso"
-        >
-          Ver mais Produtos
-        </button>
-      ) : verMaisClicado ? (
-        <p className="text-center text-gray-500 mt-8">
-          Não há mais produtos a serem exibidos.
-        </p>
-      ) : null}
-
+          <button
+            onClick={mostrarMaisProdutos}
+            className="block my-4 md:my-6 lg:my-8 mx-auto bg-marieth cursor-pointer text-sm sm:text-base md:text-lg text-white py-2 md:py-3 lg:py-4 px-6 md:px-8 rounded-[0.3125rem] transition-colors ease-in-out hover:bg-verdeaceso"
+          >
+            Ver mais Produtos
+          </button>
+        ) : verMaisClicado ? (
+          <p className="text-center text-gray-500 mt-4 md:mt-6 lg:mt-8 text-sm md:text-base">
+            Não há mais produtos a serem exibidos.
+          </p>
+        ) : null}
       </div>
 
       <Footer />

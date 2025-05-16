@@ -121,31 +121,54 @@ export default function Carrinho() {
     setTotalFinal(0);
     setCalculoRealizado(false);
   };
-
-  // Função para atualizar o cálculo de preço total usando a API
-  const atualizarCalculoPrecoTotal = async (produtosAtuais: Produto[]) => {
-    try {
-      // Resetamos os valores para não acumular de cálculos anteriores
-      let freteCalculado = 0;
-      let comissaoCalculada = 0;
-      let totalCalculado = 0;
+// Função para atualizar o cálculo de preço total usando a API
+const atualizarCalculoPrecoTotal = async (produtosAtuais: Produto[]) => {
+  try {
+    // Resetamos os valores para não acumular de cálculos anteriores
+    let freteCalculado = 0;
+    let comissaoCalculada = 0;
+    let totalCalculado = 0;
+    let pesoTotalCalculado = 0;
+    
+    // Primeiro calculamos o peso total dos produtos
+    if (produtosAtuais && produtosAtuais.length > 0) {
+      pesoTotalCalculado = produtosAtuais.reduce((total: number, produto: Produto) => {
+        const peso = produto.peso_kg ? parseFloat(produto.peso_kg.toString()) : 0;
+        const quantidade = produto.quantidade || 0;
+        return total + (peso * quantidade);
+      }, 0);
       
-      // Só fazemos o cálculo se tiver produtos
-      if (produtosAtuais && produtosAtuais.length > 0) {
-        // Para cada produto no carrinho, calculamos e somamos os valores
-        for (const produto of produtosAtuais) {
-          const produtoId = produto.id_produtos || produto.id;
-          // Fix 1: Converting number to string for the first error
-          const resultado = await calcularPrecoProduto(
-            String(produtoId), 
-            produto.quantidade
-          );
-          
-          // Somamos os valores retornados pela API
-          freteCalculado += resultado.frete || 0;
-          comissaoCalculada += resultado.comissao || 0;
-          totalCalculado += resultado.totalFinal || 0;
-        }
+      console.log("Peso total para cálculo:", pesoTotalCalculado);
+      
+      // Se o peso total for menor que 10kg, não há frete e comissão conforme sua lógica de negócio
+      if (pesoTotalCalculado < 10) {
+        setFreteTotal(0);
+        setComissaoTotal(0);
+        // O total final neste caso é apenas o subtotal
+        setTotalFinal(subtotal);
+        setCalculoRealizado(true);
+        return;
+      }
+      
+      // Chamamos a API apenas uma vez com o primeiro produto e o peso total
+      // para obter os valores de frete e comissão
+      if (produtosAtuais.length > 0) {
+        const produtoReferencia = produtosAtuais[0];
+        const produtoId = produtoReferencia.id_produtos || produtoReferencia.id;
+        
+        // Usamos o peso total para calcular o frete e comissão
+        const resultado = await calcularPrecoProduto(
+          String(produtoId), 
+          1, // Quantidade fixa para cálculo
+          pesoTotalCalculado // Passamos o peso total como parâmetro adicional
+        );
+        
+        // Obtemos os valores de frete e comissão da API
+        freteCalculado = resultado.frete || 0;
+        comissaoCalculada = resultado.comissao || 0;
+        
+        // O total final é a soma do subtotal (já calculado) + frete + comissão
+        totalCalculado = subtotal + freteCalculado + comissaoCalculada;
         
         console.log("Resultados do cálculo da API:");
         console.log("Frete calculado:", freteCalculado);
@@ -160,12 +183,14 @@ export default function Carrinho() {
       } else {
         resetarTotais();
       }
-    } catch (error) {
-      console.log("Erro ao calcular preço total:", error);
-      // Caso haja erro, mantemos os valores atuais
+    } else {
+      resetarTotais();
     }
-  };
-
+  } catch (error) {
+    console.log("Erro ao calcular preço total:", error);
+    // Caso haja erro, mantemos os valores atuais
+  }
+};
   useEffect(() => {
     carregarProdutos();
   }, []);

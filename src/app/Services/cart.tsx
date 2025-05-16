@@ -98,15 +98,16 @@ export const atualizarQuantidadeProduto = async (
         throw axiosError.response?.data || { mensagem: "Erro desconhecido ao atualizar a quantidade do produto" };
     }
 };
-
+// Função para calcular o preço do produto (service)
 export const calcularPrecoProduto = async (
   produtoId: string,
-  quantidadeCliente: number
+  quantidadeCliente: number,
+  pesoTotal?: number // Parâmetro opcional para o peso total
 ) => {
   try {
     const response = await axios.post(
       `${API_URL}/carrinho/calcular-preco`,
-      { produtoId, quantidadeCliente },
+      { produtoId, quantidadeCliente, pesoTotal }, // Incluímos o pesoTotal na requisição
       {
         withCredentials: true,
         headers: { "Content-Type": "application/json" },
@@ -124,6 +125,7 @@ export const calcularPrecoProduto = async (
     };
   }
 };
+
 export const finalizarCompra = async () => {
   try {
     const response = await axios.post(
