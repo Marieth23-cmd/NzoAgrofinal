@@ -123,7 +123,7 @@ export const buscarProdutosPorCategoria = async (
 // ele é capturado e uma mensagem de erro é exibida no console
  export const getProdutosPorUsuario = async (): Promise<any[]> => {
   try {
-    const response = await axios.get(`${API_URL}/produtos/meus-produtos`, {
+    const response = await axios.get(`${API_URL}/produtos/produtos/meus-produtos`, {
       withCredentials: true
     });
     return response.data;
