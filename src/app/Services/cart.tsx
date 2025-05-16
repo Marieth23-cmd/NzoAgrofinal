@@ -61,60 +61,53 @@ export const esvaziarCarrinho = async () => {
 };
 
 export const atualizarQuantidadeProduto = async (
-    id_produtos: string,
+    id_produto: string,
     quantidade: number
 ) => {
     try {
         const response = await axios.put(
-            `${API_URL}/carrinho/atualizar/${id_produtos}`,
+            `${API_URL}/carrinho/atualizar/${id_produto}`,
             { quantidade },
             {
                 withCredentials: true,
                 headers: { "Content-Type": "application/json" },
             }
         );
-
-        const {
-          precoUnitario,
-          precoCliente,
-          pesoTotal,
-          frete,
-          comissao,
-          totalFinal
-        } = response.data;
-    
-        
-        console.log("Preço unitario:", precoUnitario)
-        console.log("Preço do produto:", precoCliente);
-        console.log("Peso total:", pesoTotal);
-        console.log("Frete:", frete);
-        console.log("Comissão:", comissao);
-        console.log("Total Final:", totalFinal);
-    
         return response.data;
     } catch (error:any) {
         const axiosError = error as AxiosError;
-        console.log("Erro ao atualizar a quantidade do produto:", axiosError.response?.data || axiosError.message);
-        throw axiosError.response?.data || { mensagem: "Erro desconhecido ao atualizar a quantidade do produto" };
+        console.log("Erro ao atualizar quantidade do produto:", axiosError.response?.data || axiosError.message);
+        throw axiosError.response?.data || { mensagem: "Erro desconhecido ao atualizar quantidade do produto" };
     }
 };
-// Função para calcular o preço do produto (service)
+
+
 export const calcularPrecoProduto = async (
   produtoId: string,
   quantidadeCliente: number,
   pesoTotal?: number // Parâmetro opcional para o peso total
 ) => {
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 segundos de timeout
+    
     const response = await axios.post(
       `${API_URL}/carrinho/calcular-preco`,
       { produtoId, quantidadeCliente, pesoTotal }, // Incluímos o pesoTotal na requisição
       {
         withCredentials: true,
         headers: { "Content-Type": "application/json" },
+        signal: controller.signal
       }
     );
+    
+    clearTimeout(timeoutId);
     return response.data;
   } catch (error: any) {
+    if (error.name === 'AbortError' || error.name === 'CanceledError') {
+      throw new Error('A requisição foi cancelada por timeout');
+    }
+    
     const axiosError = error as AxiosError;
     console.log(
       "Erro ao calcular o preço do produto:",
@@ -125,6 +118,10 @@ export const calcularPrecoProduto = async (
     };
   }
 };
+
+
+
+
 
 export const finalizarCompra = async () => {
   try {

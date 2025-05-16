@@ -1,13 +1,13 @@
 "use client"
 import Head from "next/head"
-import Footer from "../Components/Footer"
-import Navbar from "../Components/Navbar"
+import Footer from "../../Components/Footer"
+import Navbar from "../../Components/Navbar"
 import React, { useState, useEffect, Suspense } from "react";
-import { atualizarProduto } from "../Services/produtos";
+import { atualizarProduto } from "../../Services/produtos";
 import { useRouter, useSearchParams } from "next/navigation"
-import { getProdutoById } from "../Services/produtos";
+import { getProdutoById } from "../../Services/produtos";
 import Image from "next/image";
-import { verificarAuth } from "../Services/auth";
+import { verificarAuth } from "../../Services/auth";
 
 // Componente de carregamento para usar com Suspense
 function Loading() {

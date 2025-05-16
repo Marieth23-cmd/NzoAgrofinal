@@ -122,53 +122,95 @@ export default function Carrinho() {
     setCalculoRealizado(false);
   };
 // Função para atualizar o cálculo de preço total usando a API
+ 
+// Fix for atualizarCalculoPrecoTotal function
 const atualizarCalculoPrecoTotal = async (produtosAtuais: Produto[]) => {
   try {
     // Resetamos os valores para não acumular de cálculos anteriores
     let freteCalculado = 0;
     let comissaoCalculada = 0;
     let totalCalculado = 0;
-    let pesoTotalCalculado = 0;
     
-    // Primeiro calculamos o peso total dos produtos
-    if (produtosAtuais && produtosAtuais.length > 0) {
-      pesoTotalCalculado = produtosAtuais.reduce((total: number, produto: Produto) => {
-        const peso = produto.peso_kg ? parseFloat(produto.peso_kg.toString()) : 0;
-        const quantidade = produto.quantidade || 0;
-        return total + (peso * quantidade);
-      }, 0);
+    // Primeiro calculamos o subtotal e peso total dos produtos
+    const subtotalCalculado = produtosAtuais.reduce((total: number, produto: Produto) => {
+      const preco = produto.preco ? parseFloat(produto.preco.toString()) : 0;
+      const quantidade = produto.quantidade || 0;
+      return total + (preco * quantidade);
+    }, 0);
+    
+    const pesoTotalCalculado = produtosAtuais.reduce((total: number, produto: Produto) => {
+      // Certifique-se que o peso está sendo corretamente lido
+      // Caso peso_kg seja undefined ou null, assume um valor padrão baseado na categoria
+      let peso = produto.peso_kg ? parseFloat(produto.peso_kg.toString()) : 0;
       
-      console.log("Peso total para cálculo:", pesoTotalCalculado);
+      // Para debug: imprimir o peso de cada produto individualmente
+      console.log(`Produto ${produto.nome}: peso=${peso}, quantidade=${produto.quantidade}`);
       
-      // Se o peso total for menor que 10kg, não há frete e comissão conforme sua lógica de negócio
-      if (pesoTotalCalculado < 10) {
-        setFreteTotal(0);
-        setComissaoTotal(0);
-        // O total final neste caso é apenas o subtotal
-        setTotalFinal(subtotal);
-        setCalculoRealizado(true);
-        return;
+      // Se peso for zero, vamos definir um peso padrão baseado na categoria
+      if (peso === 0) {
+        switch (produto.categoria?.toLowerCase()) {
+          case 'verduras':
+          case 'legumes':
+          case 'frutas':
+            peso = 1; // 1kg como padrão para produtos frescos
+            break;
+          case 'sementes':
+            peso = 0.5; // 500g como padrão para sementes
+            break;
+          default:
+            peso = 0.2; // 200g como padrão para outros produtos
+        }
+        console.log(`Atribuído peso padrão para ${produto.nome}: ${peso}kg`);
       }
       
-      // Chamamos a API apenas uma vez com o primeiro produto e o peso total
-      // para obter os valores de frete e comissão
-      if (produtosAtuais.length > 0) {
+      const quantidade = produto.quantidade || 0;
+      return total + (peso * quantidade);
+    }, 0);
+    
+    // Atualizar os estados com os valores calculados
+    setSubtotal(subtotalCalculado);
+    setPesoTotal(pesoTotalCalculado);
+    
+    console.log("Peso total recalculado:", pesoTotalCalculado);
+    
+    // Se o peso total for menor que 10kg, não há frete e comissão conforme sua lógica de negócio
+    if (pesoTotalCalculado < 10) {
+      setFreteTotal(0);
+      setComissaoTotal(0);
+      // O total final neste caso é apenas o subtotal
+      setTotalFinal(subtotalCalculado);
+      setCalculoRealizado(true);
+      return;
+    }
+    
+    // Adicionamos um timeout para a chamada da API para evitar que ela fique pendente eternamente
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Tempo esgotado ao calcular preço')), 5000);
+    });
+    
+    // Chamamos a API apenas uma vez com o primeiro produto e o peso total
+    // para obter os valores de frete e comissão
+    if (produtosAtuais.length > 0) {
+      try {
         const produtoReferencia = produtosAtuais[0];
         const produtoId = produtoReferencia.id_produtos || produtoReferencia.id;
         
-        // Usamos o peso total para calcular o frete e comissão
-        const resultado = await calcularPrecoProduto(
-          String(produtoId), 
-          1, // Quantidade fixa para cálculo
-          pesoTotalCalculado // Passamos o peso total como parâmetro adicional
-        );
+        // Usamos Promise.race para implementar um timeout na chamada da API
+        const resultado: any = await Promise.race([
+          calcularPrecoProduto(
+            String(produtoId), 
+            1, // Quantidade fixa para cálculo
+            pesoTotalCalculado // Passamos o peso total como parâmetro adicional
+          ),
+          timeoutPromise
+        ]);
         
         // Obtemos os valores de frete e comissão da API
         freteCalculado = resultado.frete || 0;
         comissaoCalculada = resultado.comissao || 0;
         
         // O total final é a soma do subtotal (já calculado) + frete + comissão
-        totalCalculado = subtotal + freteCalculado + comissaoCalculada;
+        totalCalculado = subtotalCalculado + freteCalculado + comissaoCalculada;
         
         console.log("Resultados do cálculo da API:");
         console.log("Frete calculado:", freteCalculado);
@@ -180,8 +222,37 @@ const atualizarCalculoPrecoTotal = async (produtosAtuais: Produto[]) => {
         setComissaoTotal(comissaoCalculada);
         setTotalFinal(totalCalculado);
         setCalculoRealizado(true);
-      } else {
-        resetarTotais();
+      } catch (apiError) {
+        console.error("Erro durante chamada da API:", apiError);
+        
+        // Cálculo alternativo caso a API falhe
+        // Implementando a mesma lógica do backend diretamente no front-end como fallback
+        const calcularFrete = (peso: number) => {
+          if (peso >= 10 && peso <= 30) return { base: 10000, comissao: 1000 };
+          if (peso >= 31 && peso <= 50) return { base: 15000, comissao: 1500 };
+          if (peso >= 51 && peso <= 70) return { base: 20000, comissao: 2000 };
+          if (peso >= 71 && peso <= 100) return { base: 25000, comissao: 2500 };
+          if (peso >= 101 && peso <= 300) return { base: 35000, comissao: 3500 };
+          if (peso >= 301 && peso <= 500) return { base: 50000, comissao: 5000 };
+          if (peso >= 501 && peso <= 1000) return { base: 80000, comissao: 8000 };
+          if (peso >= 1001 && peso <= 2000) return { base: 120000, comissao: 12000 };
+          return { base: 0, comissao: 0 };
+        };
+        
+        const frete = calcularFrete(pesoTotalCalculado);
+        freteCalculado = frete.base;
+        comissaoCalculada = frete.comissao;
+        totalCalculado = subtotalCalculado + freteCalculado + comissaoCalculada;
+        
+        console.log("Usando cálculo de fallback:");
+        console.log("Frete calculado:", freteCalculado);
+        console.log("Comissão calculada:", comissaoCalculada);
+        console.log("Total final calculado:", totalCalculado);
+        
+        setFreteTotal(freteCalculado);
+        setComissaoTotal(comissaoCalculada);
+        setTotalFinal(totalCalculado);
+        setCalculoRealizado(true);
       }
     } else {
       resetarTotais();
@@ -325,7 +396,7 @@ const atualizarCalculoPrecoTotal = async (produtosAtuais: Produto[]) => {
 
       <Navbar />
 
-      <div className="mb-20 mt-[30%] lg:mt-[15%]">
+      <div className="mb-20 mt-[35%] lg:mt-[15%]">
         <div className="max-w-[1200px] my-8 mx-auto py-0 px-4 items-center gap-4 grid grid-cols-1 relative border-b-[1px]">
           <div className="flex items-end">
             <h1 className="text-[2rem] text-marieth mb-8 p-4 font-bold">
@@ -356,7 +427,7 @@ const atualizarCalculoPrecoTotal = async (produtosAtuais: Produto[]) => {
             produtos.map((produto) => (
               <div key={produto.id} className="flex p-2 border-b-[1px]">
                 <Image
-                  src={produto.foto_produto || '/placeholder.jpg'}
+                  src={produto.foto_produto || '/logo.jpg'}
                   alt={produto.nome || 'Produto'}
                   height={95}
                   width={100}

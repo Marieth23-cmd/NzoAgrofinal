@@ -256,7 +256,7 @@ export default function DetalhesProduto(){
         <title>Detalhes do Produto</title>
       </Head>
       <Navbar/>
-      <div className="mb-20 mt-[40%] lg:mt-[15%]">
+      <div className="mb-20 mt-[45%] lg:mt-[15%]">
         <main className="max-w-[1200px] my-8 mx-auto bg-white p-4 lg:p-8 shadow-custom rounded-[10px]">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-8">
             <div>
@@ -295,8 +295,7 @@ export default function DetalhesProduto(){
                 {/* Exibir preço e unidade corretamente */}
                 <div className="text-[1.4rem] lg:text-[1.8rem] font-bold text-marieth">
                   <span>{produto.preco} AOA/</span> 
-                  <span>{produto.quantidade}kg</span>
-                  <span>{produto.Unidade}</span>
+                  <span>{produto.quantidade}{produto.Unidade}</span>
                 </div>
 
                 <div>
