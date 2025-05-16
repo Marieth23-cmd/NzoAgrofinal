@@ -295,7 +295,8 @@ export default function DetalhesProduto(){
                 {/* Exibir preço e unidade corretamente */}
                 <div className="text-[1.4rem] lg:text-[1.8rem] font-bold text-marieth">
                   <span>{produto.preco} AOA/</span> 
-                  <span>{produto.quantidade}{produto.Unidade}</span>
+                  <span>{produto.quantidade}kg</span>
+                  <span>{produto.Unidade}</span>
                 </div>
 
                 <div>

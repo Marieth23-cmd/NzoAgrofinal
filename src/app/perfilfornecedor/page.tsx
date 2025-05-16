@@ -526,7 +526,7 @@ export default function PerfilFornecedor() {
                     
                     <p className="text-gray-700 my-1">{produto.preco} AOA</p>
                     <p className="text-gray-600 text-sm mb-3">
-                      {produto.quantidade ? `${produto.quantidade} ${produto.unidade || 'unidades'}` : 'Estoque não disponível'}
+                      {produto.quantidade ? `${produto.quantidade} ${produto.Unidade || 'unidades'}` : 'Estoque não disponível'}
                     </p>
 
                     <button 

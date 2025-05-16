@@ -358,14 +358,14 @@ const atualizarCalculoPrecoTotal = async (produtosAtuais: Produto[]) => {
                 <Image
                   src={produto.foto_produto || '/placeholder.jpg'}
                   alt={produto.nome || 'Produto'}
-                  height={100}
+                  height={95}
                   width={100}
                   className="object-cover rounded-[5px]"
                 />
                 <div className="flex-1 py-0 px-4 relative">
                   <h3 className="font-bold mb-2">{produto.nome}</h3>
                   <p className="font-bold text-marieth">
-                    Kzs {parseFloat(produto.preco.toString()).toFixed(2)}/{getUnidadePadrao(produto.categoria)}
+                    Kzs {parseFloat(produto.preco.toString()).toFixed(2)}/{produto.quantidade}{getUnidadePadrao(produto.categoria)}
                   </p>
                   <p>Quantidade: <span className="font-semibold">{produto.quantidade}</span> {getUnidadePadrao(produto.categoria)}</p>
                   <p>Subtotal: <span className="font-bold">Kzs {(parseFloat(produto.preco.toString()) * produto.quantidade).toFixed(2)}</span></p>
