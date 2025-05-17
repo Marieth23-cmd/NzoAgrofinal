@@ -27,11 +27,18 @@ interface Produto {
   foto_produto?: string;
   quantidade_estoque?: number;
   estoque_atual?: number;
+  Unidade?: string; // Adicionado campo para unidade real
 }
 
-// Função para obter a unidade padrão baseada na categoria
-const getUnidadePadrao = (categoria: string): string => {
-  switch (categoria?.toLowerCase()) {
+// Função para obter a unidade baseada na categoria ou usar a unidade real
+const getUnidade = (produto: Produto): string => {
+  // Se o produto tiver uma unidade definida, usar essa
+  if (produto.Unidade) {
+    return produto.Unidade;
+  }
+  
+  // Caso contrário, inferir baseado na categoria
+  switch (produto.categoria?.toLowerCase()) {
     case 'verduras':
     case 'legumes':
     case 'frutas':
@@ -121,147 +128,147 @@ export default function Carrinho() {
     setTotalFinal(0);
     setCalculoRealizado(false);
   };
-// Função para atualizar o cálculo de preço total usando a API
- 
-// Fix for atualizarCalculoPrecoTotal function
-const atualizarCalculoPrecoTotal = async (produtosAtuais: Produto[]) => {
-  try {
-    // Resetamos os valores para não acumular de cálculos anteriores
-    let freteCalculado = 0;
-    let comissaoCalculada = 0;
-    let totalCalculado = 0;
-    
-    // Primeiro calculamos o subtotal e peso total dos produtos
-    const subtotalCalculado = produtosAtuais.reduce((total: number, produto: Produto) => {
-      const preco = produto.preco ? parseFloat(produto.preco.toString()) : 0;
-      const quantidade = produto.quantidade || 0;
-      return total + (preco * quantidade);
-    }, 0);
-    
-    const pesoTotalCalculado = produtosAtuais.reduce((total: number, produto: Produto) => {
-      // Certifique-se que o peso está sendo corretamente lido
-      // Caso peso_kg seja undefined ou null, assume um valor padrão baseado na categoria
-      let peso = produto.peso_kg ? parseFloat(produto.peso_kg.toString()) : 0;
+
+  // Função para atualizar o cálculo de preço total usando a API
+  const atualizarCalculoPrecoTotal = async (produtosAtuais: Produto[]) => {
+    try {
+      // Resetamos os valores para não acumular de cálculos anteriores
+      let freteCalculado = 0;
+      let comissaoCalculada = 0;
+      let totalCalculado = 0;
       
-      // Para debug: imprimir o peso de cada produto individualmente
-      console.log(`Produto ${produto.nome}: peso=${peso}, quantidade=${produto.quantidade}`);
+      // Primeiro calculamos o subtotal e peso total dos produtos
+      const subtotalCalculado = produtosAtuais.reduce((total: number, produto: Produto) => {
+        const preco = produto.preco ? parseFloat(produto.preco.toString()) : 0;
+        const quantidade = produto.quantidade || 0;
+        return total + (preco * quantidade);
+      }, 0);
       
-      // Se peso for zero, vamos definir um peso padrão baseado na categoria
-      if (peso === 0) {
-        switch (produto.categoria?.toLowerCase()) {
-          case 'verduras':
-          case 'legumes':
-          case 'frutas':
-            peso = 1; // 1kg como padrão para produtos frescos
-            break;
-          case 'sementes':
-            peso = 0.5; // 500g como padrão para sementes
-            break;
-          default:
-            peso = 0.2; // 200g como padrão para outros produtos
+      const pesoTotalCalculado = produtosAtuais.reduce((total: number, produto: Produto) => {
+        // Certifique-se que o peso está sendo corretamente lido
+        // Caso peso_kg seja undefined ou null, assume um valor padrão baseado na categoria
+        let peso = produto.peso_kg ? parseFloat(produto.peso_kg.toString()) : 0;
+        
+        // Para debug: imprimir o peso de cada produto individualmente
+        console.log(`Produto ${produto.nome}: peso=${peso}, quantidade=${produto.quantidade}`);
+        
+        // Se peso for zero, vamos definir um peso padrão baseado na categoria
+        if (peso === 0) {
+          switch (produto.categoria?.toLowerCase()) {
+            case 'verduras':
+            case 'legumes':
+            case 'frutas':
+              peso = 1; // 1kg como padrão para produtos frescos
+              break;
+            case 'sementes':
+              peso = 0.5; // 500g como padrão para sementes
+              break;
+            default:
+              peso = 0.2; // 200g como padrão para outros produtos
+          }
+          console.log(`Atribuído peso padrão para ${produto.nome}: ${peso}kg`);
         }
-        console.log(`Atribuído peso padrão para ${produto.nome}: ${peso}kg`);
+        
+        const quantidade = produto.quantidade || 0;
+        return total + (peso * quantidade);
+      }, 0);
+      
+      // Atualizar os estados com os valores calculados
+      setSubtotal(subtotalCalculado);
+      setPesoTotal(pesoTotalCalculado);
+      
+      console.log("Peso total recalculado:", pesoTotalCalculado);
+      
+      // Se o peso total for menor que 10kg, não há frete e comissão conforme sua lógica de negócio
+      if (pesoTotalCalculado < 10) {
+        setFreteTotal(0);
+        setComissaoTotal(0);
+        // O total final neste caso é apenas o subtotal
+        setTotalFinal(subtotalCalculado);
+        setCalculoRealizado(true);
+        return;
       }
       
-      const quantidade = produto.quantidade || 0;
-      return total + (peso * quantidade);
-    }, 0);
-    
-    // Atualizar os estados com os valores calculados
-    setSubtotal(subtotalCalculado);
-    setPesoTotal(pesoTotalCalculado);
-    
-    console.log("Peso total recalculado:", pesoTotalCalculado);
-    
-    // Se o peso total for menor que 10kg, não há frete e comissão conforme sua lógica de negócio
-    if (pesoTotalCalculado < 10) {
-      setFreteTotal(0);
-      setComissaoTotal(0);
-      // O total final neste caso é apenas o subtotal
-      setTotalFinal(subtotalCalculado);
-      setCalculoRealizado(true);
-      return;
-    }
-    
-    // Adicionamos um timeout para a chamada da API para evitar que ela fique pendente eternamente
-    const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Tempo esgotado ao calcular preço')), 5000);
-    });
-    
-    // Chamamos a API apenas uma vez com o primeiro produto e o peso total
-    // para obter os valores de frete e comissão
-    if (produtosAtuais.length > 0) {
-      try {
-        const produtoReferencia = produtosAtuais[0];
-        const produtoId = produtoReferencia.id_produtos || produtoReferencia.id;
-        
-        // Usamos Promise.race para implementar um timeout na chamada da API
-        const resultado: any = await Promise.race([
-          calcularPrecoProduto(
-            String(produtoId), 
-            1, // Quantidade fixa para cálculo
-            pesoTotalCalculado // Passamos o peso total como parâmetro adicional
-          ),
-          timeoutPromise
-        ]);
-        
-        // Obtemos os valores de frete e comissão da API
-        freteCalculado = resultado.frete || 0;
-        comissaoCalculada = resultado.comissao || 0;
-        
-        // O total final é a soma do subtotal (já calculado) + frete + comissão
-        totalCalculado = subtotalCalculado + freteCalculado + comissaoCalculada;
-        
-        console.log("Resultados do cálculo da API:");
-        console.log("Frete calculado:", freteCalculado);
-        console.log("Comissão calculada:", comissaoCalculada);
-        console.log("Total final calculado:", totalCalculado);
-        
-        // Atualizar os estados com os valores vindos da API
-        setFreteTotal(freteCalculado);
-        setComissaoTotal(comissaoCalculada);
-        setTotalFinal(totalCalculado);
-        setCalculoRealizado(true);
-      } catch (apiError) {
-        console.error("Erro durante chamada da API:", apiError);
-        
-        // Cálculo alternativo caso a API falhe
-        // Implementando a mesma lógica do backend diretamente no front-end como fallback
-        const calcularFrete = (peso: number) => {
-          if (peso >= 10 && peso <= 30) return { base: 10000, comissao: 1000 };
-          if (peso >= 31 && peso <= 50) return { base: 15000, comissao: 1500 };
-          if (peso >= 51 && peso <= 70) return { base: 20000, comissao: 2000 };
-          if (peso >= 71 && peso <= 100) return { base: 25000, comissao: 2500 };
-          if (peso >= 101 && peso <= 300) return { base: 35000, comissao: 3500 };
-          if (peso >= 301 && peso <= 500) return { base: 50000, comissao: 5000 };
-          if (peso >= 501 && peso <= 1000) return { base: 80000, comissao: 8000 };
-          if (peso >= 1001 && peso <= 2000) return { base: 120000, comissao: 12000 };
-          return { base: 0, comissao: 0 };
-        };
-        
-        const frete = calcularFrete(pesoTotalCalculado);
-        freteCalculado = frete.base;
-        comissaoCalculada = frete.comissao;
-        totalCalculado = subtotalCalculado + freteCalculado + comissaoCalculada;
-        
-        console.log("Usando cálculo de fallback:");
-        console.log("Frete calculado:", freteCalculado);
-        console.log("Comissão calculada:", comissaoCalculada);
-        console.log("Total final calculado:", totalCalculado);
-        
-        setFreteTotal(freteCalculado);
-        setComissaoTotal(comissaoCalculada);
-        setTotalFinal(totalCalculado);
-        setCalculoRealizado(true);
+      // Adicionamos um timeout para a chamada da API para evitar que ela fique pendente eternamente
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Tempo esgotado ao calcular preço')), 5000);
+      });
+      
+      // Chamamos a API apenas uma vez com o primeiro produto e o peso total
+      // para obter os valores de frete e comissão
+      if (produtosAtuais.length > 0) {
+        try {
+          const produtoReferencia = produtosAtuais[0];
+          const produtoId = produtoReferencia.id_produtos || produtoReferencia.id;
+          
+          // Usamos Promise.race para implementar um timeout na chamada da API
+          const resultado: any = await Promise.race([
+            calcularPrecoProduto(
+              String(produtoId), 
+              1, // Quantidade fixa para cálculo
+              pesoTotalCalculado // Passamos o peso total como parâmetro adicional
+            ),
+            timeoutPromise
+          ]);
+          
+          // Obtemos os valores de frete e comissão da API
+          freteCalculado = resultado.frete || 0;
+          comissaoCalculada = resultado.comissao || 0;
+          
+          // O total final é a soma do subtotal (já calculado) + frete + comissão
+          totalCalculado = subtotalCalculado + freteCalculado + comissaoCalculada;
+          
+          console.log("Resultados do cálculo da API:");
+          console.log("Frete calculado:", freteCalculado);
+          console.log("Comissão calculada:", comissaoCalculada);
+          console.log("Total final calculado:", totalCalculado);
+          
+          // Atualizar os estados com os valores vindos da API
+          setFreteTotal(freteCalculado);
+          setComissaoTotal(comissaoCalculada);
+          setTotalFinal(totalCalculado);
+          setCalculoRealizado(true);
+        } catch (apiError) {
+          console.error("Erro durante chamada da API:", apiError);
+          
+          // Cálculo alternativo caso a API falhe
+          // Implementando a mesma lógica do backend diretamente no front-end como fallback
+          const calcularFrete = (peso: number) => {
+            if (peso >= 10 && peso <= 30) return { base: 10000, comissao: 1000 };
+            if (peso >= 31 && peso <= 50) return { base: 15000, comissao: 1500 };
+            if (peso >= 51 && peso <= 70) return { base: 20000, comissao: 2000 };
+            if (peso >= 71 && peso <= 100) return { base: 25000, comissao: 2500 };
+            if (peso >= 101 && peso <= 300) return { base: 35000, comissao: 3500 };
+            if (peso >= 301 && peso <= 500) return { base: 50000, comissao: 5000 };
+            if (peso >= 501 && peso <= 1000) return { base: 80000, comissao: 8000 };
+            if (peso >= 1001 && peso <= 2000) return { base: 120000, comissao: 12000 };
+            return { base: 0, comissao: 0 };
+          };
+          
+          const frete = calcularFrete(pesoTotalCalculado);
+          freteCalculado = frete.base;
+          comissaoCalculada = frete.comissao;
+          totalCalculado = subtotalCalculado + freteCalculado + comissaoCalculada;
+          
+          console.log("Usando cálculo de fallback:");
+          console.log("Frete calculado:", freteCalculado);
+          console.log("Comissão calculada:", comissaoCalculada);
+          console.log("Total final calculado:", totalCalculado);
+          
+          setFreteTotal(freteCalculado);
+          setComissaoTotal(comissaoCalculada);
+          setTotalFinal(totalCalculado);
+          setCalculoRealizado(true);
+        }
+      } else {
+        resetarTotais();
       }
-    } else {
-      resetarTotais();
+    } catch (error) {
+      console.log("Erro ao calcular preço total:", error);
+      // Caso haja erro, mantemos os valores atuais
     }
-  } catch (error) {
-    console.log("Erro ao calcular preço total:", error);
-    // Caso haja erro, mantemos os valores atuais
-  }
-};
+  };
+
   useEffect(() => {
     carregarProdutos();
   }, []);
@@ -299,7 +306,7 @@ const atualizarCalculoPrecoTotal = async (produtosAtuais: Produto[]) => {
       }
       
       if (novaQuantidade > quantidadeDisponivel) {
-        setErrorMessage(`Não é possível adicionar mais que ${quantidadeDisponivel} ${getUnidadePadrao(produtoSelecionado.categoria)}`);
+        setErrorMessage(`Não é possível adicionar mais que ${quantidadeDisponivel} ${getUnidade(produtoSelecionado)}`);
         return;
       }
       
@@ -319,11 +326,10 @@ const atualizarCalculoPrecoTotal = async (produtosAtuais: Produto[]) => {
       }
       
       if (quantidade > quantidadeDisponivel) {
-        setErrorMessage(`Não é possível adicionar mais que ${quantidadeDisponivel} ${getUnidadePadrao(produtoSelecionado.categoria)}`);
+        setErrorMessage(`Não é possível adicionar mais que ${quantidadeDisponivel} ${getUnidade(produtoSelecionado)}`);
         return;
       }
       
-      // Fix 2: Converting number to string for the second error
       // Atualizar a quantidade do produto no carrinho
       const resposta = await atualizarQuantidadeProduto(
         String(produtoSelecionado.id), 
@@ -349,7 +355,6 @@ const atualizarCalculoPrecoTotal = async (produtosAtuais: Produto[]) => {
       const confirmacao = window.confirm("Tem certeza que deseja remover este produto do carrinho?");
       
       if (confirmacao) {
-        // Fix 3: Converting number to string for the third error
         const resposta = await removerProdutoDoCarrinho(String(produtoId));
         alert(resposta.mensagem || "Produto removido com sucesso!");
         await carregarProdutos(); // Recarrega os produtos após remover
@@ -426,22 +431,24 @@ const atualizarCalculoPrecoTotal = async (produtosAtuais: Produto[]) => {
           ) : (
             produtos.map((produto) => (
               <div key={produto.id} className="flex p-1 border-b-[1px]">
-                <Image
-                  src={produto.foto_produto || '/logo.jpg'}
-                  alt={produto.nome || 'Produto'}
-                  height={95}
-                  width={100}
-                  className="object-cover rounded-[5px]"
-                />
+                <div className="h-24 w-24 min-w-24 flex items-center justify-center">
+                  <Image
+                    src={produto.foto_produto || '/logo.jpg'}
+                    alt={produto.nome || 'Produto'}
+                    height={96}
+                    width={96}
+                    className="object-cover rounded-[5px] max-h-24"
+                  />
+                </div>
                 <div className="flex-1 py-0 px-4 relative">
                   <h3 className="font-bold mb-2">{produto.nome}</h3>
                   <p className="font-bold text-marieth">
-                    Kzs {parseFloat(produto.preco.toString()).toFixed(2)}/{produto.quantidade}{getUnidadePadrao(produto.categoria)}
+                    Kzs {parseFloat(produto.preco.toString()).toFixed(2)}/{getUnidade(produto)}
                   </p>
-                  <p>Quantidade: <span className="font-semibold">{produto.quantidade}</span> {getUnidadePadrao(produto.categoria)}</p>
+                  <p>Quantidade: <span className="font-semibold">{produto.quantidade}</span> {getUnidade(produto)}</p>
                   <p>Subtotal: <span className="font-bold">Kzs {(parseFloat(produto.preco.toString()) * produto.quantidade).toFixed(2)}</span></p>
                   {produto.peso_kg && (
-                    <p>Peso: {(produto.peso_kg * produto.quantidade).toFixed(2)} kg</p>
+                    <p>Peso: {(parseFloat(produto.peso_kg.toString()) * produto.quantidade).toFixed(2)} kg</p>
                   )}
                   <FaTrash
                     onClick={() => handleRemover(produto.id)}
@@ -502,14 +509,14 @@ const atualizarCalculoPrecoTotal = async (produtosAtuais: Produto[]) => {
           )}
         </div>
 
-        {/* Modal "showcaixa" atualizado */}
+        {/* Modal de ajuste de quantidade atualizado */}
         {showcaixa && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="min-w-[300px] bg-white shadow-custom rounded-[10px] p-8 relative">
+            <div className="min-w-[300px] w-[90%] max-w-[400px] bg-white shadow-custom rounded-[10px] p-8 relative">
               <h2 className="font-bold text-2xl mb-4">Alterar Quantidade</h2>
               {produtoSelecionado && (
                 <p className="text-sm text-gray-600 mb-4">
-                  Produto: {produtoSelecionado.nome} - Preço: Kzs {parseFloat(produtoSelecionado.preco.toString()).toFixed(2)}/{getUnidadePadrao(produtoSelecionado.categoria)}
+                  Produto: {produtoSelecionado.nome} - Preço: Kzs {parseFloat(produtoSelecionado.preco.toString()).toFixed(2)}/{getUnidade(produtoSelecionado)}
                 </p>
               )}
 
@@ -519,9 +526,13 @@ const atualizarCalculoPrecoTotal = async (produtosAtuais: Produto[]) => {
                 </div>
               )}
 
-              <div className="mb-4 gap-2 grid grid-cols-2">
+              <div className="mb-4 grid grid-cols-4 gap-2">
+                <button onClick={() => handleIncrementoRapido(-1)} className="p-2 bg-red-500 rounded-[5px] text-white text-[0.9rem] hover:bg-red-600">-1</button>
+                <button onClick={() => handleIncrementoRapido(-0.5)} className="p-2 bg-red-500 rounded-[5px] text-white text-[0.9rem] hover:bg-red-600">-0.5</button>
                 <button onClick={() => handleIncrementoRapido(0.5)} className="p-2 bg-marieth rounded-[5px] text-white text-[0.9rem] hover:bg-verdeaceso">+0.5</button>
                 <button onClick={() => handleIncrementoRapido(1)} className="p-2 bg-marieth rounded-[5px] text-white text-[0.9rem] hover:bg-verdeaceso">+1</button>
+                <button onClick={() => handleIncrementoRapido(-5)} className="p-2 bg-red-500 rounded-[5px] text-white text-[0.9rem] hover:bg-red-600">-5</button>
+                <button onClick={() => handleIncrementoRapido(-10)} className="p-2 bg-red-500 rounded-[5px] text-white text-[0.9rem] hover:bg-red-600">-10</button>
                 <button onClick={() => handleIncrementoRapido(5)} className="p-2 bg-marieth rounded-[5px] text-white text-[0.9rem] hover:bg-verdeaceso">+5</button>
                 <button onClick={() => handleIncrementoRapido(10)} className="p-2 bg-marieth rounded-[5px] text-white text-[0.9rem] hover:bg-verdeaceso">+10</button>
               </div>
@@ -543,7 +554,7 @@ const atualizarCalculoPrecoTotal = async (produtosAtuais: Produto[]) => {
                           return;
                         }
                         if (novaQuantidade > quantidadeDisponivel) {
-                          setErrorMessage(`Não é possível adicionar mais que ${quantidadeDisponivel} ${produtoSelecionado ? getUnidadePadrao(produtoSelecionado.categoria) : 'unidades'}`);
+                          setErrorMessage(`Não é possível adicionar mais que ${quantidadeDisponivel} ${produtoSelecionado ? getUnidade(produtoSelecionado) : 'unidades'}`);
                           return;
                         }
                         setQuantidade(novaQuantidade);
@@ -555,10 +566,10 @@ const atualizarCalculoPrecoTotal = async (produtosAtuais: Produto[]) => {
                   />
                 </label>
                 <p className="text-gray-500 text-sm">
-                  Unidade: {produtoSelecionado && getUnidadePadrao(produtoSelecionado.categoria)}
+                  Unidade: {produtoSelecionado && getUnidade(produtoSelecionado)}
                 </p>
                 <p className="text-gray-600 text-sm">
-                  Disponível em estoque: <span className="font-semibold">{quantidadeDisponivel}</span> {produtoSelecionado && getUnidadePadrao(produtoSelecionado.categoria)}
+                  Disponível em estoque: <span className="font-semibold">{quantidadeDisponivel}</span> {produtoSelecionado && getUnidade(produtoSelecionado)}
                 </p> 
 
                 <p className="font-bold text-marieth">

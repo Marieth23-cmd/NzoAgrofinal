@@ -44,6 +44,7 @@ export default function DetalhesProduto(){
     preco: number;
     Unidade: string;
     quantidade: number;
+    peso_kg:number ;
   };
 
   const [produto, setProduto] = useState<Produto | null>(null);
@@ -296,6 +297,11 @@ export default function DetalhesProduto(){
                 <div className="text-[1.4rem] lg:text-[1.8rem] font-bold text-marieth">
                   <span>{produto.preco} AOA/</span> 
                   <span>{produto.quantidade}{produto.Unidade}</span>
+                </div>
+
+                <div className="text-[1.4rem] lg:text-[1.8rem] font-bold text-marieth">
+                  <span>{produto.quantidade}{produto.Unidade}</span>
+                  <span>{ produto.peso_kg}</span>
                 </div>
 
                 <div>

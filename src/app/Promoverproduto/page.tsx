@@ -58,7 +58,7 @@ const PromoPage = () => {
       const resposta = await destacarProduto(produtoId, dias);
       
       // Redirecionar para a página de pagamento
-      router.push(`/pagamento-destaque/${resposta.idPagamento}`);
+      router.push(`/pagdestacar/${resposta.idPagamento}`);
     } catch (error: any) {
       setError(error?.mensagem || 'Erro ao processar solicitação de destaque');
     } finally {

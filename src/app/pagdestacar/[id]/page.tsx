@@ -1,13 +1,13 @@
 "use client";
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { buscarDadosPagamento, processarPagamentoDestaque } from '../Services/produtos';
-import Navbar from '../Components/Navbar';
-import Footer from '../Components/Footer';
+import { buscarDadosPagamento, processarPagamentoDestaque } from '../../Services/produtos';
+import Navbar from '../../Components/Navbar';
+import Footer from '../../Components/Footer';
 import Image from 'next/image';
 
 type PagamentoParams = {
-  id: number;
+  id: string;
 };
 
 type DadosPagamento = {
@@ -24,10 +24,11 @@ type DadosPagamento = {
 
 interface PagamentoDestaqueProps {
   params: PagamentoParams;
+  searchParams?: { [key: string]: string | string[] | undefined };
 }
 
-export default function PagamentoDestaque({ params }: PagamentoDestaqueProps) {
-  const idPagamento = params.id;
+export default function PagamentoDestaque({ params, searchParams }: PagamentoDestaqueProps) {
+  const idPagamento = parseInt(params.id, 10);
   const router = useRouter();
   
   const [loading, setLoading] = useState(false);
@@ -60,7 +61,7 @@ export default function PagamentoDestaque({ params }: PagamentoDestaqueProps) {
         if (data.status === 'pago') {
           setSuccess('Este pagamento já foi processado. Seu produto já está em destaque!');
           setTimeout(() => {
-            router.push('/meus-produtos');
+            router.push('/');
           }, 3000);
         }
         
