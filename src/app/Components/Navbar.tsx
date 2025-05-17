@@ -173,7 +173,7 @@ const handleClick = useCallback((event: MouseEvent) => {
             <div className=" flex items-center max-w-[75rem]"  >
                 <div className=" flex items-center gap-4 ">
                     <Image src="/images/logo.jpg" alt="logotipo" width={55} height={55}/>
-                    <p className="text-2xl text-marieth font-bold">NzoAgro</p>
+                    <p className="text-[1.5rem] lg:text-2xl text-marieth font-bold">NzoAgro</p>
                 </div >
             </div>
 

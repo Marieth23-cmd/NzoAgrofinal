@@ -413,7 +413,7 @@ export default function CriarProduto() {
                         {/* Seção de botões de ação */}
                         <div className="mt-8">
                             {/* Botões de navegação e cancelamento */}
-                            <div className="flex justify-between mb-4">
+                            <div className="flex justify-between mb-4 gap-2 lg:gap-0">
                                 <button
                                     type="button"
                                     onClick={() => router.back()}

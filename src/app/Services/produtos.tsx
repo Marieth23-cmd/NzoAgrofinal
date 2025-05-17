@@ -133,3 +133,60 @@ export const buscarProdutosPorCategoria = async (
     throw { mensagem: "Erro ao buscar produtos do usuário" };
   }
 };
+
+
+export const getProdutosDestaque = async () => {
+  try {
+    const response = await axios.get(`${API_URL}/produtos/destaque`);
+    return response.data;
+  } catch (error:any) {
+    console.log("Erro ao buscar produtos em destaque:", error.response?.data || error.message);
+    throw { mensagem: "Erro ao buscar produtos em destaque" };
+  }
+};
+
+// Função para destacar um produto com um pacote específico
+export const destacarProduto = async (idProduto: number, pacote: number) => {
+  try {
+    const response = await axios.post(
+      `${API_URL}/produtos/${idProduto}/destaque`,
+      { pacote }, // Envia o tipo de pacote (3, 5, 7 ou 30 dias)
+      { withCredentials: true }
+    );
+    return response.data;
+  } catch (error:any) {
+    console.log("Erro ao destacar produto:", error.response?.data || error.message);
+    throw { mensagem: error.response?.data?.error || "Erro ao destacar produto" };
+  }
+};
+
+// Função para verificar o status de destaque de um produto
+export const verificarStatusDestaque = async (idProduto:number) => {
+  try {
+    const response = await axios.get(`${API_URL}/produtos/${idProduto}/status-destaque`, {
+      withCredentials: true
+    });
+    return response.data;
+  } catch (error:any) {
+    console.log("Erro ao verificar status de destaque:", error.response?.data || error.message);
+    throw { mensagem: "Erro ao verificar status de destaque" };
+  }
+};
+
+// Função para processar pagamento de destaque
+export const processarPagamentoDestaque = async (idPagamento: number, tipoPagamento: string) => {
+  try {
+    const response = await axios.post(
+      `${API_URL}/pagamentos/processar`,
+      { 
+        id_pagamento: idPagamento,
+        tipo_pagamento: tipoPagamento // 'UNITELMONEY', 'AFRIMONEY', ou 'MulticaixaExpres'
+      },
+      { withCredentials: true }
+    );
+    return response.data;
+  } catch (error:any) {
+    console.log("Erro ao processar pagamento:", error.response?.data || error.message);
+    throw { mensagem: error.response?.data?.error || "Erro ao processar pagamento" };
+  }
+};

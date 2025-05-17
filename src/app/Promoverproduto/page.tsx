@@ -11,7 +11,7 @@ const PromoPage = () => {
   const selectPackage = (packageName: string) => {
     console.log('Pacote selecionado:', packageName);
     // Redireciona para a tela de pagamento
-    router.push(`/telapaga?pacote=${packageName}`);
+    router.push(`/pagdestacar?pacote=${packageName}`);
   };
 
   return (
@@ -20,11 +20,11 @@ const PromoPage = () => {
         <title>Promover Produto</title>
       </Head>
       <Navbar />
-      <main className="bg-white min-h-screen py-10 px-4 mb-20 mt-[30%] lg:mt-[15%]">
+      <main className="bg-white min-h-screen py-10 px-4 mb-20 mt-[40%] lg:mt-[15%]">
         <div className="max-w-screen-lg mx-auto">
           <div className="text-center mb-12">
             <img src="/promotion_icon.png" alt="Promoção" className="w-12 h-12 mx-auto mb-4" />
-            <h1 className="text-4xl font-bold text-gray-800 mb-4">Destaque seus Produtos</h1>
+            <h1 className=" text-2xl lg:text-4xl  font-bold text-gray-800 mb-4">Destaque seus Produtos</h1>
             <p className="text-gray-600 text-lg max-w-xl mx-auto">
               Escolha o melhor pacote promocional e aumente a visibilidade dos seus produtos na nossa plataforma
             </p>
