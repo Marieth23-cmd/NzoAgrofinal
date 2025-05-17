@@ -6,9 +6,10 @@ import Navbar from '../../Components/Navbar';
 import Footer from '../../Components/Footer';
 import Image from 'next/image';
 
-type PagamentoParams = {
+type PageParams = {
   id: string;
 };
+import { toast } from 'react-toastify';
 
 type DadosPagamento = {
   id: number;
@@ -22,12 +23,14 @@ type DadosPagamento = {
   created_at?: string;
 };
 
-interface PagamentoDestaqueProps {
-  params: PagamentoParams;
+// Next.js 15 Page Component Props
+export default function PagamentoDestaque({
+  params,
+  searchParams,
+}: {
+  params: PageParams;
   searchParams?: { [key: string]: string | string[] | undefined };
-}
-
-export default function PagamentoDestaque({ params, searchParams }: PagamentoDestaqueProps) {
+}) {
   const idPagamento = parseInt(params.id, 10);
   const router = useRouter();
   
@@ -83,7 +86,7 @@ export default function PagamentoDestaque({ params, searchParams }: PagamentoDes
       await processarPagamentoDestaque(idPagamento, metodoPagamento);
       setSuccess('Pagamento processado com sucesso! Seu produto já está em destaque.');
       setTimeout(() => {
-        router.push('/meus-produtos');
+        router.push('/');
       }, 3000);
     } catch (error: any) {
       setError(error?.mensagem || 'Erro ao processar pagamento');
