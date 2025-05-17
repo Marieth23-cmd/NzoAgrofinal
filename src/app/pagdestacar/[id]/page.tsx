@@ -20,7 +20,11 @@ type DadosPagamento = {
 };
 
 // Para Next.js 15.x, precisamos usar esta estrutura de componente
+
 export default function Page({ params }: { params: { id: string } }) {
+  // Obter o ID do pagamento da URL
+  // O ID é passado como string, então precisamos convertê-lo para número
+  
   const idPagamento = parseInt(params.id, 10);
   const router = useRouter();
   
