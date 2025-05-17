@@ -9,7 +9,7 @@ import { useEffect, useState } from "react"
 import React from "react"
 import { buscarProdutosPorCategoria } from "../Services/produtos"
 
-export default function categoriaInsumo() {
+export default function categoriaInsumos() {
   interface Produto {
     id_produtos: number,
     nome: string,
@@ -28,9 +28,10 @@ export default function categoriaInsumo() {
   const [precoFiltroInput, setPrecoFiltroInput] = useState("")
   const [filtroAtivado, setFiltroAtivado] = useState(false)
   const [mostrarMensagemErro, setMostrarMensagemErro] = useState(false)
-  // Novas states para sugestões
+  // States para sugestões
   const [provinciasSugeridas, setProvinciasSugeridas] = useState<string[]>([])
   const [faixasPrecosSugeridas, setFaixasPrecosSugeridas] = useState<string[]>([])
+  const [tiposSugeridos, setTiposSugeridos] = useState<string[]>([])
 
   const aplicarFiltros = async () => {
     setFiltroAtivado(true)
@@ -52,6 +53,10 @@ export default function categoriaInsumo() {
     }
 
     try {
+      // Primeiro obter todos os produtos para sugestões
+      const todosProdutos = await buscarProdutosPorCategoria("Insumos", {})
+      
+      // Depois aplicar filtros atuais
       const resultado = await buscarProdutosPorCategoria("Insumos", {
         provincia: provinciaFiltroInput,
         precoMin,
@@ -65,9 +70,9 @@ export default function categoriaInsumo() {
 
       setProdutosFiltrados(filtrados)
       
-      // Se não encontrou resultados, gerar sugestões
+      // Se não encontrou resultados, gerar sugestões com base em TODOS os produtos disponíveis
       if (filtrados.length === 0) {
-        gerarSugestoes(resultado)
+        gerarSugestoes(todosProdutos)
         setMostrarMensagemErro(true)
       } else {
         setMostrarMensagemErro(false)
@@ -79,34 +84,52 @@ export default function categoriaInsumo() {
   }
 
   // Função para gerar sugestões quando nenhum produto for encontrado
-  const gerarSugestoes = (todosResultados: Produto[]) => {
-    // Sugerir províncias disponíveis se o usuário especificou uma
+  const gerarSugestoes = (todosProdutos: Produto[]) => {
+    // Sugerir províncias disponíveis se o usuário especificou uma província não disponível
     if (provinciaFiltroInput) {
       const provinciasDisponiveis = Array.from(
-        new Set(todosResultados.map(p => p.provincia))
+        new Set(todosProdutos.map(p => p.provincia))
       ).filter(Boolean)
       
-      setProvinciasSugeridas(provinciasDisponiveis.slice(0, 3)) // Limitar a 3 sugestões
+      // Filtrar para não incluir a província já selecionada
+      const provinciasAlternativas = provinciasDisponiveis.filter(
+        p => p !== provinciaFiltroInput
+      )
+      
+      setProvinciasSugeridas(provinciasAlternativas.slice(0, 3)) // Limitar a 3 sugestões
     }
 
-    // Sugerir faixas de preço se o usuário especificou uma
-    if (precoFiltroInput) {
-      const precosMapeados = new Set<string>()
+    // Sugerir tipos de frutas se o usuário especificou um que não existe
+    if (tipoFiltroInput) {
+      const tiposDisponiveisFiltrados = Array.from(
+        new Set(todosProdutos.map(p => p.nome))
+      ).filter(Boolean)
+      .filter(nome => nome.toLowerCase() !== tipoFiltroInput.toLowerCase())
       
-      todosResultados.forEach(p => {
-        if (p.preco <= 5000) {
-          precosMapeados.add("0-5000")
-        } else if (p.preco > 5000 && p.preco <= 50000) {
-          precosMapeados.add("5000-50000")
-        } else if (p.preco > 50000 && p.preco <= 100000) {
-          precosMapeados.add("50000-100000")
-        } else if (p.preco > 100000) {
-          precosMapeados.add("100000-plus") 
-        }
-      })
-      
-      setFaixasPrecosSugeridas(Array.from(precosMapeados))
+      setTiposSugeridos(tiposDisponiveisFiltrados.slice(0, 3)) // Limitar a 3 sugestões
     }
+
+    // Sugerir faixas de preço disponíveis
+    const precosMapeados = new Set<string>()
+    
+    todosProdutos.forEach(p => {
+      if (p.preco <= 5000) {
+        precosMapeados.add("0-5000")
+      } else if (p.preco > 5000 && p.preco <= 50000) {
+        precosMapeados.add("5000-50000")
+      } else if (p.preco > 50000 && p.preco <= 100000) {
+        precosMapeados.add("50000-100000")
+      } else if (p.preco > 100000) {
+        precosMapeados.add("100000-plus") 
+      }
+    })
+    
+    // Filtrar para não incluir a faixa já selecionada
+    const faixasAlternativas = Array.from(precosMapeados).filter(
+      f => f !== precoFiltroInput
+    )
+    
+    setFaixasPrecosSugeridas(faixasAlternativas)
   }
 
   // Handler functions for each filter input change
@@ -134,18 +157,23 @@ export default function categoriaInsumo() {
   // Funções para aplicar as sugestões clicadas
   const aplicarSugestaoFaixaPreco = (faixa: string) => {
     setPrecoFiltroInput(faixa)
-    // Aplicar filtros automaticamente se os outros campos estiverem preenchidos
-    if (tipoFiltroInput && provinciaFiltroInput) {
-      aplicarFiltros()
-    }
+    setMostrarMensagemErro(false)
+    // Aplicar filtros automaticamente
+    setTimeout(() => aplicarFiltros(), 100)
   }
 
   const aplicarSugestaoProvincia = (provincia: string) => {
     setProvinciaFiltroInput(provincia)
-    // Aplicar filtros automaticamente se os outros campos estiverem preenchidos
-    if (tipoFiltroInput && precoFiltroInput) {
-      aplicarFiltros()
-    }
+    setMostrarMensagemErro(false)
+    // Aplicar filtros automaticamente
+    setTimeout(() => aplicarFiltros(), 100)
+  }
+
+  const aplicarSugestaoTipo = (tipo: string) => {
+    setTipoFiltroInput(tipo)
+    setMostrarMensagemErro(false)
+    // Aplicar filtros automaticamente
+    setTimeout(() => aplicarFiltros(), 100)
   }
 
   useEffect(() => {
@@ -192,13 +220,13 @@ export default function categoriaInsumo() {
       <div className="mb-20 mt-[52%] lg:mt-[18%]">
         <h1 className="text-center my-6 text-[1.5rem] lg:text-[2rem] sm:text-[1.75rem] md:text-[2rem] font-bold text-marieth">Insumos Agrícolas</h1>
 
-        {/* Seção de filtros com ocupação horizontal completa */}
-        <div className="my-12 mx-9 px-4">
+        {/* Seção de filtros com ocupação horizontal ajustada */}
+        <div className="my-12 mx-4 sm:mx-6 md:mx-9 px-2 sm:px-3 md:px-4">
           <div className="flex flex-col gap-4 lg:flex-row justify-between w-full">
             {/* Tipo de Fruta Select - Ocupando todo espaço disponível */}
             <div className="flex flex-col w-full">
               <label htmlFor="insumos" className="mb-[0.5rem] font-medium block">
-                Tipo de  Insumos
+                Tipo de Insumo
                 <div className="shadow-custom bg-white rounded-[10px] p-2">
                   <select
                     id="insumos"
@@ -270,15 +298,33 @@ export default function categoriaInsumo() {
           </button>
         </div>
 
-        {/* Mensagem de erro com sugestões */}
+        {/* Mensagem de erro com sugestões - Tamanho corrigido */}
         {mostrarMensagemErro && (
-          <div className="w-full mx-9 px-4 py-6 bg-red-50 border border-red-100 rounded-lg shadow-sm">
+          <div className="mx-4 sm:mx-6 md:mx-9 px-4 py-6 bg-red-50 border border-red-100 rounded-lg shadow-sm">
             <p className="text-base sm:text-lg text-red-600 font-semibold text-center mb-4">
               Nenhum produto encontrado com os filtros aplicados.
             </p>
             
             <div className="space-y-4">
-              {/* Sugestões de províncias */}
+              {/* Sugestões de tipos de frutas */}
+              {tiposSugeridos.length > 0 && (
+                <div className="text-center">
+                  <p className="text-gray-700 text-sm sm:text-base mb-2">Tipos de frutas disponíveis:</p>
+                  <div className="flex flex-wrap justify-center gap-2">
+                    {tiposSugeridos.map((tipo, index) => (
+                      <button
+                        key={index}
+                        onClick={() => aplicarSugestaoTipo(tipo)}
+                        className="bg-white border border-marieth text-marieth py-1 px-3 rounded-full hover:bg-marieth hover:text-white transition-colors duration-300 text-xs sm:text-sm"
+                      >
+                        {tipo}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* Sugestões de províncias reais */}
               {provinciasSugeridas.length > 0 && (
                 <div className="text-center">
                   <p className="text-gray-700 text-sm sm:text-base mb-2">Províncias onde há frutas disponíveis:</p>
@@ -296,7 +342,7 @@ export default function categoriaInsumo() {
                 </div>
               )}
               
-              {/* Sugestões de faixas de preço */}
+              {/* Sugestões de faixas de preço reais */}
               {faixasPrecosSugeridas.length > 0 && (
                 <div className="text-center">
                   <p className="text-gray-700 text-sm sm:text-base mb-2">Faixas de preço disponíveis:</p>
@@ -327,7 +373,7 @@ export default function categoriaInsumo() {
           {filtroAtivado && produtosFiltrados.length > 0 && (
             produtosFiltrados.map((produto, index) => (
               <Link href={`/DetalhesProduto/${produto.id_produtos}`} key={index}>
-                <div className="p-8 max-w-[1200px] flex flex-row gap-6 -mt-16 lg:ml-6">
+                <div className="p-4 sm:p-6 lg:p-8 max-w-[1200px] flex flex-row gap-4 sm:gap-6 -mt-16 lg:ml-6">
                   <div className="rounded-[10px] shadow-custom transition-transform duration-150 bg-white overflow-hidden hover:translate-y-[5px]">
                     {produto.foto_produto ? (
                       <Image

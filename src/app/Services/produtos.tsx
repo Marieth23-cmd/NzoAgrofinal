@@ -1,5 +1,5 @@
 import axios from "axios"
-import Cookies from 'js-cookie';
+
  const API_URL=process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"
 
  export const getProdutos= async(): Promise<any> =>{
@@ -145,6 +145,9 @@ export const getProdutosDestaque = async () => {
   }
 };
 
+
+
+
 // Função para destacar um produto com um pacote específico
 export const destacarProduto = async (idProduto: number, pacote: number) => {
   try {
@@ -173,20 +176,46 @@ export const verificarStatusDestaque = async (idProduto:number) => {
   }
 };
 
-// Função para processar pagamento de destaque
-export const processarPagamentoDestaque = async (idPagamento: number, tipoPagamento: string) => {
+// Função pa
+
+export const buscarDadosPagamento = async (idPagamento: number) => {
   try {
-    const response = await axios.post(
-      `${API_URL}/pagamentos/processar`,
-      { 
-        id_pagamento: idPagamento,
-        tipo_pagamento: tipoPagamento // 'UNITELMONEY', 'AFRIMONEY', ou 'MulticaixaExpres'
-      },
+    const response = await axios.get(
+      `${API_URL}/pagamentos/${idPagamento}`,
       { withCredentials: true }
     );
     return response.data;
-  } catch (error:any) {
+  } catch (error: any) {
+    console.log("Erro ao buscar dados do pagamento:", error.response?.data || error.message);
+    throw { mensagem: error.response?.data?.error || "Erro ao buscar dados do pagamento" };
+  }
+};
+
+// Função para processar o pagamento de destaque
+export const processarPagamentoDestaque = async (idPagamento: number, metodoPagamento: string) => {
+  try {
+    const response = await axios.post(
+      `${API_URL}/pagamentos/${idPagamento}/confirmar`,
+      { metodoPagamento },
+      { withCredentials: true }
+    );
+    return response.data;
+  } catch (error: any) {
     console.log("Erro ao processar pagamento:", error.response?.data || error.message);
     throw { mensagem: error.response?.data?.error || "Erro ao processar pagamento" };
+  }
+};
+
+// Função para obter pacotes de destaque disponíveis
+export const obterPacotesDestaque = async () => {
+  try {
+    const response = await axios.get(
+      `${API_URL}/produtos/pacotes-destaque`,
+      { withCredentials: true }
+    );
+    return response.data;
+  } catch (error: any) {
+    console.log("Erro ao obter pacotes de destaque:", error.response?.data || error.message);
+    throw { mensagem: error.response?.data?.error || "Erro ao obter pacotes de destaque" };
   }
 };
