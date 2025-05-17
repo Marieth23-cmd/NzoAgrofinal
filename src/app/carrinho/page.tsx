@@ -396,10 +396,10 @@ const atualizarCalculoPrecoTotal = async (produtosAtuais: Produto[]) => {
 
       <Navbar />
 
-      <div className="mb-20 mt-[35%] lg:mt-[15%]">
+      <div className="mb-20 mt-[40%] lg:mt-[15%]">
         <div className="max-w-[1200px] my-8 mx-auto py-0 px-4 items-center gap-4 grid grid-cols-1 relative border-b-[1px]">
           <div className="flex items-end">
-            <h1 className="text-[2rem] text-marieth mb-8 p-4 font-bold">
+            <h1 className=" text-[1.5rem] lg:text-[2rem] text-marieth mb-8 p-4 font-bold">
               Meu Carrinho
             </h1>
             {produtos.length > 0 && (

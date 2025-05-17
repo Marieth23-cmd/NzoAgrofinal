@@ -42,6 +42,7 @@ export interface Produto {
     categoria: string;
     Unidade: string;
     provincia: string;
+    peso_kg: number;
   }
   
   
