@@ -6,11 +6,7 @@ import Navbar from '../../Components/Navbar';
 import Footer from '../../Components/Footer';
 import Image from 'next/image';
 
-type PageParams = {
-  id: string;
-};
-import { toast } from 'react-toastify';
-
+// Definição da interface para os dados de pagamento
 type DadosPagamento = {
   id: number;
   valor: number;
@@ -23,14 +19,8 @@ type DadosPagamento = {
   created_at?: string;
 };
 
-// Next.js 15 Page Component Props
-export default function PagamentoDestaque({
-  params,
-  searchParams,
-}: {
-  params: PageParams;
-  searchParams?: { [key: string]: string | string[] | undefined };
-}) {
+// Para Next.js 15.x, precisamos usar esta estrutura de componente
+export default function Page({ params }: { params: { id: string } }) {
   const idPagamento = parseInt(params.id, 10);
   const router = useRouter();
   
@@ -86,7 +76,7 @@ export default function PagamentoDestaque({
       await processarPagamentoDestaque(idPagamento, metodoPagamento);
       setSuccess('Pagamento processado com sucesso! Seu produto já está em destaque.');
       setTimeout(() => {
-        router.push('/');
+        router.push('/meus-produtos');
       }, 3000);
     } catch (error: any) {
       setError(error?.mensagem || 'Erro ao processar pagamento');
