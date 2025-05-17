@@ -19,12 +19,16 @@ type DadosPagamento = {
   created_at?: string;
 };
 
-// Para Next.js 15.x, precisamos usar esta estrutura de componente
+// Corrigindo a interface para compatibilidade com Next.js 15
+interface PageProps {
+  params: {
+    id: string;
+  };
+  searchParams: Record<string, string | string[] | undefined>;
+}
 
-export default function Page({ params }: { params: { id: string } }) {
+export default function Page({ params, searchParams }: PageProps) {
   // Obter o ID do pagamento da URL
-  // O ID é passado como string, então precisamos convertê-lo para número
-  
   const idPagamento = parseInt(params.id, 10);
   const router = useRouter();
   
