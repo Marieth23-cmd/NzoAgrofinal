@@ -307,6 +307,10 @@ export default function DetalhesProduto(){
                   <span>Peso:{ produto.peso_kg}</span>
                 </div>
 
+                    <div className="text-[1.4rem] lg:text-[1.8rem] font-bold text-profile">
+                  <span>Peso:{ produto.peso_kg}</span>
+                </div>
+git
                 
 
                 <div>

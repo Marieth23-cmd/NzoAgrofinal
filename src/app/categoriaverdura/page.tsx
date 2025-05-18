@@ -291,7 +291,7 @@ export default function categoriaVerduras() {
           <button
             onClick={aplicarFiltros}
             disabled={!isFormValid}
-            className={`flex border-none text-white bg-marieth hover:bg-verdeaceso py-[0.8rem] px-6 rounded-[5px] text-sm sm:text-base items-center gap-2 my-4 mx-auto transition-all duration-300 ${!isFormValid ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105 cursor-pointer'}`}
+            className={`flex border-none text-white bg-marieth hover:bg-verdeaceso py-[0.8rem] px-4 rounded-[5px] text-sm sm:text-base items-center gap-2 my-6 mx-auto transition-all duration-300 ${!isFormValid ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105 cursor-pointer'}`}
           >
             <BiSearch className="text-[1.1rem]" />
             Pesquisar
@@ -373,7 +373,7 @@ export default function categoriaVerduras() {
           {filtroAtivado && produtosFiltrados.length > 0 && (
             produtosFiltrados.map((produto, index) => (
               <Link href={`/DetalhesProduto/${produto.id_produtos}`} key={index}>
-                <div className="p-4 sm:p-6 lg:p-8 max-w-[1200px] flex flex-row gap-4 sm:gap-6 -mt-16 lg:ml-6">
+                <div className="p-4 sm:p-6 lg:p-8 max-w-[1200px] flex flex-row gap-4 sm:gap-6 -mt-14 lg:ml-6">
                   <div className="rounded-[10px] shadow-custom transition-transform duration-150 bg-white overflow-hidden hover:translate-y-[5px]">
                     {produto.foto_produto ? (
                       <Image

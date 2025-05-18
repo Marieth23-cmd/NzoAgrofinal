@@ -374,7 +374,7 @@ export default function categoriaTuberculos() {
           {filtroAtivado && produtosFiltrados.length > 0 && (
             produtosFiltrados.map((produto, index) => (
               <Link href={`/DetalhesProduto/${produto.id_produtos}`} key={index}>
-                <div className="p-4 sm:p-6 lg:p-8 max-w-[1200px] flex flex-row gap-4 sm:gap-6 -mt-16 lg:ml-6">
+                <div className="p-4 sm:p-6 lg:p-8 max-w-[1200px] flex flex-row gap-4 sm:gap-6 -mt-14 lg:ml-6">
                   <div className="rounded-[10px] shadow-custom transition-transform duration-150 bg-white overflow-hidden hover:translate-y-[5px]">
                     {produto.foto_produto ? (
                       <Image
