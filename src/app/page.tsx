@@ -230,7 +230,7 @@ export default function Home() {
         </section>
       </div>
       
-      <Footer className="mt-0" />
+      <Footer  />
     </div>
   );
 };
