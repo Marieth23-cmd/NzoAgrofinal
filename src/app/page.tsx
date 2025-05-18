@@ -160,7 +160,7 @@ export default function Home() {
           </div>
         </section>
 
-          <section className="relative w-full mt-10 mx-auto px-4">
+          <section className="relative w-full mb-16 lg:-mb-12 mt-44 lg:mt-24">
   <h2 className="text-center text-2xl font-bold mb-6">Produtos em Destaque</h2>
   {/* Só mostra setas se houver mais de 4 produtos em destaque */}
   {produtosDestaque.length > 4 && showRightButton && (
@@ -175,7 +175,7 @@ export default function Home() {
   )}
   <div
     ref={scrollRef}
-    className="flex gap-6 overflow-x-auto p-4 scroll-smooth scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent max-w-fullvw"
+    className="flex gap-6 overflow-x-auto p-4 scroll-smooth scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent max-w-full"
   >
     {produtosDestaque.length > 0 ? (
       produtosDestaque.map((produto) => (
