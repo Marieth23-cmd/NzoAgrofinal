@@ -114,19 +114,21 @@ export default function Home() {
     <div className="flex flex-col min-h-screen overflow-x-hidden max-w-full">
       <Navbar />
 
-      <div className="backgroundimage w-full flex flex-col items-center justify-center mt-0 lg:mt-[15%]">
-        <h1 className="text-[1rem] lg:text-[2rem] font-bold text-center">Conectando o Campo à sua Mesa</h1>
-        <p className="hidden lg:block text-center">Encontre produtos frescos direto dos produtores locais</p>
+      {/* Ajustado margins para centralizar melhor */}
+      <div className="backgroundimage w-full flex flex-col items-center justify-center text-center mt-0 lg:mt-8">
+        <h1 className="text-[1rem] lg:text-[2rem] font-bold">Conectando o Campo à sua Mesa</h1>
+        <p className="hidden lg:block">Encontre produtos frescos direto dos produtores locais</p>
         <button onClick={redirecionamento} className="mt-1 bg-marieth text-white py-2 px-4 lg:mt-2 lg:py-4 lg:px-8 text-[1.1rem] border-none rounded-[5px] cursor-pointers hover:bg-verdeaceso transition-colors duration-150">
           Começar a Comprar
         </button>
       </div>
       
-      <div className="flex-grow flex flex-col items-center justify-start w-full px-4 sm:px-8 lg:px-16 gap-8 mt-[25%] lg:mt-[15%]">
+      {/* Reduzido o margin-top para evitar espaçamento excessivo */}
+      <div className="flex-grow flex flex-col items-center justify-start w-full px-4 sm:px-8 lg:px-16 gap-6 mt-12 lg:mt-16">
 
-        <section className="w-full max-w-[75rem] px-4 sm:px-8 mt-4">
-          <h1 className="text-center mb-4 text-2xl font-bold">Categorias</h1>
-          <div className="grid gap-4 sm:gap-6 grid-cols-2 md:grid-cols-5">
+        <section className="w-full max-w-[75rem] px-4 sm:px-8 mt-2">
+          <h1 className="text-center mb-3 text-2xl font-bold">Categorias</h1>
+          <div className="grid gap-3 sm:gap-6 grid-cols-2 md:grid-cols-5">
             <div className="flex items-center justify-center bg-white p-4 sm:p-6 rounded-[10px] lg:hover:shadow-xl text-center cursor-pointer shadow-custom lg:hover:translate-y-2">
               <h3 className="font-medium text-[1rem] sm:text-[1.17rem] mb-[0.5rem]">
                 <Link href="./categoriafrutas">
@@ -194,13 +196,14 @@ export default function Home() {
                 produtosDestaque.map((produto) => (
                   <Link href={`/DetalhesProduto/${produto.id_produtos}`} key={produto.id_produtos} className="flex-shrink-0">
                     <div className="w-[260px] sm:w-[300px] h-[320px] sm:h-[350px] rounded-[10px] shadow-custom bg-white overflow-hidden">
-                      <Image 
-                        src={produto.foto_produto} 
-                        alt={produto.nome} 
-                        height={200} 
-                        width={250} 
-                        className="object-cover w-full h-[180px] sm:h-[200px]"
-                      />
+                      <div className="w-full h-[180px] sm:h-[200px] relative">
+                        <Image 
+                          src={produto.foto_produto} 
+                          alt={produto.nome} 
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
                       <div className="p-3 sm:p-4">
                         <h3 className="text-[1rem] sm:text-[1.1rem] mb-1 sm:mb-2 font-bold">{produto.nome}</h3>
                         <h3 className="text-[1.1rem] sm:text-[1.2rem] text-marieth font-bold">
@@ -212,7 +215,7 @@ export default function Home() {
                   </Link>
                 ))
               ) : (
-                <p className="text-center w-full">Nenhum produto em destaque</p>
+                <p className="text-center w-full py-8">Nenhum produto em destaque</p>
               )}
             </div>
             
@@ -230,7 +233,7 @@ export default function Home() {
         </section>
       </div>
       
-      <Footer  />
+      <Footer />
     </div>
   );
 };
