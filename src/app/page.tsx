@@ -180,8 +180,8 @@ export default function Home() {
     {produtosDestaque.length > 0 ? (
       produtosDestaque.map((produto) => (
         <Link href={`/DetalhesProduto/${produto.id_produtos}`} key={produto.id_produtos}>
-          <div className="w-[300px] h-[350px] rounded-[10px] shadow-custom bg-white overflow-hidden flex-shrink-0 mb-[20%] lg:mb-28 mt-72 lg:mt-60">
-            <Image src={produto.foto_produto} alt={produto.nome} height={200} width={250} className="object-cover w-full h-[200px]" />
+          <div className="w-[300px] h-[350px] rounded-[10px] shadow-custom bg-white overflow-hidden flex-shrink-0 mb-[20%] lg:mb-36 mt-72 lg:mt-72">
+            <Image src={produto.foto_produto} alt={produto.nome} height={200} width={250} className="object-cover w-full h-[200px]"/>
             <div className="p-4">
               <h3 className="text-[1.1rem] mb-2 font-bold">{produto.nome}</h3>
               <h3 className="text-[1.2rem] text-marieth font-bold">kzs {Number(produto.preco).toFixed(2)}/{produto.quantidade}{produto.Unidade}</h3>
