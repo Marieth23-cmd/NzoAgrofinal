@@ -160,7 +160,7 @@ export default function Home() {
           </div>
         </section>
 
-          <section className="relative max-w-[600px] lg:max-w-[1200px] mb-32 lg:mb-20 mt-60 lg:mt-60">
+          <section className="relative max-w-[300px] lg:max-w-[1000px] mb-44 lg:mb-20 mt-60 lg:mt-60">
   <h2 className="text-center text-2xl font-bold mb-6">Produtos em Destaque</h2>
   {/* Só mostra setas se houver mais de 4 produtos em destaque */}
   {produtosDestaque.length > 4 && showRightButton && (
