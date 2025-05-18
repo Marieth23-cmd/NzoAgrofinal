@@ -360,7 +360,7 @@ export default function DetalhesProduto(){
                             />
                           </label> 
                           <p className="text-marieth font-bold">
-                            Total: {(produto.preco * quantidadeSelecionada).toFixed(2)} AOA
+                            Total: {Number(produto.preco * quantidadeSelecionada).toFixed(2)} AOA
                           </p>
 
                           <label htmlFor="unidades">
