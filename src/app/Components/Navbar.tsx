@@ -30,7 +30,7 @@ export default function Navbar() {
        if (autenticado) {  
          try {
            const resposta = await badgeNotificacoes();
-           setNotificacoesNaoLidas(resposta.quantidade);
+           setNotificacoesNaoLidas(resposta.total); 
          } catch (error) {
            console.log("Erro ao carregar notificações não lidas:", error);
          }

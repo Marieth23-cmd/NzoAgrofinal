@@ -50,3 +50,12 @@ body {
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
+.scrollbar-thin::-webkit-scrollbar {
+  height: 6px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #e5e7eb;
+}
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}

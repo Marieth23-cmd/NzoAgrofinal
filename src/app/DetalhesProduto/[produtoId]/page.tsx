@@ -303,14 +303,11 @@ export default function DetalhesProduto(){
                 
                 {/* Exibir preço e unidade corretamente */}
                 <div className="text-[1.4rem] lg:text-[1.8rem] font-bold text-marieth">
-                  <span>{produto.preco} AOA/</span> 
-                  <span>{produto.quantidade}{produto.Unidade}</span>
+                  <span>{produto.preco} AOA/{produto.quantidade}{produto.Unidade}</span> 
+                  <span>Peso:{ produto.peso_kg}</span>
                 </div>
 
-                <div className="text-[1.4rem] lg:text-[1.8rem] font-bold text-profile">
-                  <span>{produto.Unidade}</span>
-                  <span>{ produto.peso_kg}</span>
-                </div>
+                
 
                 <div>
                   <button 

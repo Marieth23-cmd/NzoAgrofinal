@@ -29,7 +29,7 @@ export default function Home() {
     nome: string;
     preco: number;
     foto_produto: string;
-    vendedor: string;
+    nome_vendedor: string;
     destaque: boolean;
     quantidade: number;
     Unidade: string;
@@ -160,55 +160,55 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="relative w-full mt-[30px] mx-auto px-4 lg:mt-10">
-          <h2 className="text-center text-2xl font-bold mb-6 lg:mb-6 ">Produtos em Destaque</h2>
-
-          {showRightButton && (
-            <button
-              onClick={() => scroll("right")}
-              className="hidden md:block absolute right-0 top-1/2 transform -translate-y-1/2 bg-white p-2 shadow-lg rounded-full z-10"
-              aria-label="Ir para a direita"
-              title="Ir para a direita"
-            >
-              <HiChevronRight size={40} />
-            </button>
-          )}
-
-          <div 
-            ref={scrollRef} 
-            className="flex gap-6 overflow-x-auto p-4 scroll-smooth mt-[20%]  mb-[20%] lg:mb-0 lg:mt-0"
-          >
-            {produtosDestaque.length > 0 ? (
-              produtosDestaque.map((produto, index) => (
-                <Link href={`/DetalhesProduto/${produto.id_produtos}`} key={produto.id_produtos}>
-                  <div className="w-[250px] h-[350px] rounded-[10px] shadow-custom bg-white overflow-hidden flex-shrink-0">
-                    <Image src={produto.foto_produto} alt={produto.nome} height={200} width={250} className="object-cover w-full h-[200px]" />
-                    <div className="p-4">
-                      <h3 className="text-[1.1rem] mb-2 font-bold">{produto.nome}</h3>
-
-                      <h3 className="text-[1.2rem] text-marieth font-bold">R$ {Number(produto.preco).toFixed(2)}/{produto.quantidade}{produto.Unidade}</h3>
-                      <p className="text-[0.9rem] text-cortexto">Vendido por: {produto.vendedor}</p>
-                    </div>
-                  </div>
-                </Link>
-              ))
-            ) : (
-              <p className="text-center w-full mb-12 lg:mb-0 ">Nenhum produto em destaque</p>
-            )}
+          <section className="relative w-full mt-10 mx-auto px-4">
+  <h2 className="text-center text-2xl font-bold mb-6">Produtos em Destaque</h2>
+  {/* Só mostra setas se houver mais de 4 produtos em destaque */}
+  {produtosDestaque.length > 4 && showRightButton && (
+    <button
+      onClick={() => scroll("right")}
+      className="hidden md:block absolute right-0 top-1/2 transform -translate-y-1/2 bg-white p-2 shadow-lg rounded-full z-10"
+      aria-label="Ir para a direita"
+      title="Ir para a direita"
+    >
+      <HiChevronRight size={40} />
+    </button>
+  )}
+  <div
+    ref={scrollRef}
+    className="flex gap-6 overflow-x-auto p-4 scroll-smooth scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent max-w-fullvw"
+  >
+    {produtosDestaque.length > 0 ? (
+      produtosDestaque.map((produto) => (
+        <Link href={`/DetalhesProduto/${produto.id_produtos}`} key={produto.id_produtos}>
+          <div className="w-[250px] h-[350px] rounded-[10px] shadow-custom bg-white overflow-hidden flex-shrink-0">
+            <Image src={produto.foto_produto} alt={produto.nome} height={200} width={250} className="object-cover w-full h-[200px]" />
+            <div className="p-4">
+              <h3 className="text-[1.1rem] mb-2 font-bold">{produto.nome}</h3>
+              <h3 className="text-[1.2rem] text-marieth font-bold">R$ {Number(produto.preco).toFixed(2)}/{produto.quantidade}{produto.Unidade}</h3>
+              <p className="text-[0.9rem] text-cortexto">Vendido por: {produto.nome_vendedor}</p>
+            </div>
           </div>
+        </Link>
+      ))
+    ) : (
+      <p className="text-center w-full mb-12">Nenhum produto em destaque</p>
+    )}
+  </div>
+  {produtosDestaque.length > 4 && showLeftButton && (
+    <button
+      onClick={() => scroll("left")}
+      className="hidden md:block absolute left-0 top-1/2 transform -translate-y-1/2 bg-white p-2 shadow-lg rounded-full z-10"
+      aria-label="Ir para a esquerda"
+      title="Ir para a esquerda"
+    >
+      <HiChevronLeft size={40} />
+    </button>
+  )}
+</section>
 
-          {showLeftButton && (
-            <button
-              onClick={() => scroll("left")}
-              className="hidden md:block absolute left-0 top-1/2 transform -translate-y-1/2 bg-white p-2 shadow-lg rounded-full z-10"
-              aria-label="Ir para a esquerda"
-              title="Ir para a esquerda"
-            >
-              <HiChevronLeft size={40} />
-            </button>
-          )}
-        </section>
-      </div>
+
+
+    </div>
       <Footer />
     </div>
   );

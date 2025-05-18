@@ -42,10 +42,10 @@ export const deletarTodasNotificacoes = async () => {
   }
 };
 
-export const marcarNotificacaoComoLida = async (id_notificacoes:number) => {
+export const marcarNotificacaoComoLida = async (id:number) => {
   try {
     const response = await axios.patch(
-      `${API_URL}/notificacoes/${id_notificacoes}`,
+      `${API_URL}/notificacoes/${id}`,
       {},
       {
         withCredentials: true,
