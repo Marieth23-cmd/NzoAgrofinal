@@ -309,7 +309,7 @@ export default function categoriaGraos() {
               {/* Sugestões de tipos de frutas */}
               {tiposSugeridos.length > 0 && (
                 <div className="text-center">
-                  <p className="text-gray-700 text-sm sm:text-base mb-2">Tipos de frutas disponíveis:</p>
+                  <p className="text-gray-700 text-sm sm:text-base mb-2">Tipos de Grãos disponíveis:</p>
                   <div className="flex flex-wrap justify-center gap-2">
                     {tiposSugeridos.map((tipo, index) => (
                       <button
@@ -327,7 +327,7 @@ export default function categoriaGraos() {
               {/* Sugestões de províncias reais */}
               {provinciasSugeridas.length > 0 && (
                 <div className="text-center">
-                  <p className="text-gray-700 text-sm sm:text-base mb-2">Províncias onde há frutas disponíveis:</p>
+                  <p className="text-gray-700 text-sm sm:text-base mb-2">Províncias onde há Grãos disponíveis:</p>
                   <div className="flex flex-wrap justify-center gap-2">
                     {provinciasSugeridas.map((provincia, index) => (
                       <button
@@ -369,7 +369,7 @@ export default function categoriaGraos() {
         )}
 
         {/* Seção de produtos */}
-        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 mt-6">
           {filtroAtivado && produtosFiltrados.length > 0 && (
             produtosFiltrados.map((produto, index) => (
               <Link href={`/DetalhesProduto/${produto.id_produtos}`} key={index}>

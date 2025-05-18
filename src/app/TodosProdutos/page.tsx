@@ -74,7 +74,7 @@ export default function Vitrine() {
 
       <Navbar />
 
-      <div className="flex-grow flex flex-col mb-20 gap-2 mt-[45%] md:mt-[20%] lg:mt-[15%] mx-auto w-full max-w-[1200px] shadow-custom p-2 md:p-4 lg:p-8 rounded-[10px]">
+      <div className="flex-grow flex flex-col mb-20 gap-2 mt-[48%] md:mt-[20%] lg:mt-[15%] mx-auto w-full max-w-[1200px] shadow-custom p-2 md:p-4 lg:p-8 rounded-[10px]">
         <div className="w-full p-2 md:p-4 lg:p-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
             {produtosVisiveis.map((produto) => 

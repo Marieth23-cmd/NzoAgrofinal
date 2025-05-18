@@ -15,7 +15,7 @@ export default function ComecarComprar() {
             
             <Navbar />
             
-            <div className="p-4 md:p-8 mb-20 mx-auto w-full max-w-[800px] mt-[30%] sm:mt-[34%] md:mt-[28%] lg:mt-[15%] flex-grow">
+            <div className="p-4 md:p-8 mb-20 mx-auto w-full max-w-[800px] mt-[40%] sm:mt-[34%] md:mt-[28%] lg:mt-[15%] flex-grow">
                 <div className="text-center mb-8">
                     <h1 className="text-2xl sm:text-3xl md:text-4xl mb-4 text-marieth font-bold">
                         Bem-vindo à NzoAgro!

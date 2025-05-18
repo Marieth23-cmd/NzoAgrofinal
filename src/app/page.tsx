@@ -186,7 +186,7 @@ export default function Home() {
                     <div className="p-4">
                       <h3 className="text-[1.1rem] mb-2 font-bold">{produto.nome}</h3>
 
-                      <h3 className="text-[1.2rem] text-marieth font-bold">R$ {produto.preco.toFixed(2)}/{produto.quantidade}{produto.Unidade}</h3>
+                      <h3 className="text-[1.2rem] text-marieth font-bold">R$ {Number(produto.preco.toFixed(2))}/{produto.quantidade}{produto.Unidade}</h3>
                       <p className="text-[0.9rem] text-cortexto">Vendido por: {produto.vendedor}</p>
                     </div>
                   </div>

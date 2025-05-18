@@ -75,10 +75,18 @@ export default function DetalhesProduto(){
         console.log("Produto carregado:", data); // Debug para verificar o produto
         setProduto(data);
         setUnidadeSelecionada(data.Unidade);
-
+        setQuantidadeSelecionada(data.quantidade); // Definir quantidade inicial com base no produto
+        setPrecoTotal(data.preco * data.quantidade); // Calcular preço total inicial
+        setNotaSelecionada(data.media_estrelas || 0); // Definir nota inicial com base na avaliação do produto
         // Carregar avaliações imediatamente
+        console.log("Carregando avaliações para o produto:", data.id_produtos); // Debug para verificar ID do produto
+        console.log("quatidade:", data.quantidade); // Debug para verificar quantidade
+        console.log("unidade:", data.Unidade); // Debug para verificar unidade
+        console.log("preco:", data.preco); // Debug para verificar preço
+        console.log("peso:", data.peso_kg); // Debug para verificar peso
         const mediaResult = await buscarMediaEstrelas(data.id_produtos);
         console.log("Avaliação carregada:", mediaResult); // Debug para verificar avaliação
+
         
         // Atualizar os estados de avaliação
         setAvaliacoes({ [data.id_produtos]: mediaResult?.media_estrelas || null });
@@ -295,12 +303,12 @@ export default function DetalhesProduto(){
                 
                 {/* Exibir preço e unidade corretamente */}
                 <div className="text-[1.4rem] lg:text-[1.8rem] font-bold text-marieth">
-                  <span>{produto.preco} AOA</span> 
+                  <span>{produto.preco} AOA/</span> 
                   <span>{produto.quantidade}{produto.Unidade}</span>
                 </div>
 
                 <div className="text-[1.4rem] lg:text-[1.8rem] font-bold text-profile">
-                  <span>{produto.quantidade}{produto.Unidade}</span>
+                  <span>{produto.Unidade}</span>
                   <span>{ produto.peso_kg}</span>
                 </div>
 
