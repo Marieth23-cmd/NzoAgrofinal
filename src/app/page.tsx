@@ -176,7 +176,7 @@ export default function Home() {
 
           <div 
             ref={scrollRef} 
-            className="flex gap-6 overflow-x-auto p-4 scroll-smooth"
+            className="flex gap-6 overflow-x-auto p-4 scroll-smooth mt-[20%]  mb-[20%] lg:mb-0 lg:mt-0"
           >
             {produtosDestaque.length > 0 ? (
               produtosDestaque.map((produto, index) => (
