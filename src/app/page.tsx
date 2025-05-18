@@ -111,59 +111,58 @@ export default function Home() {
   const showRightButton = scrollPosition < maxScroll;
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen overflow-x-hidden max-w-full">
       <Navbar />
 
-      <div className="flex-grow grid grid-rows-[auto_auto_auto] items-center justify-items-center 
-        p-8 gap-16 sm:p-20 mt-[46%] lg:mt-[16%]">
+      <div className="backgroundimage w-full mt-0 lg:mt-[5%]">
+        <h1 className="text-[1rem] lg:text-[2rem] font-bold">Conectando o Campo à sua Mesa</h1>
+        <p className="hidden lg:block">Encontre produtos frescos direto dos produtores locais</p>
+        <button onClick={redirecionamento} className="mt-1 bg-marieth text-white py-2 px-4 lg:mt-0 lg:py-4 lg:px-8 text-[1.1rem] border-none rounded-[5px] cursor-pointers hover:bg-verdeaceso transition-colors duration-150">
+          Começar a Comprar
+        </button>
+      </div>
+      
+      <div className="flex-grow flex flex-col items-center justify-start w-full px-4 sm:px-8 lg:px-16 gap-12 mt-16">
 
-        <div className="backgroundimage w-full">
-          <h1 className="text-[1rem] lg:text-[2rem] font-bold">Conectando o Campo à sua Mesa</h1>
-          <p className="hidden lg:block">Encontre produtos frescos direto dos produtores locais</p>
-          <button onClick={redirecionamento} className="mt-1 bg-marieth text-white py-2 px-4 lg:mt-0 lg:py-4 lg:px-8 text-[1.1rem] border-none rounded-[5px] cursor-pointers hover:bg-verdeaceso transition-colors duration-150">
-            Começar a Comprar
-          </button>
-        </div>
-
-        <section className="w-full max-w-[75rem] md:p-8 mb-8">
+        <section className="w-full max-w-[75rem] px-4 sm:px-8">
           <h1 className="text-center mb-4 text-2xl font-bold">Categorias</h1>
-          <div className="grid gap-6 grid-cols-2 md:grid-cols-5">
-            <div className="flex items-center justify-center bg-white p-6 rounded-[10px] lg:hover:shadow-xl text-center cursor-pointer shadow-custom lg:hover:translate-y-2">
-              <h3 className="font-medium text-[1.17rem] mb-[0.5rem]">
+          <div className="grid gap-4 sm:gap-6 grid-cols-2 md:grid-cols-5">
+            <div className="flex items-center justify-center bg-white p-4 sm:p-6 rounded-[10px] lg:hover:shadow-xl text-center cursor-pointer shadow-custom lg:hover:translate-y-2">
+              <h3 className="font-medium text-[1rem] sm:text-[1.17rem] mb-[0.5rem]">
                 <Link href="./categoriafrutas">
-                  <FaAppleAlt className="mb-4 text-marieth text-[2.5rem]" />
+                  <FaAppleAlt className="mb-4 text-marieth text-[2rem] sm:text-[2.5rem]" />
                   Frutas
                 </Link>
               </h3>
             </div>
-            <div className="flex items-center justify-center bg-white p-6 rounded-[10px] lg:hover:shadow-xl text-center cursor-pointer shadow-custom lg:hover:translate-y-2">
-              <h3 className="font-medium text-[18.72px] mb-[0.5rem]">
+            <div className="flex items-center justify-center bg-white p-4 sm:p-6 rounded-[10px] lg:hover:shadow-xl text-center cursor-pointer shadow-custom lg:hover:translate-y-2">
+              <h3 className="font-medium text-[1rem] sm:text-[18.72px] mb-[0.5rem]">
                 <Link href="./categoriaverdura">
-                  <GiCabbage className="mb-4 ml-4 text-marieth text-[2.5rem]" />
+                  <GiCabbage className="mb-4 ml-2 sm:ml-4 text-marieth text-[2rem] sm:text-[2.5rem]" />
                   Verduras
                 </Link>
               </h3>
             </div>
-            <div className="flex justify-center items-center bg-white p-6 rounded-[10px] lg:hover:shadow-xl text-center cursor-pointer shadow-custom lg:hover:translate-y-2">
-              <h3 className="font-medium text-[18.72px] mb-[0.5rem]">
+            <div className="flex justify-center items-center bg-white p-4 sm:p-6 rounded-[10px] lg:hover:shadow-xl text-center cursor-pointer shadow-custom lg:hover:translate-y-2">
+              <h3 className="font-medium text-[1rem] sm:text-[18.72px] mb-[0.5rem]">
                 <Link href="./categoriainsumo">
-                  <FaSeedling className="mb-4 ml-11 text-marieth text-[2.5rem]" /> 
+                  <FaSeedling className="mb-4 ml-4 sm:ml-11 text-marieth text-[2rem] sm:text-[2.5rem]" /> 
                   Insumos Agrícolas
                 </Link>
               </h3>
             </div>
-            <div className="flex items-center justify-center bg-white p-6 rounded-[10px] lg:hover:shadow-xl text-center cursor-pointer shadow-custom lg:hover:translate-y-2">
-              <h3 className="font-medium text-[18.72px] mb-[0.5rem]">
+            <div className="flex items-center justify-center bg-white p-4 sm:p-6 rounded-[10px] lg:hover:shadow-xl text-center cursor-pointer shadow-custom lg:hover:translate-y-2">
+              <h3 className="font-medium text-[1rem] sm:text-[18.72px] mb-[0.5rem]">
                 <Link href="./categoriagrao">
-                  <LuWheat className="mb-4 ml-4 text-marieth text-[2.5rem]" /> 
+                  <LuWheat className="mb-4 ml-2 sm:ml-4 text-marieth text-[2rem] sm:text-[2.5rem]" /> 
                   Grãos
                 </Link>
               </h3>
             </div>
-            <div className="flex items-center justify-center bg-white p-6 rounded-[10px] lg:hover:shadow-xl text-center cursor-pointer shadow-custom lg:hover:translate-y-2">
-              <h3 className="font-medium text-[18.72px] mb-[0.5rem]">
+            <div className="flex items-center justify-center bg-white p-4 sm:p-6 rounded-[10px] lg:hover:shadow-xl text-center cursor-pointer shadow-custom lg:hover:translate-y-2">
+              <h3 className="font-medium text-[1rem] sm:text-[18.72px] mb-[0.5rem]">
                 <Link href="./categoriatuberraiz">
-                  <FaCarrot className="text-marieth mb-4 text-[2.5rem] ml-10" /> 
+                  <FaCarrot className="text-marieth mb-4 text-[2rem] sm:text-[2.5rem] ml-4 sm:ml-10" /> 
                   Tubérculos e Raízes
                 </Link>
               </h3>
@@ -171,10 +170,9 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="relative w-full max-w-[1200px] mb-16">
-          <h2 className="text-center text-2xl font-bold mb-8">Produtos em Destaque</h2>
+        <section className="w-full max-w-[1200px] mb-12">
+          <h2 className="text-center text-2xl font-bold mb-6">Produtos em Destaque</h2>
           
-          {/* Só mostra setas se houver mais de 4 produtos em destaque */}
           <div className="relative">
             {produtosDestaque.length > 4 && showRightButton && (
               <button
@@ -189,25 +187,26 @@ export default function Home() {
             
             <div
               ref={scrollRef}
-              className="flex gap-6 overflow-x-auto p-4 scroll-smooth scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent max-w-full"
+              className="flex gap-4 sm:gap-6 overflow-x-auto py-2 px-1 scroll-smooth scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent"
+              style={{ scrollbarWidth: produtosDestaque.length <= 4 ? 'none' : 'auto', msOverflowStyle: produtosDestaque.length <= 4 ? 'none' : 'auto' }}
             >
               {produtosDestaque.length > 0 ? (
                 produtosDestaque.map((produto) => (
-                  <Link href={`/DetalhesProduto/${produto.id_produtos}`} key={produto.id_produtos}>
-                    <div className="w-[300px] h-[350px] rounded-[10px] shadow-custom bg-white overflow-hidden flex-shrink-0">
+                  <Link href={`/DetalhesProduto/${produto.id_produtos}`} key={produto.id_produtos} className="flex-shrink-0">
+                    <div className="w-[260px] sm:w-[300px] h-[320px] sm:h-[350px] rounded-[10px] shadow-custom bg-white overflow-hidden">
                       <Image 
                         src={produto.foto_produto} 
                         alt={produto.nome} 
                         height={200} 
                         width={250} 
-                        className="object-cover w-full h-[200px]"
+                        className="object-cover w-full h-[180px] sm:h-[200px]"
                       />
-                      <div className="p-4">
-                        <h3 className="text-[1.1rem] mb-2 font-bold">{produto.nome}</h3>
-                        <h3 className="text-[1.2rem] text-marieth font-bold">
+                      <div className="p-3 sm:p-4">
+                        <h3 className="text-[1rem] sm:text-[1.1rem] mb-1 sm:mb-2 font-bold">{produto.nome}</h3>
+                        <h3 className="text-[1.1rem] sm:text-[1.2rem] text-marieth font-bold">
                           kzs {Number(produto.preco).toFixed(2)}/{produto.quantidade}{produto.Unidade}
                         </h3>
-                        <p className="text-[0.9rem] text-cortexto">Vendido por: {produto.nome_vendedor}</p>
+                        <p className="text-[0.8rem] sm:text-[0.9rem] text-cortexto">Vendido por: {produto.nome_vendedor}</p>
                       </div>
                     </div>
                   </Link>
