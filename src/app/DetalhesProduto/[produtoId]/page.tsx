@@ -293,7 +293,7 @@ export default function DetalhesProduto(){
                         />
                       ))}
                       <span className="text-amarela -mt-[4px] ml-2">
-                        ({(avaliacoes[produto.id_produtos] || media)?.toFixed(1)})
+                        ({Number(avaliacoes[produto.id_produtos] || media)?.toFixed(1)})
                       </span>
                     </>
                   ) : (
@@ -428,7 +428,7 @@ export default function DetalhesProduto(){
                     {mensagemSucesso.includes("carrinho") && (
                       <>
                         <p>{quantidadeSelecionada} {unidadeSelecionada} de {produto.nome}</p>
-                        <p>Total: {(produto.preco * quantidadeSelecionada).toFixed(2)} AOA</p>
+                        <p>Total: { Number(produto.preco * quantidadeSelecionada).toFixed(2)} AOA</p>
                       </>
                     )}
                   </div>
