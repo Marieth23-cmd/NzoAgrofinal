@@ -114,17 +114,17 @@ export default function Home() {
     <div className="flex flex-col min-h-screen overflow-x-hidden max-w-full">
       <Navbar />
 
-      <div className="backgroundimage w-full mb-32 mt-[30%] lg:mt-[15%]">
-        <h1 className="text-[1rem] lg:text-[2rem] font-bold">Conectando o Campo à sua Mesa</h1>
-        <p className="hidden lg:block">Encontre produtos frescos direto dos produtores locais</p>
-        <button onClick={redirecionamento} className="mt-1 bg-marieth text-white py-2 px-4 lg:mt-0 lg:py-4 lg:px-8 text-[1.1rem] border-none rounded-[5px] cursor-pointers hover:bg-verdeaceso transition-colors duration-150">
+      <div className="backgroundimage w-full flex flex-col items-center justify-center mt-0 lg:mt-[15%]">
+        <h1 className="text-[1rem] lg:text-[2rem] font-bold text-center">Conectando o Campo à sua Mesa</h1>
+        <p className="hidden lg:block text-center">Encontre produtos frescos direto dos produtores locais</p>
+        <button onClick={redirecionamento} className="mt-1 bg-marieth text-white py-2 px-4 lg:mt-2 lg:py-4 lg:px-8 text-[1.1rem] border-none rounded-[5px] cursor-pointers hover:bg-verdeaceso transition-colors duration-150">
           Começar a Comprar
         </button>
       </div>
       
-      <div className="flex-grow flex flex-col items-center justify-start w-full px-4 sm:px-8 lg:px-16 gap-12 mt-16">
+      <div className="flex-grow flex flex-col items-center justify-start w-full px-4 sm:px-8 lg:px-16 gap-8 mt-[25%] lg:mt-[15%]">
 
-        <section className="w-full max-w-[75rem] px-4 sm:px-8">
+        <section className="w-full max-w-[75rem] px-4 sm:px-8 mt-4">
           <h1 className="text-center mb-4 text-2xl font-bold">Categorias</h1>
           <div className="grid gap-4 sm:gap-6 grid-cols-2 md:grid-cols-5">
             <div className="flex items-center justify-center bg-white p-4 sm:p-6 rounded-[10px] lg:hover:shadow-xl text-center cursor-pointer shadow-custom lg:hover:translate-y-2">
@@ -170,7 +170,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="w-full max-w-[1200px] mb-12">
+        <section className="w-full max-w-[1200px] mb-0">
           <h2 className="text-center text-2xl font-bold mb-6">Produtos em Destaque</h2>
           
           <div className="relative">
@@ -230,7 +230,7 @@ export default function Home() {
         </section>
       </div>
       
-      <Footer />
+      <Footer className="mt-0" />
     </div>
   );
 };
