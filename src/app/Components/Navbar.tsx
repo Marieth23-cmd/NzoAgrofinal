@@ -180,21 +180,21 @@ const handleClick = useCallback((event: MouseEvent) => {
 
             <ul className="   ml-[33rem] gap-8 hidden lg:flex">
                 <li onClick={()=>router.push("/")} className="  text-[1.2rem] cursor-pointer hover:text-marieth "> 
-                     <GoHome className="gap-2 text-[1.4rem] ml-2  mt-[0.1rem]" /> 
+                     <GoHome className="gap-2 text-[1.4rem] ml-2" /> 
                     
                     </li>
                 
                 
                 <li className="  text-[1.2rem] cursor-pointer hover:text-marieth "
                  onClick={()=>redirecionar("./carrinho")}>
-                      <AiOutlineShoppingCart className="gap-2 text-[1.4rem] ml-5 mt-[0.1rem] " />  
+                      <AiOutlineShoppingCart className="gap-2 text-[1.4rem] ml-5" />  
                      
                      </li>
                 
           <li className="text-[1.2rem] cursor-pointer hover:text-marieth relative" 
          onClick={()=>redirecionar("./notificacoes")}> 
           <div className="relative">
-            <IoMdNotificationsOutline className="gap-2 text-[1.4rem] ml-8 mt-[0.1rem]" /> 
+            <IoMdNotificationsOutline className="gap-2 text-[1.4rem] ml-8" /> 
             {notificacoesNaoLidas > 0 && (
               <span className="absolute -top-2 -right-2 bg-vermelho text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
                 {notificacoesNaoLidas}
@@ -207,13 +207,13 @@ const handleClick = useCallback((event: MouseEvent) => {
                 
                 <li className="  text-[1.2rem] cursor-pointer hover:text-marieth "
                 onClick={()=>redirecionar("./relatoriocomprador")}>
-                     <BiBarChartSquare className="gap-2 ml-6 text-[1.4rem]  mt-[0.2rem]" /> 
+                     <BiBarChartSquare className="gap-2 ml-6 text-[1.4rem]  mt-[0.1rem]" /> 
                     
                     </li>
                 
                 <li className="  text-[1.2rem] cursor-pointer hover:text-marieth "
                 onClick={()=>redirecionar()}> 
-                    <IoPersonCircleOutline className="gap-2  text-[1.4rem] ml-2  mt-[0.2rem]" />
+                    <IoPersonCircleOutline className="gap-2  text-[1.4rem] ml-2  mt-[0.1rem]" />
                     
                     </li>
 

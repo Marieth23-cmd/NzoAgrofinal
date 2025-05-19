@@ -240,7 +240,7 @@ const atualizarCalculoPrecoTotal = async (produtosAtuais: Produto[]) => {
   }
 };
 
-// Função auxiliar para determinar a unidade do produto (que está faltando no código)
+
 
   useEffect(() => {
     carregarProdutos();

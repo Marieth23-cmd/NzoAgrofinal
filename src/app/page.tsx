@@ -112,9 +112,8 @@ export default function Home() {
 
   return (
     <div className="flex flex-col min-h-screen overflow-x-hidden">
-     <div className="fixed top-0 left-0 w-full z-50">
-      <Navbar />
-      </div>
+          <Navbar />
+      
       {/* Imagem de fundo com ajuste de altura */}
       {/* Container com largura total e centralização forçada */}
       <div className="backgroundimage w-full flex justify-center mt-[20%] sm:mt-[5%]  md:mt-[10%]  lg:mt-[15%]">
