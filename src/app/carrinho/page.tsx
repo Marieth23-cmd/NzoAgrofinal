@@ -376,213 +376,211 @@ export default function Carrinho() {
       setLoadingFinalizarCompra(false);
     }
   };
+return (
+  <>
+    <Head>
+      <title> Carrinho </title>
+    </Head>
 
-  return (
-    <>
-      <Head>
-        <title> Carrinho </title>
-      </Head>
+    <Navbar />
 
-      <Navbar />
-
-      <div className="mb-20 mt-[48%] lg:mt-[15%]">
-        <div className="max-w-[1200px] my-8 mx-auto py-0 px-4 items-center gap-4 grid grid-cols-1 relative border-b-[1px]">
-          <div className="flex items-end">
-            <h1 className=" text-[1.5rem] lg:text-[2rem] text-marieth mb-8 p-4 font-bold">
-              Meu Carrinho
-            </h1>
-            {produtos.length > 0 && (
-              <button 
-                className="bg-vermelho text-white rounded-[5px] h-fit px-2 py-1 mb-12 ml-auto flex items-center gap-2 cursor-pointer"
-                onClick={handleEsvaziarCarrinho}
-              >
-                <FaTrash />
-                Esvaziar
-              </button>
-            )}
-          </div>
-
-          {errorMessage && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-              <p>{errorMessage}</p>
-            </div>
-          )}
-
-          {loading ? (
-            <p className="text-center text-gray-500 text-lg">Carregando produtos...</p>
-          ) : produtos.length === 0 ? (
-            <p className="text-center text-gray-500 text-lg mt-8">Carrinho vazio. Nenhum produto adicionado.</p>
-          ) : (
-            produtos.map((produto) => (
-              <div key={produto.id} className="flex p-1 border-b-[1px]">
-                <div className="h-24 w-24 min-w-24 flex items-center justify-center">
-                  <Image
-                    src={produto.foto_produto || '/logo.jpg'}
-                    alt={produto.nome || 'Produto'}
-                    height={96}
-                    width={96}
-                    className="object-cover rounded-[5px] max-h-24"
-                  />
-                </div>
-                <div className="flex-1 py-0 px-4 relative">
-                  <h3 className="font-bold mb-2">{produto.nome}</h3>
-                  <p className="font-bold text-marieth">
-                    Kzs {parseFloat(produto.preco.toString()).toFixed(2)}/{produto.quantidade}{produto.Unidade || "unidade"}
-                  </p>
-                  <p>Estoque: <span className="font-semibold">{produto.quantidade_estoque}{produto.unidade_estoque}</p>
-                  <p>Subtotal: <span className="font-bold">Kzs {(parseFloat(produto.preco.toString()) * produto.quantidade).toFixed(2)}</span></p>
-                  {produto.peso_kg && (
-                    <p>Peso: {(parseFloat(produto.peso_kg.toString()) * produto.quantidade).toFixed(2)} kg</p>
-                  )}
-                  <FaTrash
-                    onClick={() => handleRemover(produto.id)}
-                    className="absolute top-2 right-2 text-vermelho text-[1.2rem] cursor-pointer"
-                  />
-                  <button
-                    className="hover:bg-verdeaceso bg-marieth rounded-[5px] cursor-pointer text-white p-2 text-[0.9rem] mt-2"
-                    onClick={() => handleEditar(produto)}
-                  >
-                    Alterar Quantidade
-                  </button>
-                </div>
-              </div>
-            ))
-          )}
-
+    <div className="mb-20 mt-[48%] lg:mt-[15%]">
+      <div className="max-w-[1200px] my-8 mx-auto py-0 px-4 items-center gap-4 grid grid-cols-1 relative border-b-[1px]">
+        <div className="flex items-end">
+          <h1 className=" text-[1.5rem] lg:text-[2rem] text-marieth mb-8 p-4 font-bold">
+            Meu Carrinho
+          </h1>
           {produtos.length > 0 && (
-            <div className="mt-8 p-4 bg-white rounded-[10px] shadow-custom">
-              <div className="flex justify-between border-b-[1px] border-solid border-tab py-2 px-0">
-                <span>Subtotal dos produtos:</span>
-                <span>kzs {subtotal.toFixed(2)}</span>
-              </div>
-
-              <div className="flex justify-between border-b-[1px] border-solid border-tab py-2 px-0">
-                <span>Frete:</span>
-                <span>kzs {freteTotal.toFixed(2)}</span>
-              </div>
-
-              <div className="flex justify-between border-b-[1px] border-solid border-tab py-2 px-0">
-                <span>Comissão:</span>
-                <span>kzs {comissaoTotal.toFixed(2)}</span>
-              </div>
-              
-              <div className="flex justify-between border-b-[1px] border-solid border-tab py-2 px-0">
-                <span>Peso total:</span>
-                <span>{pesoTotal.toFixed(2)} kg</span>
-              </div>
-
-              <div className="flex justify-between border-b-[1px] border-solid mt-[1rem] border-tab py-2 px-0">
-                <span className="text-marieth text-[1.2rem] font-bold">Total a pagar:</span>
-                <span>kzs {totalFinal.toFixed(2)}</span>
-              </div>
-
-              {pesoTotal < 10 && (
-                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded my-4">
-                  <p>O peso total mínimo para efetivar a compra é de 10kg. Adicione mais produtos.</p>
-                </div>
-              )}
-
-              <button 
-                className={`transition-all ${loadingFinalizarCompra || pesoTotal < 10 ? 'bg-gray-400' : 'hover:bg-verdeaceso bg-marieth'} text-[1.1rem] mt-4 block w-full p-4 text-white border-none rounded-[5px] cursor-pointer`}
-                onClick={handleFinalizarCompra}
-                disabled={produtos.length === 0 || loadingFinalizarCompra || pesoTotal < 10}
-              >
-                {loadingFinalizarCompra ? 'Processando...' : 'Finalizar Compra'}
-              </button>
-            </div>
+            <button 
+              className="bg-vermelho text-white rounded-[5px] h-fit px-2 py-1 mb-12 ml-auto flex items-center gap-2 cursor-pointer"
+              onClick={handleEsvaziarCarrinho}
+            >
+              <FaTrash />
+              Esvaziar
+            </button>
           )}
         </div>
 
-        {/* Modal de ajuste de quantidade atualizado */}
-        {showcaixa && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="min-w-[300px] w-[90%] max-w-[400px] bg-white shadow-custom rounded-[10px] p-8 relative">
-              <h2 className="font-bold text-2xl mb-4">Alterar Quantidade</h2>
-              {produtoSelecionado && (
-                <p className="text-sm text-gray-600 mb-4">
-                  Produto: {produtoSelecionado.nome} - Preço: Kzs {parseFloat(produtoSelecionado.preco.toString()).toFixed(2)}/{getUnidade(produtoSelecionado)}
-                </p>
-              )}
+        {errorMessage && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            <p>{errorMessage}</p>
+          </div>
+        )}
 
-              {errorMessage && (
-                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-                  <p>{errorMessage}</p>
-                </div>
-              )}
-
-              <div className="mb-4 grid grid-cols-4 gap-2">
-                <button onClick={() => handleIncrementoRapido(-1)} className="p-2 bg-red-500 rounded-[5px] text-white text-[0.9rem] hover:bg-red-600">-1</button>
-                <button onClick={() => handleIncrementoRapido(-0.5)} className="p-2 bg-red-500 rounded-[5px] text-white text-[0.9rem] hover:bg-red-600">-0.5</button>
-                <button onClick={() => handleIncrementoRapido(0.5)} className="p-2 bg-marieth rounded-[5px] text-white text-[0.9rem] hover:bg-verdeaceso">+0.5</button>
-                <button onClick={() => handleIncrementoRapido(1)} className="p-2 bg-marieth rounded-[5px] text-white text-[0.9rem] hover:bg-verdeaceso">+1</button>
-                <button onClick={() => handleIncrementoRapido(-5)} className="p-2 bg-red-500 rounded-[5px] text-white text-[0.9rem] hover:bg-red-600">-5</button>
-                <button onClick={() => handleIncrementoRapido(-10)} className="p-2 bg-red-500 rounded-[5px] text-white text-[0.9rem] hover:bg-red-600">-10</button>
-                <button onClick={() => handleIncrementoRapido(5)} className="p-2 bg-marieth rounded-[5px] text-white text-[0.9rem] hover:bg-verdeaceso">+5</button>
-                <button onClick={() => handleIncrementoRapido(10)} className="p-2 bg-marieth rounded-[5px] text-white text-[0.9rem] hover:bg-verdeaceso">+10</button>
+        {loading ? (
+          <p className="text-center text-gray-500 text-lg">Carregando produtos...</p>
+        ) : produtos.length === 0 ? (
+          <p className="text-center text-gray-500 text-lg mt-8">Carrinho vazio. Nenhum produto adicionado.</p>
+        ) : (
+          produtos.map((produto) => (
+            <div key={produto.id} className="flex p-1 border-b-[1px]">
+              <div className="h-24 w-24 min-w-24 flex items-center justify-center">
+                <Image
+                  src={produto.foto_produto || '/logo.jpg'}
+                  alt={produto.nome || 'Produto'}
+                  height={96}
+                  width={96}
+                  className="object-cover rounded-[5px] max-h-24"
+                />
               </div>
-              
-              <div className="flex flex-col gap-4 my-4 mx-0">
-                <label htmlFor="number">Ajustar quantidade
-                  <input
-                    type="number"
-                    name="numero"
-                    id="number"
-                    min={0.1}
-                    max={quantidadeDisponivel}
-                    value={quantidade}
-                    onChange={(e) => {
-                      const novaQuantidade = parseFloat(e.target.value);
-                      if (!isNaN(novaQuantidade)) {
-                        if (novaQuantidade <= 0) {
-                          setErrorMessage("A quantidade deve ser maior que zero");
-                          return;
-                        }
-                        if (novaQuantidade > quantidadeDisponivel) {
-                          setErrorMessage(`Não é possível adicionar mais que ${quantidadeDisponivel} ${produtoSelecionado ? getUnidade(produtoSelecionado) : 'unidades'}`);
-                          return;
-                        }
-                        setQuantidade(novaQuantidade);
-                        setErrorMessage(''); // Limpar mensagem de erro
-                      }
-                    }}
-                    step={0.1}
-                    className="w-full text-4 p-2 border-[1px] border-solid border-tab rounded-[5px]"
-                  />
-                </label>
-                <p className="text-gray-500 text-sm">
-                  Unidade: {produtoSelecionado && getUnidade(produtoSelecionado)}
-                </p>
-                <p className="text-gray-600 text-sm">
-                  Disponível em estoque: <span className="font-semibold">{quantidadeDisponivel}</span> {produtoSelecionado && getUnidade(produtoSelecionado)}
-                </p> 
-
+              <div className="flex-1 py-0 px-4 relative">
+                <h3 className="font-bold mb-2">{produto.nome}</h3>
                 <p className="font-bold text-marieth">
-                  Subtotal estimado: Kzs {(produtoSelecionado ? parseFloat(produtoSelecionado.preco.toString()) * quantidade : 0).toFixed(2)}
+                  Kzs {parseFloat(produto.preco.toString()).toFixed(2)}/{produto.quantidade}{produto.Unidade || "unidade"}
                 </p>
-              </div>
-
-              <div className="flex gap-4 justify-end cursor-pointer border-none">
-                <button 
-                  className="bg-vermelho py-2 px-4 text-white rounded-[5px]" 
-                  onClick={() => {
-                    setshowcaixa(false);
-                    setErrorMessage('');
-                  }}
+                <p>Estoque: <span className="font-semibold">{produto.quantidade_estoque}{produto.unidade_estoque}</span></p>
+                <p>Subtotal: <span className="font-bold">Kzs {(parseFloat(produto.preco.toString()) * produto.quantidade).toFixed(2)}</span></p>
+                {produto.peso_kg && (
+                  <p>Peso: {(parseFloat(produto.peso_kg.toString()) * produto.quantidade).toFixed(2)} kg</p>
+                )}
+                <FaTrash
+                  onClick={() => handleRemover(produto.id)}
+                  className="absolute top-2 right-2 text-vermelho text-[1.2rem] cursor-pointer"
+                />
+                <button
+                  className="hover:bg-verdeaceso bg-marieth rounded-[5px] cursor-pointer text-white p-2 text-[0.9rem] mt-2"
+                  onClick={() => handleEditar(produto)}
                 >
-                  Cancelar
-                </button>
-                <button 
-                  className="bg-marieth py-2 px-4 text-white rounded-[5px]" 
-                  onClick={handleConfirmar}
-                >
-                  Confirmar
+                  Alterar Quantidade
                 </button>
               </div>
             </div>
+          ))
+        )}
+
+        {produtos.length > 0 && (
+          <div className="mt-8 p-4 bg-white rounded-[10px] shadow-custom">
+            <div className="flex justify-between border-b-[1px] border-solid border-tab py-2 px-0">
+              <span>Subtotal dos produtos:</span>
+              <span>kzs {subtotal.toFixed(2)}</span>
+            </div>
+
+            <div className="flex justify-between border-b-[1px] border-solid border-tab py-2 px-0">
+              <span>Frete:</span>
+              <span>kzs {freteTotal.toFixed(2)}</span>
+            </div>
+
+            <div className="flex justify-between border-b-[1px] border-solid border-tab py-2 px-0">
+              <span>Comissão:</span>
+              <span>kzs {comissaoTotal.toFixed(2)}</span>
+            </div>
+            
+            <div className="flex justify-between border-b-[1px] border-solid border-tab py-2 px-0">
+              <span>Peso total:</span>
+              <span>{pesoTotal.toFixed(2)} kg</span>
+            </div>
+
+            <div className="flex justify-between border-b-[1px] border-solid mt-[1rem] border-tab py-2 px-0">
+              <span className="text-marieth text-[1.2rem] font-bold">Total a pagar:</span>
+              <span>kzs {totalFinal.toFixed(2)}</span>
+            </div>
+
+            {pesoTotal < 10 && (
+              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded my-4">
+                <p>O peso total mínimo para efetivar a compra é de 10kg. Adicione mais produtos.</p>
+              </div>
+            )}
+
+            <button 
+              className={`transition-all ${loadingFinalizarCompra || pesoTotal < 10 ? 'bg-gray-400' : 'hover:bg-verdeaceso bg-marieth'} text-[1.1rem] mt-4 block w-full p-4 text-white border-none rounded-[5px] cursor-pointer`}
+              onClick={handleFinalizarCompra}
+              disabled={produtos.length === 0 || loadingFinalizarCompra || pesoTotal < 10}
+            >
+              {loadingFinalizarCompra ? 'Processando...' : 'Finalizar Compra'}
+            </button>
           </div>
         )}
       </div>
-      <Footer />
-    </>
-  );
-}
+
+      {/* Modal de ajuste de quantidade atualizado */}
+      {showcaixa && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="min-w-[300px] w-[90%] max-w-[400px] bg-white shadow-custom rounded-[10px] p-8 relative">
+            <h2 className="font-bold text-2xl mb-4">Alterar Quantidade</h2>
+            {produtoSelecionado && (
+              <p className="text-sm text-gray-600 mb-4">
+                Produto: {produtoSelecionado.nome} - Preço: Kzs {parseFloat(produtoSelecionado.preco.toString()).toFixed(2)}/{produtoSelecionado.Unidade || "unidade"}
+              </p>
+            )}
+
+            {errorMessage && (
+              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                <p>{errorMessage}</p>
+              </div>
+            )}
+
+            <div className="mb-4 grid grid-cols-4 gap-2">
+              <button onClick={() => handleIncrementoRapido(-1)} className="p-2 bg-red-500 rounded-[5px] text-white text-[0.9rem] hover:bg-red-600">-1</button>
+              <button onClick={() => handleIncrementoRapido(-0.5)} className="p-2 bg-red-500 rounded-[5px] text-white text-[0.9rem] hover:bg-red-600">-0.5</button>
+              <button onClick={() => handleIncrementoRapido(0.5)} className="p-2 bg-marieth rounded-[5px] text-white text-[0.9rem] hover:bg-verdeaceso">+0.5</button>
+              <button onClick={() => handleIncrementoRapido(1)} className="p-2 bg-marieth rounded-[5px] text-white text-[0.9rem] hover:bg-verdeaceso">+1</button>
+              <button onClick={() => handleIncrementoRapido(-5)} className="p-2 bg-red-500 rounded-[5px] text-white text-[0.9rem] hover:bg-red-600">-5</button>
+              <button onClick={() => handleIncrementoRapido(-10)} className="p-2 bg-red-500 rounded-[5px] text-white text-[0.9rem] hover:bg-red-600">-10</button>
+              <button onClick={() => handleIncrementoRapido(5)} className="p-2 bg-marieth rounded-[5px] text-white text-[0.9rem] hover:bg-verdeaceso">+5</button>
+              <button onClick={() => handleIncrementoRapido(10)} className="p-2 bg-marieth rounded-[5px] text-white text-[0.9rem] hover:bg-verdeaceso">+10</button>
+            </div>
+            
+            <div className="flex flex-col gap-4 my-4 mx-0">
+              <label htmlFor="number">Ajustar quantidade
+                <input
+                  type="number"
+                  name="numero"
+                  id="number"
+                  min={0.1}
+                  max={quantidadeDisponivel}
+                  value={quantidade}
+                  onChange={(e) => {
+                    const novaQuantidade = parseFloat(e.target.value);
+                    if (!isNaN(novaQuantidade)) {
+                      if (novaQuantidade <= 0) {
+                        setErrorMessage("A quantidade deve ser maior que zero");
+                        return;
+                      }
+                      if (novaQuantidade > quantidadeDisponivel) {
+                        setErrorMessage(`Não é possível adicionar mais que ${quantidadeDisponivel} ${produtoSelecionado?.Unidade || 'unidades'}`);
+                        return;
+                      }
+                      setQuantidade(novaQuantidade);
+                      setErrorMessage(''); // Limpar mensagem de erro
+                    }
+                  }}
+                  step={0.1}
+                  className="w-full text-4 p-2 border-[1px] border-solid border-tab rounded-[5px]"
+                />
+              </label>
+              <p className="text-gray-500 text-sm">
+                Unidade: {produtoSelecionado?.Unidade || "unidade"}
+              </p>
+              <p className="text-gray-600 text-sm">
+                Disponível em estoque: <span className="font-semibold">{quantidadeDisponivel}</span> {produtoSelecionado?.Unidade || "unidade"}
+              </p> 
+
+              <p className="font-bold text-marieth">
+                Subtotal estimado: Kzs {(produtoSelecionado ? parseFloat(produtoSelecionado.preco.toString()) * quantidade : 0).toFixed(2)}
+              </p>
+            </div>
+
+            <div className="flex gap-4 justify-end cursor-pointer border-none">
+              <button 
+                className="bg-vermelho py-2 px-4 text-white rounded-[5px]" 
+                onClick={() => {
+                  setshowcaixa(false);
+                  setErrorMessage('');
+                }}
+              >
+                Cancelar
+              </button>
+              <button 
+                className="bg-marieth py-2 px-4 text-white rounded-[5px]" 
+                onClick={handleConfirmar}
+              >
+                Confirmar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+    <Footer />
+  </>
+);
