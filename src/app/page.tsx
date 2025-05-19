@@ -111,7 +111,7 @@ export default function Home() {
   const showRightButton = scrollPosition < maxScroll;
 
   return (
-    <div className="flex flex-col min-h-screen overflow-x-hidden max-w-full">
+    <div className="flex flex-col min-h-screen overflow-x-hidden ">
       <Navbar />
 
       {/* Ajustado margins para centralizar melhor */}
