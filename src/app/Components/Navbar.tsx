@@ -181,14 +181,14 @@ const handleClick = useCallback((event: MouseEvent) => {
             <ul className="   ml-[33rem] gap-8 hidden lg:flex">
                 <li onClick={()=>router.push("/")} className="  text-[1.2rem] cursor-pointer hover:text-marieth "> 
                      <GoHome className="gap-2 text-[1.4rem] ml-2  mt-[0.1rem]" /> 
-                    Inicio 
+                    
                     </li>
                 
                 
                 <li className="  text-[1.2rem] cursor-pointer hover:text-marieth "
                  onClick={()=>redirecionar("./carrinho")}>
                       <AiOutlineShoppingCart className="gap-2 text-[1.4rem] ml-5 mt-[0.1rem] " />  
-                     <span className="hidden lg:block ">Carrinho</span>
+                     
                      </li>
                 
           <li className="text-[1.2rem] cursor-pointer hover:text-marieth relative" 
@@ -201,20 +201,20 @@ const handleClick = useCallback((event: MouseEvent) => {
               </span>
             )}
           </div>
-          <span className="hidden lg:block">Notificações</span>   
+            
         </li>
                 
                 
                 <li className="  text-[1.2rem] cursor-pointer hover:text-marieth "
                 onClick={()=>redirecionar("./relatoriocomprador")}>
                      <BiBarChartSquare className="gap-2 ml-6 text-[1.4rem]  mt-[0.2rem]" /> 
-                    <span className="hidden lg:block">Relatórios</span>
+                    
                     </li>
                 
                 <li className="  text-[1.2rem] cursor-pointer hover:text-marieth "
                 onClick={()=>redirecionar()}> 
                     <IoPersonCircleOutline className="gap-2  text-[1.4rem] ml-2  mt-[0.2rem]" />
-                    <span className="hidden lg:block">Perfil</span>  
+                    
                     </li>
 
             </ul>

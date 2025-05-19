@@ -25,6 +25,11 @@ const PromoPage = () => {
     const id = searchParams.get('produtoId');
     if (id) {
       setProdutoId(parseInt(id));
+      const parsedId = id ? parseInt(id) : null;
+      console.log('produtoId na URL:', id, 'parsed:', parsedId);
+        if (parsedId && !isNaN(parsedId)) {
+      setProdutoId(parsedId);
+  } 
     } else {
       setError('ID do produto não fornecido. Selecione um produto para destacar.');
     }
