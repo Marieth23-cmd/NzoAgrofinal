@@ -34,21 +34,6 @@ interface Produto {
 }
 
 
-  const getUnidade = (produto: Produto) => produto.Unidade || 'unidade';
-  
-  // Caso contrário, inferir baseado na categoria
-  switch (produto.categoria?.toLowerCase()) {
-    case 'verduras':          
-    case 'legumes':
-    case 'frutas':
-      return 'kg';
-    case 'sementes':
-      return 'pacote';
-    default:
-      return 'unidade';
-  }
-};
-
 export default function Carrinho() {
   // Definindo os estados necessários
   const [produtos, setProdutos] = useState<Produto[]>([]);
@@ -442,7 +427,7 @@ export default function Carrinho() {
                 <div className="flex-1 py-0 px-4 relative">
                   <h3 className="font-bold mb-2">{produto.nome}</h3>
                   <p className="font-bold text-marieth">
-                    Kzs {parseFloat(produto.preco.toString()).toFixed(2)}/{produto.quantidade}{getUnidade(produto)}
+                    Kzs {parseFloat(produto.preco.toString()).toFixed(2)}/{produto.quantidade}{produto.Unidade || "unidade"}
                   </p>
                   <p>Estoque: <span className="font-semibold">{produto.quantidade_estoque}{produto.unidade_estoque}</p>
                   <p>Subtotal: <span className="font-bold">Kzs {(parseFloat(produto.preco.toString()) * produto.quantidade).toFixed(2)}</span></p>
