@@ -14,6 +14,8 @@ import {
   calcularPrecoProduto, 
   esvaziarCarrinho 
 } from "../Services/cart";
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 // Define tipos para melhorar a tipagem do código
 interface Produto {
@@ -250,12 +252,12 @@ const atualizarCalculoPrecoTotal = async (produtosAtuais: Produto[]) => {
   const handleEsvaziarCarrinho = async () => {
     try {
       const resposta = await esvaziarCarrinho();
-      alert(resposta.mensagem);
+      toast.success(resposta.message || "Carrinho esvaziado com sucesso!");
       setProdutos([]); // Limpa a lista de produtos na interface
       resetarTotais();
     } catch (error: any) {
       console.log("Erro ao esvaziar carrinho:", error);
-      alert(error.mensagem || "Erro ao esvaziar o carrinho.");
+      toast.error(error.message || "Erro ao esvaziar o carrinho.");
     }
   };
 
@@ -329,12 +331,12 @@ const atualizarCalculoPrecoTotal = async (produtosAtuais: Produto[]) => {
       
       if (confirmacao) {
         const resposta = await removerProdutoDoCarrinho(String(produtoId));
-        alert(resposta.mensagem || "Produto removido com sucesso!");
+        toast.success(resposta.mensagem || "Produto removido com sucesso!");
         await carregarProdutos(); // Recarrega os produtos após remover
       }
     } catch (error: any) {
       console.log("Erro ao remover produto:", error);
-      alert(error.mensagem || "Erro ao remover produto do carrinho.");
+      toast.error(error.message || "Erro ao remover produto do carrinho.");
     }
   };
 
@@ -353,14 +355,14 @@ const atualizarCalculoPrecoTotal = async (produtosAtuais: Produto[]) => {
     try {
       setLoadingFinalizarCompra(true);
       const resposta = await finalizarCompra();
-      
-      alert(resposta.mensagem || "Compra finalizada com sucesso!");
+      toast.success(resposta.mensagem || "Compra finalizada com sucesso!");
+      console.log("Resposta da finalização:", resposta);
       setProdutos([]);
       resetarTotais();
-      router.push("/confirmacao-pedido"); // Redireciona para página de confirmação
+      router.push("/enderecopedido"); // Redireciona para página de confirmação
     } catch (error: any) {
       console.log("Erro ao finalizar compra:", error);
-      alert(error.mensagem || "Erro ao finalizar compra. Tente novamente.");
+      toast.error(error.mensagem || "Erro ao finalizar a compra.");
     } finally {
       setLoadingFinalizarCompra(false);
     }
@@ -372,6 +374,8 @@ return (
     </Head>
 
     <Navbar />
+    <ToastContainer position="top-right" autoClose={5000} />
+    
 
     <div className="mb-20 mt-[48%] lg:mt-[15%]">
       <div className="max-w-[1200px] my-8 mx-auto py-0 px-4 items-center gap-4 grid grid-cols-1 relative border-b-[1px]">
