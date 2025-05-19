@@ -65,6 +65,18 @@ export default function Vitrine() {
     }
   };
   
+      function calcularEstrelas(media: number) {
+      const estrelasCheias = Math.floor(media);
+      const temMeiaEstrela = media - estrelasCheias >= 0.25 && media - estrelasCheias < 0.75;
+      const estrelasVazias = 5 - estrelasCheias - (temMeiaEstrela ? 1 : 0);
+
+      return {
+        cheias: estrelasCheias,
+        meia: temMeiaEstrela ? 1 : 0,
+        vazias: estrelasVazias,
+      };
+      }
+
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -103,25 +115,32 @@ export default function Vitrine() {
                   </h3>
 
                   <div className="flex gap-1 mb-2">
-                    {avaliacoes[produto.id_produtos] ? (
+                {avaliacoes[produto.id_produtos] !== null && avaliacoes[produto.id_produtos] !== undefined ? (
+                  (() => {
+                    const media = avaliacoes[produto.id_produtos]!;
+                    const { cheias, meia, vazias } = calcularEstrelas(media);
+
+                    return (
                       <>
-                        {[1, 2, 3, 4, 5].map((i) =>
-                          i <= Math.floor(avaliacoes[produto.id_produtos]!) ? (
-                            <FaStar key={i} className="text-amarela text-sm md:text-base" />
-                          ) : i - 0.5 === avaliacoes[produto.id_produtos] ? (
-                            <FaRegStarHalfStroke key={i} className="text-amarela text-sm md:text-base" />
-                          ) : (
-                            <FaRegStarHalfStroke key={i} className="text-gray-300 text-sm md:text-base" />
-                          )
+                        {[...Array(cheias)].map((_, i) => (
+                          <FaStar key={"cheia" + i} className="text-amarela text-sm md:text-base" />
+                        ))}
+                        {meia === 1 && (
+                          <FaRegStarHalfStroke key="meia" className="text-amarela text-sm md:text-base" />
                         )}
+                        {[...Array(vazias)].map((_, i) => (
+                          <FaRegStarHalfStroke key={"vazia" + i} className="text-gray-300 text-sm md:text-base" />
+                        ))}
                         <span className="text-amarela -mt-[4px] ml-2 text-xs md:text-sm">
-                          ({avaliacoes[produto.id_produtos]?.toFixed(1)})
+                          ({media.toFixed(1)})
                         </span>
                       </>
-                    ) : (
-                      <p className="text-gray-500 text-xs md:text-sm">Sem avaliações</p>
-                    )}
-                  </div>
+                    );
+                  })()
+                ) : (
+                  <p className="text-gray-500 text-xs md:text-sm">Sem avaliações</p>
+                )}
+              </div>
 
                   <p className="text-base sm:text-lg md:text-xl font-bold mb-2 text-marieth">
                     AOA {produto.preco.toLocaleString()}
