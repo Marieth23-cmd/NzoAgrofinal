@@ -136,27 +136,11 @@ export default function Carrinho() {
         // Para debug: imprimir o peso de cada produto individualmente
         console.log(`Produto ${produto.nome}: peso=${peso}, quantidade=${produto.quantidade}`);
         
-        // Se peso for zero, vamos definir um peso padrão baseado na categoria
-        if (peso === 0) {
-          switch (produto.categoria?.toLowerCase()) {
-            case 'verduras':
-            case 'legumes':
-            case 'frutas':
-              peso = 1; // 1kg como padrão para produtos frescos
-              break;
-            case 'sementes':
-              peso = 0.5; // 500g como padrão para sementes
-              break;
-            default:
-              peso = 0.2; // 200g como padrão para outros produtos
+        // Se peso for zero, atribuai um padrão fixo (exemplo: 1 kg)
+          if (peso === 0) {
+            peso = 1;
           }
-          console.log(`Atribuído peso padrão para ${produto.nome}: ${peso}kg`);
-        }
-        
-        const quantidade = produto.quantidade || 0;
-        return total + (peso * quantidade);
-      }, 0);
-      
+                
       // Atualizar os estados com os valores calculados
       setSubtotal(subtotalCalculado);
       setPesoTotal(pesoTotalCalculado);
