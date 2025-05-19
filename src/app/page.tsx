@@ -112,25 +112,25 @@ export default function Home() {
 
   return (
     <div className="flex flex-col min-h-screen overflow-x-hidden">
-  <Navbar />
-  
-  {/* Container com largura total e centralização forçada */}
-  <div className="backgroundimage w-full flex justify-center mt-[20%] lg:mt-[15%]">
-    {/* Container interno com largura controlada */}
-    <div className="w-full max-w-3xl px-4 flex flex-col items-center">
-      <h1 className="text-[1rem] lg:text-[2rem] font-bold text-center w-full">
-        Conectando o Campo à sua Mesa
-      </h1>
-      <p className="hidden lg:block text-center w-full">
-        Encontre produtos frescos direto dos produtores locais
-      </p>
-      <button 
-        onClick={redirecionamento} 
-        className="mt-1 bg-marieth text-white py-2 px-4 lg:mt-2 lg:py-4 lg:px-8 text-[1.1rem] border-none rounded-[5px] cursor-pointers hover:bg-verdeaceso transition-colors duration-150"
-      >
-        Começar a Comprar
-      </button>
-    </div>
+      <Navbar />
+      
+      {/* Container com largura total e centralização forçada */}
+      <div className="backgroundimage w-full flex justify-center mt-[20%] lg:mt-[15%]">
+        {/* Container interno com largura controlada */}
+        <div className="w-full max-w-3xl px-4 flex flex-col items-center">
+          <h1 className="text-[1rem] lg:text-[2rem] font-bold text-center w-full">
+            Conectando o Campo à sua Mesa
+          </h1>
+          <p className="hidden lg:block text-center w-full">
+            Encontre produtos frescos direto dos produtores locais
+          </p>
+          <button 
+            onClick={redirecionamento} 
+            className="mt-1 bg-marieth text-white py-2 px-4 lg:mt-2 lg:py-4 lg:px-8 text-[1.1rem] border-none rounded-[5px] cursor-pointers hover:bg-verdeaceso transition-colors duration-150"
+          >
+            Começar a Comprar
+          </button>
+        </div>
       </div>
       {/* Reduzido o margin-top para evitar espaçamento excessivo */}
       <div className="flex-grow flex flex-col items-center justify-start w-full px-4 sm:px-8 lg:px-16 gap-6 mt-12 lg:mt-16">
@@ -245,4 +245,4 @@ export default function Home() {
       <Footer />
     </div>
   );
-};
+}
