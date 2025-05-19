@@ -279,11 +279,11 @@ const atualizarCalculoPrecoTotal = async (produtosAtuais: Produto[]) => {
         return;
       }
       
-      if (quantidade > quantidadeDisponivel) {
-        setErrorMessage(`Não é possível adicionar mais que ${quantidadeDisponivel} ${getUnidade(produtoSelecionado)}`);
+     if (quantidade > quantidadeDisponivel) {
+        setErrorMessage(`Não é possível adicionar mais que ${quantidadeDisponivel} ${produtoSelecionado?.Unidade || "unidade"}`);
         return;
       }
-      
+            
       // Atualizar a quantidade do produto no carrinho
       const resposta = await atualizarQuantidadeProduto(
         String(produtoSelecionado.id), 
