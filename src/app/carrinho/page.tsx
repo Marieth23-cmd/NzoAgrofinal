@@ -113,129 +113,115 @@ export default function Carrinho() {
     setCalculoRealizado(false);
   };
 
-  // Função para atualizar o cálculo de preço total usando a API
-  const atualizarCalculoPrecoTotal = async (produtosAtuais: Produto[]) => {
-    try {
-      // Resetamos os valores para não acumular de cálculos anteriores
-      let freteCalculado = 0;
-      let comissaoCalculada = 0;
-      let totalCalculado = 0;
-      
-      // Primeiro calculamos o subtotal e peso total dos produtos
-      const subtotalCalculado = produtosAtuais.reduce((total: number, produto: Produto) => {
-        const preco = produto.preco ? parseFloat(produto.preco.toString()) : 0;
-        const quantidade = produto.quantidade || 0;
-        return total + (preco * quantidade);
-      }, 0);
-      
-      const pesoTotalCalculado = produtosAtuais.reduce((total: number, produto: Produto) => {
-        // Certifique-se que o peso está sendo corretamente lido
-        // Caso peso_kg seja undefined ou null, assume um valor padrão baseado na categoria
-        let peso = produto.peso_kg ? parseFloat(produto.peso_kg.toString()) : 0;
-        
-        // Para debug: imprimir o peso de cada produto individualmente
-        console.log(`Produto ${produto.nome}: peso=${peso}, quantidade=${produto.quantidade}`);
-        
-        // Se peso for zero, atribuai um padrão fixo (exemplo: 1 kg)
-          if (peso === 0) {
-            peso = 1;
-          }
-                
-      // Atualizar os estados com os valores calculados
-      setSubtotal(subtotalCalculado);
-      setPesoTotal(pesoTotalCalculado);
-      
-      console.log("Peso total recalculado:", pesoTotalCalculado);
-      
-      // Se o peso total for menor que 10kg, não há frete e comissão conforme sua lógica de negócio
-      if (pesoTotalCalculado < 10) {
-        setFreteTotal(0);
-        setComissaoTotal(0);
-        // O total final neste caso é apenas o subtotal
-        setTotalFinal(subtotalCalculado);
-        setCalculoRealizado(true);
-        return;
-      }
-      
-      // Adicionamos um timeout para a chamada da API para evitar que ela fique pendente eternamente
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Tempo esgotado ao calcular preço')), 5000);
-      });
-      
-      // Chamamos a API apenas uma vez com o primeiro produto e o peso total
-      // para obter os valores de frete e comissão
-      if (produtosAtuais.length > 0) {
-        try {
-          const produtoReferencia = produtosAtuais[0];
-          const produtoId = produtoReferencia.id_produtos || produtoReferencia.id;
-          
-          // Usamos Promise.race para implementar um timeout na chamada da API
-          const resultado: any = await Promise.race([
-            calcularPrecoProduto(
-              String(produtoId), 
-              1, // Quantidade fixa para cálculo
-              pesoTotalCalculado // Passamos o peso total como parâmetro adicional
-            ),
-            timeoutPromise
-          ]);
-          
-          // Obtemos os valores de frete e comissão da API
-          freteCalculado = resultado.frete || 0;
-          comissaoCalculada = resultado.comissao || 0;
-          
-          // O total final é a soma do subtotal (já calculado) + frete + comissão
-          totalCalculado = subtotalCalculado + freteCalculado + comissaoCalculada;
-          
-          console.log("Resultados do cálculo da API:");
-          console.log("Frete calculado:", freteCalculado);
-          console.log("Comissão calculada:", comissaoCalculada);
-          console.log("Total final calculado:", totalCalculado);
-          
-          // Atualizar os estados com os valores vindos da API
-          setFreteTotal(freteCalculado);
-          setComissaoTotal(comissaoCalculada);
-          setTotalFinal(totalCalculado);
-          setCalculoRealizado(true);
-        } catch (apiError) {
-          console.log("Erro durante chamada da API:", apiError);
-          
-          // Cálculo alternativo caso a API falhe
-          // Implementando a mesma lógica do backend diretamente no front-end como fallback
-          const calcularFrete = (peso: number) => {
-            if (peso >= 10 && peso <= 30) return { base: 10000, comissao: 1000 };
-            if (peso >= 31 && peso <= 50) return { base: 15000, comissao: 1500 };
-            if (peso >= 51 && peso <= 70) return { base: 20000, comissao: 2000 };
-            if (peso >= 71 && peso <= 100) return { base: 25000, comissao: 2500 };
-            if (peso >= 101 && peso <= 300) return { base: 35000, comissao: 3500 };
-            if (peso >= 301 && peso <= 500) return { base: 50000, comissao: 5000 };
-            if (peso >= 501 && peso <= 1000) return { base: 80000, comissao: 8000 };
-            if (peso >= 1001 && peso <= 2000) return { base: 120000, comissao: 12000 };
-            return { base: 0, comissao: 0 };
-          };
-          
-          const frete = calcularFrete(pesoTotalCalculado);
-          freteCalculado = frete.base;
-          comissaoCalculada = frete.comissao;
-          totalCalculado = subtotalCalculado + freteCalculado + comissaoCalculada;
-          
-          console.log("Usando cálculo de fallback:");
-          console.log("Frete calculado:", freteCalculado);
-          console.log("Comissão calculada:", comissaoCalculada);
-          console.log("Total final calculado:", totalCalculado);
-          
-          setFreteTotal(freteCalculado);
-          setComissaoTotal(comissaoCalculada);
-          setTotalFinal(totalCalculado);
-          setCalculoRealizado(true);
-        }
-      } else {
-        resetarTotais();
-      }
-    } catch (error) {
-      console.log("Erro ao calcular preço total:", error);
-      // Caso haja erro, mantemos os valores atuais
+  // Função para atualizar o Função para atualizar o cálculo de preço total usando a API
+const atualizarCalculoPrecoTotal = async (produtosAtuais: Produto[]) => {
+  try {
+    // Resetamos os valores para não acumular de cálculos anteriores
+    let freteCalculado = 0;
+    let comissaoCalculada = 0;
+    let totalCalculado = 0;
+    
+    // Calculamos o subtotal dos produtos
+    const subtotalCalculado = produtosAtuais.reduce((total: number, produto: Produto) => {
+      const preco = produto.preco ? parseFloat(produto.preco.toString()) : 0;
+      const quantidade = produto.quantidade || 0;
+      return total + (preco * quantidade);
+    }, 0);
+    
+    // Já recebendo o peso total do backend, não precisamos calculá-lo novamente
+    // Atualizamos apenas o estado do subtotal
+    setSubtotal(subtotalCalculado);
+    
+    // Se o peso total for menor que 10kg, não há frete e comissão conforme sua lógica de negócio
+    if (pesoTotal < 10) {
+      setFreteTotal(0);
+      setComissaoTotal(0);
+      // O total final neste caso é apenas o subtotal
+      setTotalFinal(subtotalCalculado);
+      setCalculoRealizado(true);
+      return;
     }
-  };
+    
+    // Adicionamos um timeout para a chamada da API para evitar que ela fique pendente eternamente
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Tempo esgotado ao calcular preço')), 5000);
+    });
+    
+    // Chamamos a API apenas uma vez com o primeiro produto e o peso total
+    // para obter os valores de frete e comissão
+    if (produtosAtuais.length > 0) {
+      try {
+        const produtoReferencia = produtosAtuais[0];
+        const produtoId = produtoReferencia.id_produtos || produtoReferencia.id;
+        
+        // Usamos Promise.race para implementar um timeout na chamada da API
+        const resultado: any = await Promise.race([
+          calcularPrecoProduto(
+            String(produtoId), 
+            1, // Quantidade fixa para cálculo
+            pesoTotal // Usamos o peso total que já vem do backend
+          ),
+          timeoutPromise
+        ]);
+        
+        // Obtemos os valores de frete e comissão da API
+        freteCalculado = resultado.frete || 0;
+        comissaoCalculada = resultado.comissao || 0;
+        
+        // O total final é a soma do subtotal (já calculado) + frete + comissão
+        totalCalculado = subtotalCalculado + freteCalculado + comissaoCalculada;
+        
+        console.log("Resultados do cálculo da API:");
+        console.log("Frete calculado:", freteCalculado);
+        console.log("Comissão calculada:", comissaoCalculada);
+        console.log("Total final calculado:", totalCalculado);
+        
+        // Atualizar os estados com os valores vindos da API
+        setFreteTotal(freteCalculado);
+        setComissaoTotal(comissaoCalculada);
+        setTotalFinal(totalCalculado);
+        setCalculoRealizado(true);
+      } catch (apiError) {
+        console.log("Erro durante chamada da API:", apiError);
+        
+        // Cálculo alternativo caso a API falhe
+        // Implementando a mesma lógica do backend diretamente no front-end como fallback
+        const calcularFrete = (peso: number) => {
+          if (peso >= 10 && peso <= 30) return { base: 10000, comissao: 1000 };
+          if (peso >= 31 && peso <= 50) return { base: 15000, comissao: 1500 };
+          if (peso >= 51 && peso <= 70) return { base: 20000, comissao: 2000 };
+          if (peso >= 71 && peso <= 100) return { base: 25000, comissao: 2500 };
+          if (peso >= 101 && peso <= 300) return { base: 35000, comissao: 3500 };
+          if (peso >= 301 && peso <= 500) return { base: 50000, comissao: 5000 };
+          if (peso >= 501 && peso <= 1000) return { base: 80000, comissao: 8000 };
+          if (peso >= 1001 && peso <= 2000) return { base: 120000, comissao: 12000 };
+          return { base: 0, comissao: 0 };
+        };
+        
+        const frete = calcularFrete(pesoTotal);
+        freteCalculado = frete.base;
+        comissaoCalculada = frete.comissao;
+        totalCalculado = subtotalCalculado + freteCalculado + comissaoCalculada;
+        
+        console.log("Usando cálculo de fallback:");
+        console.log("Frete calculado:", freteCalculado);
+        console.log("Comissão calculada:", comissaoCalculada);
+        console.log("Total final calculado:", totalCalculado);
+        
+        setFreteTotal(freteCalculado);
+        setComissaoTotal(comissaoCalculada);
+        setTotalFinal(totalCalculado);
+        setCalculoRealizado(true);
+      }
+    } else {
+      resetarTotais();
+    }
+  } catch (error) {
+    console.log("Erro ao calcular preço total:", error);
+    // Caso haja erro, mantemos os valores atuais
+  }
+};
+
 
   useEffect(() => {
     carregarProdutos();
