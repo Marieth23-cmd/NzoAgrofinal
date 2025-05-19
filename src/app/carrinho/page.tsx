@@ -260,7 +260,7 @@ const atualizarCalculoPrecoTotal = async (produtosAtuais: Produto[]) => {
       }
       
       if (novaQuantidade > quantidadeDisponivel) {
-        setErrorMessage(`Não é possível adicionar mais que ${quantidadeDisponivel} ${getUnidade(produtoSelecionado)}`);
+        setErrorMessage(`Não é possível adicionar mais que ${quantidadeDisponivel} ${produtoSelecionado?.Unidade || "unidade"}`);
         return;
       }
       
