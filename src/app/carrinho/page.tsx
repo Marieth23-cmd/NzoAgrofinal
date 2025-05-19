@@ -23,23 +23,22 @@ interface Produto {
   preco: number;
   quantidade: number;
   peso_kg?: number;
-  categoria: string;
   foto_produto?: string;
   quantidade_estoque?: number;
   estoque_atual?: number;
   Unidade?: string; // Adicionado campo para unidade real
+  unidade_estoque?:string
+
+ 
+
 }
 
-// Função para obter a unidade baseada na categoria ou usar a unidade real
-const getUnidade = (produto: Produto): string => {
-  // Se o produto tiver uma unidade definida, usar essa
-  if (produto.Unidade) {
-    return produto.Unidade;
-  }
+
+  const getUnidade = (produto: Produto) => produto.Unidade || 'unidade';
   
   // Caso contrário, inferir baseado na categoria
   switch (produto.categoria?.toLowerCase()) {
-    case 'verduras':
+    case 'verduras':          
     case 'legumes':
     case 'frutas':
       return 'kg';
@@ -229,7 +228,7 @@ export default function Carrinho() {
           setTotalFinal(totalCalculado);
           setCalculoRealizado(true);
         } catch (apiError) {
-          console.error("Erro durante chamada da API:", apiError);
+          console.log("Erro durante chamada da API:", apiError);
           
           // Cálculo alternativo caso a API falhe
           // Implementando a mesma lógica do backend diretamente no front-end como fallback
@@ -443,9 +442,9 @@ export default function Carrinho() {
                 <div className="flex-1 py-0 px-4 relative">
                   <h3 className="font-bold mb-2">{produto.nome}</h3>
                   <p className="font-bold text-marieth">
-                    Kzs {parseFloat(produto.preco.toString()).toFixed(2)}/{getUnidade(produto)}
+                    Kzs {parseFloat(produto.preco.toString()).toFixed(2)}/{produto.quantidade}{getUnidade(produto)}
                   </p>
-                  <p>Quantidade: <span className="font-semibold">{produto.quantidade}</span> {getUnidade(produto)}</p>
+                  <p>Estoque: <span className="font-semibold">{produto.quantidade_estoque}{produto.unidade_estoque}</p>
                   <p>Subtotal: <span className="font-bold">Kzs {(parseFloat(produto.preco.toString()) * produto.quantidade).toFixed(2)}</span></p>
                   {produto.peso_kg && (
                     <p>Peso: {(parseFloat(produto.peso_kg.toString()) * produto.quantidade).toFixed(2)} kg</p>
