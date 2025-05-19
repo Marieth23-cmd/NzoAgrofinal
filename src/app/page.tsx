@@ -172,7 +172,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="w-full max-w-[1200px] mb-0">
+        <section className="w-full max-w-[1200px] mb-20">
           <h2 className="text-center text-2xl font-bold mb-6">Produtos em Destaque</h2>
           
           <div className="relative">
