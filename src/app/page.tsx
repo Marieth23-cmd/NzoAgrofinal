@@ -111,12 +111,13 @@ export default function Home() {
   const showRightButton = scrollPosition < maxScroll;
 
   return (
-    <div>
+    <div className="flex flex-col min-h-screen overflow-x-hidden">
+     <div className="fixed top-0 left-0 w-full z-50">
       <Navbar />
-     
+      </div>
       {/* Imagem de fundo com ajuste de altura */}
       {/* Container com largura total e centralização forçada */}
-      <div className="flex flex-col min-h-screen overflow-x-hidden backgroundimage w-full justify-center mt-[20%] sm:mt-[5%] md:mt-[10%] lg:mt-[15%]">
+      <div className="backgroundimage w-full flex justify-center mt-[20%] sm:mt-[5%]  md:mt-[10%]  lg:mt-[15%]">
         {/* Container interno com largura controlada */}
         <div className="w-full max-w-3xl px-4 flex flex-col items-center">
           <h1 className="text-[1rem] lg:text-[2rem] font-bold text-center w-full">

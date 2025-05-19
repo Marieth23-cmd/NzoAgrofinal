@@ -112,8 +112,7 @@ export default function Carrinho() {
     setTotalFinal(0);
     setCalculoRealizado(false);
   };
-
-  // Função para atualizar o Função para atualizar o cálculo de preço total usando a API
+// Função para atualizar o cálculo de preço total usando a API
 const atualizarCalculoPrecoTotal = async (produtosAtuais: Produto[]) => {
   try {
     // Resetamos os valores para não acumular de cálculos anteriores
@@ -121,19 +120,38 @@ const atualizarCalculoPrecoTotal = async (produtosAtuais: Produto[]) => {
     let comissaoCalculada = 0;
     let totalCalculado = 0;
     
-    // Calculamos o subtotal dos produtos
+    // Primeiro calculamos o subtotal e peso total dos produtos
     const subtotalCalculado = produtosAtuais.reduce((total: number, produto: Produto) => {
       const preco = produto.preco ? parseFloat(produto.preco.toString()) : 0;
       const quantidade = produto.quantidade || 0;
       return total + (preco * quantidade);
     }, 0);
     
-    // Já recebendo o peso total do backend, não precisamos calculá-lo novamente
-    // Atualizamos apenas o estado do subtotal
+    const pesoTotalCalculado = produtosAtuais.reduce((total: number, produto: Produto) => {
+      // Certifique-se que o peso está sendo corretamente lido
+      // Caso peso_kg seja undefined ou null, assume um valor padrão baseado na categoria
+      let peso = produto.peso_kg ? parseFloat(produto.peso_kg.toString()) : 0;
+      
+      // Para debug: imprimir o peso de cada produto individualmente
+      console.log(`Produto ${produto.nome}: peso=${peso}, quantidade=${produto.quantidade}`);
+      
+      // Se peso for zero, atribuai um padrão fixo (exemplo: 1 kg)
+      if (peso === 0) {
+        peso = 1;
+      }
+      
+      const quantidade = produto.quantidade || 0;
+      return total + (peso * quantidade);
+    }, 0);
+        
+    // Atualizar os estados com os valores calculados
     setSubtotal(subtotalCalculado);
+    setPesoTotal(pesoTotalCalculado);
+    
+    console.log("Peso total recalculado:", pesoTotalCalculado);
     
     // Se o peso total for menor que 10kg, não há frete e comissão conforme sua lógica de negócio
-    if (pesoTotal < 10) {
+    if (pesoTotalCalculado < 10) {
       setFreteTotal(0);
       setComissaoTotal(0);
       // O total final neste caso é apenas o subtotal
@@ -159,7 +177,7 @@ const atualizarCalculoPrecoTotal = async (produtosAtuais: Produto[]) => {
           calcularPrecoProduto(
             String(produtoId), 
             1, // Quantidade fixa para cálculo
-            pesoTotal // Usamos o peso total que já vem do backend
+            pesoTotalCalculado // Passamos o peso total como parâmetro adicional
           ),
           timeoutPromise
         ]);
@@ -198,7 +216,7 @@ const atualizarCalculoPrecoTotal = async (produtosAtuais: Produto[]) => {
           return { base: 0, comissao: 0 };
         };
         
-        const frete = calcularFrete(pesoTotal);
+        const frete = calcularFrete(pesoTotalCalculado);
         freteCalculado = frete.base;
         comissaoCalculada = frete.comissao;
         totalCalculado = subtotalCalculado + freteCalculado + comissaoCalculada;
@@ -222,6 +240,7 @@ const atualizarCalculoPrecoTotal = async (produtosAtuais: Produto[]) => {
   }
 };
 
+// Função auxiliar para determinar a unidade do produto (que está faltando no código)
 
   useEffect(() => {
     carregarProdutos();
