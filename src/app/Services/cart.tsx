@@ -152,3 +152,33 @@ export const finalizarCompra = async () => {
     };
   }
 };
+
+
+export const iniciarCheckout = async () => {
+  try {
+    const response = await axios.post(
+      `${API_URL}/carrinho/iniciar-checkout`,
+      {},
+      {
+        withCredentials: true,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+    return response.data;
+  } catch (error:any) {
+    console.log(
+      "Erro ao iniciar checkout:",
+      error.response?.data || error.message
+    );
+    
+    // Verifica se é um erro com resposta da API
+    if (error.response && error.response.data) {
+      throw error.response.data;
+    }
+    
+    // Caso contrário, lança um erro genérico
+    throw {
+      mensagem: "Erro desconhecido ao iniciar o checkout",
+    };
+  }
+};

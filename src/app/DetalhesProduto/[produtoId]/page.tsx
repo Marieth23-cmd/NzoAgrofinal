@@ -16,6 +16,8 @@ import { verificarAuth } from "../../Services/auth";
 import { buscarMediaEstrelas } from "../../Services/avaliacoes";
 import { enviarAvaliacao } from "../../Services/avaliacoes";
 import { adicionarProdutoAoCarrinho } from '@/app/Services/cart';
+import {toast ,ToastContainer} from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export default function DetalhesProduto(){
   const { produtoId } = useParams() as { produtoId: string };
@@ -45,12 +47,13 @@ export default function DetalhesProduto(){
     Unidade: string;
     quantidade: number;
     peso_kg:number ;
+    id_usuario:number;
   };
 
   const [produto, setProduto] = useState<Produto | null>(null);
   const [avaliacoes, setAvaliacoes] = useState<{ [key: number]: number | null }>({});
   const [precoTotal, setPrecoTotal] = useState(0);
-
+  const [usuario , setUsuario] = useState<{id_usuario:number , nome:string} | null>(null);
   // Verificar autenticação quando o componente montar
   useEffect(() => {
     const verificarLogin = async () => {
@@ -179,13 +182,13 @@ export default function DetalhesProduto(){
       }, 3000);
 
     } catch (error: any) {
-      console.error("Erro detalhado ao avaliar:", error);
+      console.log("Erro detalhado ao avaliar:", error);
       
       // Mensagem de erro mais específica baseada na resposta do servidor
       if (error.status === 500) {
-        alert("Erro interno do servidor. Por favor, tente novamente mais tarde.");
+        toast.error("Erro interno do servidor. Tente novamente mais tarde.");
       } else {
-        alert(error.mensagem || "Erro ao enviar avaliação. Tente novamente.");
+        toast.error(error.message || "Erro ao enviar avaliação. Tente novamente.");
       }
     }
   };
@@ -211,7 +214,7 @@ export default function DetalhesProduto(){
 
   const handleAdicionarAoCarrinho = async () => {
     if (!produto || !produtoId) {
-      alert("Erro: Produto não encontrado.");
+      toast.error("Produto não encontrado.");
       return;
     }
 
@@ -220,7 +223,7 @@ export default function DetalhesProduto(){
       const idProdutoNumerico = Number(produtoId);
       if (isNaN(idProdutoNumerico)) {
         console.error("ID do produto inválido:", produtoId);
-        alert("Erro: ID do produto inválido.");
+        toast.error("ID do produto inválido.");
         return;
       }
 
@@ -229,13 +232,13 @@ export default function DetalhesProduto(){
 
       // Verificar se a quantidade é válida
       if (quantidadeSelecionada <= 0) {
-        alert("Por favor, selecione uma quantidade válida.");
+        toast.error("Por favor, selecione uma quantidade válida.");
         return;
       }
       
       // Verificar se não excede o estoque
       if (quantidadeSelecionada > produto.quantidade) {
-        alert("Quantidade selecionada maior que o disponível.");
+        toast.error("Quantidade selecionada maior que o disponível.");
         return;
       }
 
@@ -250,8 +253,8 @@ export default function DetalhesProduto(){
         setMensagemSucesso(null);
       }, 3000);
     } catch (error: any) {
-      console.error("Erro ao adicionar ao carrinho:", error);
-      alert(error.mensagem || "Erro ao adicionar ao carrinho.");
+      console.log("Erro ao adicionar ao carrinho:", error);
+      toast.error( error.message || "Erro ao adicionar ao carrinho. Tente novamente.");
     }
   };
 
@@ -259,12 +262,33 @@ export default function DetalhesProduto(){
     return <div>Carregando...</div>;
   }
 
+  // if (produto.id_usuario !== usuario?.id_usuario) {
+  //   return <div>Produto não encontrado ou você não tem permissão para visualizar.</div>;
+  // }
+
+  useEffect(() => {
+  const verificarLogin = async() => {
+    try {
+      const user = await verificarAuth();
+      setAutenticado(true);
+      setUsuario(user); // user deve ter o ID!
+    } catch (error) {
+      setAutenticado(false);
+    }
+  
+
+};
+  verificarLogin();
+}, []);
+
+
   return(
     <div>
       <Head>
         <title>Detalhes do Produto</title>
       </Head>
       <Navbar/>
+      <ToastContainer position="top-right" autoClose={5000} />
       <div className="mb-20 mt-[45%] lg:mt-[15%]">
         <main className="max-w-[1200px] my-8 mx-auto bg-white p-4 lg:p-8 shadow-custom rounded-[10px]">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-8">
@@ -410,16 +434,21 @@ export default function DetalhesProduto(){
                     </div>
                   )} 
                 
-                <button
-                  onClick={handleAdicionarAoCarrinho}
-                  className="bg-marieth w-full py-2 px-1 border-none mt-4 rounded-[5px] text-white text-[1.2rem] lg:text-[1.5rem] cursor-pointer transition-colors duration-300
-                  hover:bg-verdeaceso mb-2"
-                >
-                  <div className="flex items-center justify-center gap-2">
-                    <CgShoppingCart className="text-[1.5rem] lg:text-[1.8rem]" />
-                    Adicionar ao Carrinho
-                  </div>
-                </button>
+               {usuario && produto.id_usuario !== usuario.id_usuario && (
+          <button
+            onClick={handleAdicionarAoCarrinho}
+            className="bg-marieth w-full py-2 px-1 border-none mt-4 rounded-[5px] text-white text-[1.2rem] lg:text-[1.5rem] cursor-pointer transition-colors duration-300
+            hover:bg-verdeaceso mb-2"
+          >
+            <div className="flex items-center justify-center gap-2">
+              <CgShoppingCart className="text-[1.5rem] lg:text-[1.8rem]" />
+              Adicionar ao Carrinho
+            </div>
+          </button>
+        )}  
+    {usuario && produto.id_usuario === usuario.id_usuario && (
+  <div className="mt-4 text-vermelho font-bold text-center">Você é o dono deste produto!</div>
+        )}
 
                 {mensagemSucesso && (
                   <div className="bg-green-100 text-marieth p-4 rounded mt-4">

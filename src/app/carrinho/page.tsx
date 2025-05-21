@@ -12,8 +12,10 @@ import {
   removerProdutoDoCarrinho, 
   finalizarCompra, 
   calcularPrecoProduto, 
-  esvaziarCarrinho 
+  esvaziarCarrinho ,
+  iniciarCheckout
 } from "../Services/cart";
+
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -47,7 +49,10 @@ export default function Carrinho() {
   const [produtoSelecionado, setProdutoSelecionado] = useState<Produto | null>(null);
   const [loadingFinalizarCompra, setLoadingFinalizarCompra] = useState<boolean>(false);
   const [quantidadeDisponivel, setQuantidadeDisponivel] = useState<number>(0);
-
+  const [isCheckoutIniciado, setIsCheckoutIniciado] = useState(false);
+const [resumoCheckout, setResumoCheckout] = useState(null);
+const [loadingCheckout, setLoadingCheckout] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   // Adicione estados para controlar os totais de maneira mais explícita
   const [freteTotal, setFreteTotal] = useState<number>(0);
   const [comissaoTotal, setComissaoTotal] = useState<number>(0);
@@ -340,33 +345,77 @@ const atualizarCalculoPrecoTotal = async (produtosAtuais: Produto[]) => {
     }
   };
 
-  // Função para finalizar a compra
-  const handleFinalizarCompra = async () => {
-    if (produtos.length === 0) {
-      alert("Seu carrinho está vazio. Adicione produtos antes de finalizar a compra.");
-      return;
-    }
+
+const handleIniciarCheckout = async () => {
+  if (produtos.length === 0) {
+    alert("Seu carrinho está vazio. Adicione produtos antes de finalizar a compra.");
+    return;
+  }
+  
+  if (pesoTotal < 10) {
+    alert("O peso total mínimo para efetivar a compra é de 10kg. Adicione mais produtos.");
+    return;
+  }
+  
+  try {
+    setLoadingCheckout(true);
+    const resposta = await iniciarCheckout();
     
-    if (pesoTotal < 10) {
-      alert("O peso total mínimo para efetivar a compra é de 10kg. Adicione mais produtos.");
-      return;
-    }
+    // Guarda os dados do checkout para mostrar no resumo
+    setResumoCheckout(resposta);
+    setIsCheckoutIniciado(true);
+    toast.success("Checkout iniciado. Confirme seus dados para prosseguir com o pagamento.");
+    router.push("/enderecopedido");
+  } catch (error:any) {
+    console.log("Erro ao iniciar checkout:", error);
+    toast.error(error.mensagem || "Erro ao iniciar o checkout.");
+  } finally {
+    setLoadingCheckout(false);
+  }
+};
+
+// //4. Função para prosseguir com a finalização da compra após checkout iniciado
+// const handleConfirmarCompra = async () => {
+//   try {
+//     setLoadingFinalizarCompra(true);
     
-    try {
-      setLoadingFinalizarCompra(true);
-      const resposta = await finalizarCompra();
-      toast.success(resposta.mensagem || "Compra finalizada com sucesso!");
-      console.log("Resposta da finalização:", resposta);
-      setProdutos([]);
-      resetarTotais();
-      router.push("/enderecopedido"); // Redireciona para página de confirmação
-    } catch (error: any) {
-      console.log("Erro ao finalizar compra:", error);
-      toast.error(error.mensagem || "Erro ao finalizar a compra.");
-    } finally {
-      setLoadingFinalizarCompra(false);
-    }
-  };
+//     // Aqui você pode incluir dados de endereço se necessário
+//     // const dadosEndereco = {}; // Você pode coletar isso de um formulário
+    
+//     const resposta = await finalizarCompra();
+//     toast.success(resposta.mensagem || "Compra finalizada com sucesso!");
+    
+//     setProdutos([]);
+//     resetarTotais();
+//     setIsCheckoutIniciado(false);
+//     setResumoCheckout(null);
+    
+//     // Redireciona para página de endereço/confirmação
+//     router.push("/enderecopedido");
+//   } catch (error:any) {
+//     console.log("Erro ao finalizar compra:", error);
+//     toast.error(error.mensagem || "Erro ao finalizar a compra.");
+//   } finally {
+//     setLoadingFinalizarCompra(false);
+//   }
+// };
+
+// <div className="flex gap-4 justify-end">
+//           <button 
+//             onClick={handleCancelarCheckout}
+//             className="bg-gray-300 py-2 px-4 rounded-[5px] font-medium"
+//             disabled={loadingFinalizarCompra}
+//           >
+//             Voltar
+//           </button>
+          
+// // 5. Função para cancelar o checkout e voltar ao carrinho
+// const handleCancelarCheckout = () => {
+//   setIsCheckoutIniciado(false);
+//   setResumoCheckout(null);
+// };
+
+
 return (
   <>
     <Head>
@@ -476,7 +525,7 @@ return (
 
             <button 
               className={`transition-all ${loadingFinalizarCompra || pesoTotal < 10 ? 'bg-gray-400' : 'hover:bg-verdeaceso bg-marieth'} text-[1.1rem] mt-4 block w-full p-4 text-white border-none rounded-[5px] cursor-pointer`}
-              onClick={handleFinalizarCompra}
+              onClick={handleIniciarCheckout}
               disabled={produtos.length === 0 || loadingFinalizarCompra || pesoTotal < 10}
             >
               {loadingFinalizarCompra ? 'Processando...' : 'Finalizar Compra'}

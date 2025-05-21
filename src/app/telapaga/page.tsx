@@ -61,7 +61,7 @@ export default function PagamentoPage() {
   return (
     <main className="flex flex-col min-h-screen">
       <Navbar />
-      <div className="flex-grow mb-20 mt-[40%] md:mt-[20%] lg:mt-[15%]">
+      <div className="flex-grow mb-20 mt-[40%] md:mt-[30%] lg:mt-[15%]">
         <div className="min-h-screen flex items-center justify-center bg-white p-2 sm:p-4">
           <div className="w-full max-w-[800px] bg-white rounded-2xl shadow-md p-4 sm:p-6 md:p-8">
             <div className="text-center mb-6">

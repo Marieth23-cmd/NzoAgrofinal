@@ -174,7 +174,7 @@ export default function Localizacao() {
       </Head>
       <Navbar />
       
-    <div className="flex justify-center items-center min-h-screen bg-gray-100 p-4 mt-[30%] sm:mt-[5%] md:mt-[10%] lg:mt-[15%] mb-20">
+    <div className="flex justify-center items-center min-h-screen bg-gray-100 p-4 mt-[35%] sm:mt-[5%] md:mt-[10%] lg:mt-[15%] mb-20">
       <div className="bg-white rounded-2xl p-6 shadow-lg w-full max-w-xl">
         <div className="text-center mb-6">
           <h1 className="text-2xl font-bold text-marieth">Localização de Entrega</h1>

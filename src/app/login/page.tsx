@@ -36,7 +36,7 @@ export default function Login() {
             const tipoUsuario = response.tipo_usuario?.trim().toLowerCase() || "";
             console.log("Tipo de usuário detectado:", tipoUsuario);
             
-            if (tipoUsuario === "administrador") {
+            if (tipoUsuario === "Administrador") {
                 toast.success("Login realizado com sucesso! Redirecionando para área administrativa...");
                 console.log("Redirecionando para /Administrador");
                 
