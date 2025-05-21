@@ -325,13 +325,16 @@ export default function DetalhesProduto(){
                 
 
                 <div>
-                  <button 
+                  {usuario && produto.id_usuario !== usuario.id_usuario && (
+                    <button 
                     className="hover:bg-verdeaceso bg-marieth rounded-[5px] cursor-pointer text-white p-2 text-[0.9rem] border-none bottom-4 mb-4"
                     onClick={handleBotaoMaisMenos}
                   >
                     Alterar Quantidade
-                  </button>
-              
+                  </button>)}
+                  {usuario && produto.id_usuario === usuario.id_usuario && (
+                      <div className="sr-only">não pode aparecer</div> )}
+                  
                   <div className="flex items-center gap-4 p-3 lg:p-4 mb-2 rounded-[10px] bg-pretobranco">
                     <div className="flex w-[50px] h-[50px] lg:w-[60px] lg:h-[60px] rounded-[50%] items-center justify-center bg-back">
                       <AiFillHome/>
