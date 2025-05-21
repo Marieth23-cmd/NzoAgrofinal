@@ -23,7 +23,7 @@ export default function Vitrine() {
     quantidade: number;
     Unidade: string;
     preco: number;
-    id_usuario: number;
+    idUsuario: number;
   }
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [visibleCount, setVisibleCount] = useState(12);
@@ -39,9 +39,20 @@ export default function Vitrine() {
   useEffect(() => {
     async function fetchProdutos() {
       try {
-        const data = await getProdutos();
-        setProdutos(data);
-        
+         const data = await getProdutos();
+      
+      // Garantir que cada produto tenha idUsuario como número
+      const produtosFormatados = data.map((produto: any) => ({
+        ...produto,
+        idUsuario: Number(produto.idUsuario) || 0
+      }));
+      
+      console.log("Produtos formatados com idUsuario:", produtosFormatados);
+      setProdutos(produtosFormatados);
+      setCarregando(false);
+
+
+
         // Buscar avaliações para cada produto
         setCarregandoAvaliacoes(true);
         const avaliacaoData: { [key: number]: number | null } = {};
@@ -69,20 +80,40 @@ export default function Vitrine() {
   }, []);
 
   // Verificar autenticação do usuário
-  useEffect(() => {
-    const verificarLogin = async () => {
-      try {
-        const user = await verificarAuth();
-        setAutenticado(true);
-        setUsuario(user);
-      } catch (error) {
+useEffect(() => {
+  const verificarLogin = async () => {
+    try {
+      const user = await verificarAuth();
+      
+      if (!user || typeof user !== 'object') {
+        console.log("Dados do usuário inválidos:", user);
         setAutenticado(false);
         setUsuario(null);
+        return;
       }
-    };
+      
+      console.log("Dados completos do usuário:", user);
+      setAutenticado(true);
+      
+      // Garantir que o ID do usuário seja um número
+      setUsuario({
+        id_usuario: Number(user.id_usuario) || 0,
+        nome: user.nome || ''
+      });
+      
+      console.log("Usuário definido:", {
+        id_usuario: Number(user.id_usuario) || 0,
+        nome: user.nome || ''
+      });
+    } catch (error) {
+      console.log("Erro na autenticação:", error);
+      setAutenticado(false);
+      setUsuario(null);
+    }
+  };
 
-    verificarLogin();
-  }, []);
+  verificarLogin();
+}, []);
 
   const mostrarMaisProdutos = () => {
     setVerMaisClicado(true);
@@ -119,8 +150,21 @@ export default function Vitrine() {
 
   // Função para verificar se o usuário é o dono de um produto
   const isOwner = (produto: Produto) => {
-    return usuario && usuario.id_usuario === produto.id_usuario;
-  };
+  console.log("Verificando propriedade do produto na vitrine:");
+  console.log("ID do usuário logado:", usuario?.id_usuario);
+  console.log("ID do dono do produto:", produto.idUsuario);
+  
+  // Converter IDs para número antes de comparar
+  const userID = Number(usuario?.id_usuario) || 0;
+  const produtoOwnerID = Number(produto.idUsuario) || 0;
+  
+  console.log("ID do usuário (numérico):", userID);
+  console.log("ID do dono do produto (numérico):", produtoOwnerID);
+  
+  // Verificar se os IDs são válidos e iguais
+  return userID > 0 && produtoOwnerID > 0 && userID === produtoOwnerID;
+};
+
 
   return (
     <div className="min-h-screen flex flex-col">

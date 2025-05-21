@@ -1,5 +1,6 @@
 import axios from "axios";
 
+
 console.log('API URL:', process.env.NEXT_PUBLIC_API_URL)
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"
 console.log('API URL:', API_URL)
@@ -60,8 +61,23 @@ export const verificarAuth = async (): Promise<any> => {
             withCredentials: true,
         });
 
-        console.log("Resposta da API de autenticação:", response.data);
-        return response.data;
+    console.log("Resposta da API de autenticação:", response.data);
+
+    const data = response.data;
+    // Verifica se a resposta contém o id_usuario
+    if (!data || !data.id_usuario) {
+        console.error("API de autenticação não retornou id_usuario:", data);
+        throw new Error("Dados de usuário incompletos");
+    }
+
+    // Logar tipo de usuário para debug
+    console.log("Tipo de usuário:", data.tipo_usuario);
+
+    return {
+        id_usuario: Number(data.id_usuario),
+        nome: data.nome || '',
+        tipo_usuario: data.tipo_usuario || ''
+    };
 
     } catch (error: any) {
         console.log("Erro ao verificar autenticação:");

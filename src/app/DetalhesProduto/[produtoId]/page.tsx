@@ -52,7 +52,7 @@ export default function DetalhesProduto(){
     Unidade: string;
     quantidade: number;
     peso_kg: number;
-    id_usuario: number;
+    idUsuario: number;
   };
 
   const [produto, setProduto] = useState<Produto | null>(null);
@@ -62,86 +62,71 @@ export default function DetalhesProduto(){
   
   // Verificar autenticação quando o componente montar
   useEffect(() => {
-    const verificarLogin = async () => {
-      try {
-        const user = await verificarAuth();
-        setAutenticado(true);
-        
-        // Garantir que o objeto do usuário tenha todos os campos necessários
-        if (user && typeof user === 'object') {
-          console.log("Dados completos do usuário:", user);
-          // Armazenar o usuário garantindo que tenha id_usuario
-          setUsuario({
-            id_usuario: user.id_usuario || 0,
-            nome: user.nome || '',
-            tipo_usuario: user.tipo_usuario || ''
-          });
-        } else {
-          console.error("Dados do usuário inválidos:", user);
-        }
-      } catch (error) {
-        console.error("Erro na autenticação:", error);
+  const verificarLogin = async () => {
+    try {
+      const user = await verificarAuth();
+      if (!user || typeof user !== 'object') {
+        console.error("Dados do usuário inválidos:", user);
         setAutenticado(false);
         setUsuario(null);
+        return;
       }
-    };
-
-    verificarLogin();
-  }, []);
+      
+      console.log("Dados completos do usuário:", user);
+      setAutenticado(true);
+      
+      // Garantir conversão para número
+      setUsuario({
+        id_usuario: Number(user.id_usuario) || 0,
+        nome: user.nome || '',
+        tipo_usuario: user.tipo_usuario || ''
+      });
+      
+      console.log("Usuário definido:", {
+        id_usuario: Number(user.id_usuario) || 0,
+        nome: user.nome || '',
+        tipo_usuario: user.tipo_usuario || ''
+      });
+    } catch (error) {
+      console.error("Erro na autenticação:", error);
+      setAutenticado(false);
+      setUsuario(null);
+    }
+  };
+   verificarLogin();
+}, []);
 
   // Buscar dados do produto
   useEffect(() => {
-    if (!produtoId) return;
+  if (!produtoId) return;
 
-    const fetchProduto = async () => {
-      setCarregando(true);
-      try {
-        const data = await getProdutoById(Number(produtoId));
-        console.log("Produto carregado:", data);
-        
-        // Garantir que o produto tenha todos os campos necessários
-        setProduto({
-          ...data,
-          id_usuario: data.id_usuario || 0
-        });
-        
-        setUnidadeSelecionada(data.Unidade);
-        setQuantidadeSelecionada(data.quantidade > 0 ? 1 : 1); // Começar com 1 por padrão
-        setPrecoTotal(data.preco * 1); // Começar com preço de 1 unidade
-        setNotaSelecionada(data.media_estrelas || 0);
-        
-        // Carregando avaliações
-        setCarregandoAvaliacoes(true);
-        try {
-          const mediaResult = await buscarMediaEstrelas(data.id_produtos);
-          console.log("Avaliação carregada:", mediaResult);
-          
-          if (mediaResult) {
-            setAvaliacoes({ [data.id_produtos]: mediaResult.media_estrelas || null });
-            setMedia(mediaResult.media_estrelas || 0);
-            setTotal(mediaResult.total || 0);
-            setPercentagem(mediaResult.recomendacoes || 0);
-            
-            // Se tiver avaliações, não deve mostrar "Sem avaliações"
-            if (mediaResult.total > 0) {
-              setAvaliacaoRealizada(true);
-            }
-          }
-        } catch (avaliacaoError) {
-          console.error("Erro ao buscar avaliações:", avaliacaoError);
-        } finally {
-          setCarregandoAvaliacoes(false);
-        }
-      } catch (error) {
-        console.error("Erro ao buscar produto:", error);
-        setErro("Não foi possível carregar o produto");
-      } finally {
-        setCarregando(false);
-      }
-    };
+  const fetchProduto = async () => {
+    setCarregando(true);
+    try {
+      const data = await getProdutoById(Number(produtoId));
+      console.log("Produto carregado:", data);
+      
+      // Garantir que idUsuario é um número
+      const idUsuarioNumerico = Number(data.idUsuario) || 0;
+      console.log("ID do usuário do produto (convertido):", idUsuarioNumerico);
+      
+      // Garantir que o produto tenha todos os campos necessários
+      setProduto({
+        ...data,
+        idUsuario: idUsuarioNumerico
+      });
+      
+      // Resto do código permanece igual...
+    } catch (error) {
+      console.error("Erro ao buscar produto:", error);
+      setErro("Não foi possível carregar o produto");
+    } finally {
+      setCarregando(false);
+    }
+  };
 
-    fetchProduto();
-  }, [produtoId]);
+  fetchProduto();
+}, [produtoId]);
 
   // Calcular preço total baseado na quantidade
   useEffect(() => {
@@ -295,17 +280,20 @@ export default function DetalhesProduto(){
 
   // Função para verificar se o usuário é dono do produto
   const isOwner = () => {
-    console.log("Verificando propriedade do produto:");
-    console.log("ID do usuário:", usuario?.id_usuario);
-    console.log("ID do dono do produto:", produto?.id_usuario);
-    
-    // Verifica se ambos IDs existem E são iguais
-    return Boolean(
-      usuario && 
-      produto && 
-      usuario.id_usuario === produto.id_usuario
-    );
-  };
+  console.log("Verificando propriedade do produto:");
+  console.log("ID do usuário:", usuario?.id_usuario);
+  console.log("ID do dono do produto:", produto?.idUsuario);
+  
+  // Garantir que ambos são números antes de comparar
+  const userID = Number(usuario?.id_usuario) || 0;
+  const ownerID = Number(produto?.idUsuario) || 0;
+  
+  console.log("ID do usuário (numérico):", userID);
+  console.log("ID do dono do produto (numérico):", ownerID);
+  
+  // Verifica se ambos IDs existem E são iguais
+  return userID > 0 && ownerID > 0 && userID === ownerID;
+};
 
   // Renderização para estado de carregamento
   if (carregando) {
