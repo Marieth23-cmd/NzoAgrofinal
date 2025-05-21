@@ -58,7 +58,7 @@ export default function DetalhesProduto(){
   const [produto, setProduto] = useState<Produto | null>(null);
   const [avaliacoes, setAvaliacoes] = useState<{ [key: number]: number | null }>({});
   const [precoTotal, setPrecoTotal] = useState(0);
-  const [usuario, setUsuario] = useState<{id_usuario:number, nome:string} | null>(null);
+  const [usuario, setUsuario] = useState<{id_usuario: number, nome: string, tipo_usuario?: string} | null>(null);
   
   // Verificar autenticação quando o componente montar
   useEffect(() => {
@@ -66,8 +66,21 @@ export default function DetalhesProduto(){
       try {
         const user = await verificarAuth();
         setAutenticado(true);
-        setUsuario(user);
+        
+        // Garantir que o objeto do usuário tenha todos os campos necessários
+        if (user && typeof user === 'object') {
+          console.log("Dados completos do usuário:", user);
+          // Armazenar o usuário garantindo que tenha id_usuario
+          setUsuario({
+            id_usuario: user.id_usuario || 0,
+            nome: user.nome || '',
+            tipo_usuario: user.tipo_usuario || ''
+          });
+        } else {
+          console.error("Dados do usuário inválidos:", user);
+        }
       } catch (error) {
+        console.error("Erro na autenticação:", error);
         setAutenticado(false);
         setUsuario(null);
       }
@@ -85,10 +98,16 @@ export default function DetalhesProduto(){
       try {
         const data = await getProdutoById(Number(produtoId));
         console.log("Produto carregado:", data);
-        setProduto(data);
+        
+        // Garantir que o produto tenha todos os campos necessários
+        setProduto({
+          ...data,
+          id_usuario: data.id_usuario || 0
+        });
+        
         setUnidadeSelecionada(data.Unidade);
-        setQuantidadeSelecionada(data.quantidade > 0 ? data.quantidade : 1); // Garantir uma quantidade mínima
-        setPrecoTotal(data.preco * data.quantidade);
+        setQuantidadeSelecionada(data.quantidade > 0 ? 1 : 1); // Começar com 1 por padrão
+        setPrecoTotal(data.preco * 1); // Começar com preço de 1 unidade
         setNotaSelecionada(data.media_estrelas || 0);
         
         // Carregando avaliações
@@ -217,7 +236,11 @@ export default function DetalhesProduto(){
       // Verificar se ainda está autenticado
       const user = await verificarAuth();
       setAutenticado(true);
-      setUsuario(user);
+      setUsuario({
+        id_usuario: user.id_usuario || 0,
+        nome: user.nome || '',
+        tipo_usuario: user.tipo_usuario || ''
+      });
       setshowcaixa(true); 
     } catch (error) {
       setAutenticado(false);
@@ -272,7 +295,16 @@ export default function DetalhesProduto(){
 
   // Função para verificar se o usuário é dono do produto
   const isOwner = () => {
-    return produto && usuario && usuario.id_usuario === produto.id_usuario;
+    console.log("Verificando propriedade do produto:");
+    console.log("ID do usuário:", usuario?.id_usuario);
+    console.log("ID do dono do produto:", produto?.id_usuario);
+    
+    // Verifica se ambos IDs existem E são iguais
+    return Boolean(
+      usuario && 
+      produto && 
+      usuario.id_usuario === produto.id_usuario
+    );
   };
 
   // Renderização para estado de carregamento
@@ -309,6 +341,9 @@ export default function DetalhesProduto(){
       </div>
     );
   }
+
+  // Verifica uma vez fora da renderização condicional 
+  const userIsOwner = isOwner();
 
   return(
     <div>
@@ -356,7 +391,7 @@ export default function DetalhesProduto(){
                 
                 {/* Exibir preço e unidade corretamente */}
                 <div className="text-[1.4rem] lg:text-[1.8rem] font-bold text-marieth">
-                  <span>{produto.preco} AOA/{produto.quantidade}{produto.Unidade}</span> 
+                  <span>{produto.preco} AOA/{produto.Unidade}</span> 
                 </div>
 
                 <div className="text-[1rem] lg:text-[1.8rem] font-bold text-profile">
@@ -365,7 +400,25 @@ export default function DetalhesProduto(){
                 
                 <div>
                   {autenticado ? (
-                    !isOwner() ? (
+                    userIsOwner ? (
+                      <>
+                        <div className="mt-4 text-vermelho font-bold text-center">Você é o dono deste produto!</div>
+                        
+                        <div className="flex items-center gap-4 p-3 lg:p-4 mb-2 rounded-[10px] bg-pretobranco">
+                          <div className="flex w-[50px] h-[50px] lg:w-[60px] lg:h-[60px] rounded-[50%] items-center justify-center bg-back">
+                            <AiFillHome/>
+                          </div>
+                          <div>
+                            <h3>{produto.nome}</h3>
+                            <div className="flex items-center gap-2 text-cortexto text-sm lg:text-base">
+                              <CiLocationOn/>
+                              <span>{produto.provincia}</span>
+                              <span>/Angola</span>
+                            </div>
+                          </div>
+                        </div>
+                      </>
+                    ) : (
                       <>
                         <button 
                           className="hover:bg-verdeaceso bg-marieth rounded-[5px] cursor-pointer text-white p-2 text-[0.9rem] border-none bottom-4 mb-4"
@@ -388,30 +441,12 @@ export default function DetalhesProduto(){
                           </div>
                         </div>
                       </>
-                    ) : (
-                      <>
-                        <div className="mt-4 text-vermelho font-bold text-center">Você é o dono deste produto!</div>
-                        
-                        <div className="flex items-center gap-4 p-3 lg:p-4 mb-2 rounded-[10px] bg-pretobranco">
-                          <div className="flex w-[50px] h-[50px] lg:w-[60px] lg:h-[60px] rounded-[50%] items-center justify-center bg-back">
-                            <AiFillHome/>
-                          </div>
-                          <div>
-                            <h3>{produto.nome}</h3>
-                            <div className="flex items-center gap-2 text-cortexto text-sm lg:text-base">
-                              <CiLocationOn/>
-                              <span>{produto.provincia}</span>
-                              <span>/Angola</span>
-                            </div>
-                          </div>
-                        </div>
-                      </>
                     )
                   ) : (
                     <>
                       <button 
                         className="hover:bg-verdeaceso bg-marieth rounded-[5px] cursor-pointer text-white p-2 text-[0.9rem] border-none bottom-4 mb-4"
-                        onClick={() => router.push("/Login")}
+                        onClick={() => router.push("/login")}
                       >
                         Faça login para comprar
                       </button>
@@ -507,7 +542,7 @@ export default function DetalhesProduto(){
                   )} 
                 
                   {autenticado ? (
-                    !isOwner() ? (
+                    !userIsOwner ? (
                       <button
                         onClick={handleAdicionarAoCarrinho}
                         className="bg-marieth w-full py-2 px-1 border-none mt-4 rounded-[5px] text-white text-[1.2rem] lg:text-[1.5rem] cursor-pointer transition-colors duration-300

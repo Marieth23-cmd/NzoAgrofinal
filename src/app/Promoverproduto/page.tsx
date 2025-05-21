@@ -4,74 +4,78 @@ import React, { useState, useEffect } from 'react';
 import Navbar from '../Components/Navbar';
 import Footer from '../Components/Footer';
 import { useRouter } from 'next/navigation';
-import { obterPacotesDestaque, destacarProduto } from '../Services/produtos';
-import Image from 'next/image'; 
+import { obterPacotesDestaque, destacarProduto, getProdutoById } from '../Services/produtos';
+import Image from 'next/image';
+
+type Pacote = { dias: number; valor: number; descricao: string };
+type ProdutoInfo = { id: number; nome: string; [key: string]: any };
 
 const PromoPage = () => {
   const router = useRouter();
   const [produtoId, setProdutoId] = useState<number | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [produtoInfo, setProdutoInfo] = useState<ProdutoInfo | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [pacotes, setPacotes] = useState([
+  // Pacotes de destaque padrão (fallback caso a API falhe)
+  const [pacotes, setPacotes] = useState<Pacote[]>([
     { dias: 3, valor: 6000, descricao: "Pacote básico - 3 dias de destaque" },
     { dias: 5, valor: 8000, descricao: "Pacote intermediário - 5 dias de destaque" },
     { dias: 7, valor: 10000, descricao: "Pacote avançado - 7 dias de destaque" },
     { dias: 30, valor: 20000, descricao: "Pacote premium - 30 dias de destaque" }
   ]);
 
-  useEffect(() => {
-    // Função para extrair parâmetros da URL
-    const getURLParams = () => {
-      // No ambiente do navegador, use window.location
-      if (typeof window !== 'undefined') {
-        const searchParams = new URLSearchParams(window.location.search);
-        return searchParams;
-      }
-      return new URLSearchParams('');
-    };
-
-    // Obter e validar o ID do produto
-    const carregarIdProduto = () => {
-      const searchParams = getURLParams();
+  // Função para extrair parâmetros da URL e carregar produto
+  const carregarIdProduto = () => {
+    if (typeof window !== 'undefined') {
+      const searchParams = new URLSearchParams(window.location.search);
       const id = searchParams.get('produtoId');
-      
-      console.log('ID bruto da URL:', id);
-      
       if (!id) {
         setError('ID do produto não fornecido. Selecione um produto para destacar.');
         return;
       }
-      
+
       const parsedId = parseInt(id);
       console.log('ID convertido:', parsedId);
-      
+
       if (isNaN(parsedId) || parsedId <= 0) {
         setError('ID do produto inválido. Por favor, selecione um produto válido.');
         return;
       }
-      
+
       setProdutoId(parsedId);
-      console.log('ID do produto definido com sucesso:', parsedId);
-    };
 
-    // Carregar pacotes da API
-    const carregarPacotes = async () => {
-      try {
-        const data = await obterPacotesDestaque();
-        if (data && data.length > 0) {
-          setPacotes(data);
-          console.log('Pacotes carregados com sucesso:', data);
-        }
-      } catch (error) {
-        console.error('Erro ao carregar pacotes:', error);
+      // Buscar informações do produto
+      carregarInfoProduto(parsedId);
+    }
+  };
+
+  // Carregar informações do produto
+  const carregarInfoProduto = async (id: number) => {
+    try {
+      const infoProduto = await getProdutoById(id);
+      setProdutoInfo(infoProduto);
+      console.log('Informações do produto carregadas:', infoProduto);
+    } catch (error) {
+      console.error('Erro ao carregar informações do produto:', error);
+      setError('Não foi possível carregar as informações do produto.');
+    }
+  };
+
+  // Carregar pacotes da API
+  const carregarPacotes = async () => {
+    try {
+      const data = await obterPacotesDestaque();
+      if (data && data.length > 0) {
+        setPacotes(data);
+        console.log('Pacotes carregados com sucesso:', data);
       }
-    };
+    } catch (error) {
+      console.error('Erro ao carregar pacotes:', error);
+      // Os pacotes padrão já estão definidos no estado inicial
+    }
+  };
 
-    // Executar as funções
-    carregarIdProduto();
-    carregarPacotes();
-  }, []);
-
+  // Selecionar pacote
   const selectPackage = async (dias: number) => {
     if (!produtoId) {
       setError('Selecione um produto antes de escolher um pacote');
@@ -86,16 +90,16 @@ const PromoPage = () => {
       // Chamar a API para destacar o produto
       const resposta = await destacarProduto(produtoId, dias);
       console.log('Resposta da API de destaque:', resposta);
-      
+
       if (!resposta || !resposta.idPagamento) {
         throw new Error('ID de pagamento não retornado pela API');
       }
-      
+
       // Redirecionar para a página de pagamento
       console.log(`Redirecionando para pagamento ID: ${resposta.idPagamento}`);
       router.push(`/pagdestacar/${resposta.idPagamento}`);
     } catch (error: any) {
-      console.error('Erro ao destacar produto:', error);
+      console.log('Erro ao destacar produto:', error);
       setError(error?.mensagem || 'Erro ao processar solicitação de destaque');
     } finally {
       setLoading(false);
@@ -111,6 +115,12 @@ const PromoPage = () => {
       maximumFractionDigits: 0
     }).format(valor).replace('AOA', 'Kz');
   };
+
+  useEffect(() => {
+    carregarIdProduto();
+    carregarPacotes();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div>
@@ -130,7 +140,17 @@ const PromoPage = () => {
             <p className="text-gray-600 text-lg max-w-xl mx-auto">
               Escolha o melhor pacote promocional e aumente a visibilidade dos seus produtos na nossa plataforma
             </p>
-            {produtoId && (
+            {produtoId && produtoInfo && (
+              <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                <p className="text-green-800 font-medium">
+                  Produto selecionado: {produtoInfo.nome}
+                </p>
+                <p className="text-sm text-green-600">
+                  ID: {produtoId}
+                </p>
+              </div>
+            )}
+            {produtoId && !produtoInfo && !error && (
               <p className="mt-2 text-green-600">
                 Produto ID: {produtoId} selecionado para destaque
               </p>

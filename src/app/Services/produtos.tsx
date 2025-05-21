@@ -210,7 +210,7 @@ export const processarPagamentoDestaque = async (idPagamento: number, metodoPaga
 export const obterPacotesDestaque = async () => {
   try {
     const response = await axios.get(
-      `${API_URL}/produtos/pacotes-destaque`,
+      `${API_URL}/produtos/produtos/pacotes-destaque`,
       { withCredentials: true }
     );
     return response.data;
