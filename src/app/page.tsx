@@ -121,15 +121,15 @@ export default function Home() {
       <div className="backgroundimage w-full flex justify-center items-center mt-[20%] sm:mt-[5%] md:mt-[10%] lg:mt-[15%]">
           {/* Container interno com largura controlada e centralizado */}
           <div className="w-full max-w-3xl px-4 flex flex-col items-center">
-            <h1 className="-ml-24 text-[1rem] lg:text-[2rem] font-bold text-center w-full">
+            <h1 className="-ml-20 lg:-ml-[100px] text-[1.5rem] lg:text-[2rem] font-bold text-center w-full">
               Conectando o Campo à sua Mesa
             </h1>
-            <p className="-ml-24 text-center w-full">
+            <p className="-ml-20 lg:-ml-[100px] text-center w-full">
               Encontre produtos frescos direto dos produtores locais
             </p>
             <button 
               onClick={redirecionamento} 
-              className="-ml-24 mt-1 bg-marieth text-white py-2 px-4 lg:mt-2 lg:py-4 lg:px-8 text-[1.1rem] border-none rounded-[5px] cursor-pointers hover:bg-verdeaceso transition-colors duration-150"
+              className="-ml-20 lg:-ml-[100px] mt-1 bg-marieth text-white py-2 px-4 lg:mt-2 lg:py-4 lg:px-8 text-[1.1rem] border-none rounded-[5px] cursor-pointers hover:bg-verdeaceso transition-colors duration-150"
             >
               Começar a Comprar
             </button>

@@ -16,7 +16,7 @@ import { verificarAuth } from "../../Services/auth";
 import { buscarMediaEstrelas } from "../../Services/avaliacoes";
 import { enviarAvaliacao } from "../../Services/avaliacoes";
 import { adicionarProdutoAoCarrinho } from '@/app/Services/cart';
-import {toast ,ToastContainer} from 'react-toastify';
+import {toast, ToastContainer} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 export default function DetalhesProduto(){
@@ -38,6 +38,11 @@ export default function DetalhesProduto(){
   const [notaTemporaria, setNotaTemporaria] = useState<number>(0);
   const [avaliacaoRealizada, setAvaliacaoRealizada] = useState<boolean>(false);
 
+  // Estados de carregamento
+  const [carregando, setCarregando] = useState<boolean>(true);
+  const [carregandoAvaliacoes, setCarregandoAvaliacoes] = useState<boolean>(true);
+  const [erro, setErro] = useState<string | null>(null);
+
   type Produto = {
     id_produtos: number;
     nome: string;
@@ -46,14 +51,15 @@ export default function DetalhesProduto(){
     preco: number;
     Unidade: string;
     quantidade: number;
-    peso_kg:number ;
-    id_usuario:number;
+    peso_kg: number;
+    id_usuario: number;
   };
 
   const [produto, setProduto] = useState<Produto | null>(null);
   const [avaliacoes, setAvaliacoes] = useState<{ [key: number]: number | null }>({});
   const [precoTotal, setPrecoTotal] = useState(0);
-  const [usuario , setUsuario] = useState<{id_usuario:number , nome:string} | null>(null);
+  const [usuario, setUsuario] = useState<{id_usuario:number, nome:string} | null>(null);
+  
   // Verificar autenticação quando o componente montar
   useEffect(() => {
     const verificarLogin = async () => {
@@ -63,6 +69,7 @@ export default function DetalhesProduto(){
         setUsuario(user);
       } catch (error) {
         setAutenticado(false);
+        setUsuario(null);
       }
     };
 
@@ -74,36 +81,43 @@ export default function DetalhesProduto(){
     if (!produtoId) return;
 
     const fetchProduto = async () => {
+      setCarregando(true);
       try {
         const data = await getProdutoById(Number(produtoId));
-        console.log("Produto carregado:", data); // Debug para verificar o produto
+        console.log("Produto carregado:", data);
         setProduto(data);
         setUnidadeSelecionada(data.Unidade);
-        setQuantidadeSelecionada(data.quantidade); // Definir quantidade inicial com base no produto
-        setPrecoTotal(data.preco * data.quantidade); // Calcular preço total inicial
-        setNotaSelecionada(data.media_estrelas || 0); // Definir nota inicial com base na avaliação do produto
-        // Carregar avaliações imediatamente
-        console.log("Carregando avaliações para o produto:", data.id_produtos); // Debug para verificar ID do produto
-        console.log("quatidade:", data.quantidade); // Debug para verificar quantidade
-        console.log("unidade:", data.Unidade); // Debug para verificar unidade
-        console.log("preco:", data.preco); // Debug para verificar preço
-        console.log("peso:", data.peso_kg); // Debug para verificar peso
-        const mediaResult = await buscarMediaEstrelas(data.id_produtos);
-        console.log("Avaliação carregada:", mediaResult); // Debug para verificar avaliação
-
+        setQuantidadeSelecionada(data.quantidade > 0 ? data.quantidade : 1); // Garantir uma quantidade mínima
+        setPrecoTotal(data.preco * data.quantidade);
+        setNotaSelecionada(data.media_estrelas || 0);
         
-        // Atualizar os estados de avaliação
-        setAvaliacoes({ [data.id_produtos]: mediaResult?.media_estrelas || null });
-        setMedia(mediaResult?.media || 0);
-        setTotal(mediaResult?.total || 0);
-        setPercentagem(mediaResult?.recomendacoes || 0);
-        
-        // Se tiver avaliações, não deve mostrar "Sem avaliações"
-        if (mediaResult?.total > 0) {
-          setAvaliacaoRealizada(true);
+        // Carregando avaliações
+        setCarregandoAvaliacoes(true);
+        try {
+          const mediaResult = await buscarMediaEstrelas(data.id_produtos);
+          console.log("Avaliação carregada:", mediaResult);
+          
+          if (mediaResult) {
+            setAvaliacoes({ [data.id_produtos]: mediaResult.media_estrelas || null });
+            setMedia(mediaResult.media_estrelas || 0);
+            setTotal(mediaResult.total || 0);
+            setPercentagem(mediaResult.recomendacoes || 0);
+            
+            // Se tiver avaliações, não deve mostrar "Sem avaliações"
+            if (mediaResult.total > 0) {
+              setAvaliacaoRealizada(true);
+            }
+          }
+        } catch (avaliacaoError) {
+          console.error("Erro ao buscar avaliações:", avaliacaoError);
+        } finally {
+          setCarregandoAvaliacoes(false);
         }
       } catch (error) {
-        console.log("Erro ao buscar produto:", error);
+        console.error("Erro ao buscar produto:", error);
+        setErro("Não foi possível carregar o produto");
+      } finally {
+        setCarregando(false);
       }
     };
 
@@ -120,7 +134,7 @@ export default function DetalhesProduto(){
   // Função para selecionar estrela temporariamente (sem enviar)
   const handleSelecionarEstrela = (nota: number) => {
     if (!autenticado) {
-      alert("Você precisa estar logado para avaliar.");
+      toast.warn("Você precisa estar logado para avaliar.");
       router.push("/login");
       return;
     }
@@ -131,13 +145,13 @@ export default function DetalhesProduto(){
   // Função para enviar avaliação
   const handleEnviarAvaliacao = async () => {
     if (!autenticado) {
-      alert("Você precisa estar logado para avaliar.");
+      toast.warn("Você precisa estar logado para avaliar.");
       router.push("/login");
       return;
     }
 
     if (!produtoId || notaTemporaria === 0) {
-      alert(notaTemporaria === 0 ? "Selecione uma nota para avaliar." : "ID do produto não encontrado.");
+      toast.warn(notaTemporaria === 0 ? "Selecione uma nota para avaliar." : "ID do produto não encontrado.");
       return;
     }
 
@@ -163,27 +177,24 @@ export default function DetalhesProduto(){
       
       // Recarregar dados de avaliação
       const resultado = await buscarMediaEstrelas(idProdutoNumerico);
-      setMedia(resultado.media || 0);
+      setMedia(resultado.media_estrelas || 0);
       setTotal(resultado.total || 0);
       setPercentagem(resultado.recomendacoes || 0);
       
       // Importante: Atualizar também o estado de avaliações usado no topo da página
       setAvaliacoes(prev => ({
         ...prev, 
-        [idProdutoNumerico]: resultado.media || null
+        [idProdutoNumerico]: resultado.media_estrelas || null
       }));
       
       // Marcamos que houve avaliação para exibir as estrelas corretamente
       setAvaliacaoRealizada(true);
       
       // Mostrar mensagem de sucesso
-      setMensagemSucesso("Avaliação enviada com sucesso!");
-      setTimeout(() => {
-        setMensagemSucesso(null);
-      }, 3000);
+      toast.success("Avaliação enviada com sucesso!");
 
     } catch (error: any) {
-      console.log("Erro detalhado ao avaliar:", error);
+      console.error("Erro detalhado ao avaliar:", error);
       
       // Mensagem de erro mais específica baseada na resposta do servidor
       if (error.status === 500) {
@@ -197,20 +208,20 @@ export default function DetalhesProduto(){
   // Exibir popup de ajuste de quantidade
   const handleBotaoMaisMenos = async () => {
     if (!autenticado) {
-      alert("Você precisa estar logado para adicionar ao carrinho.");
+      toast.warn("Você precisa estar logado para adicionar ao carrinho.");
       router.push("/login");
       return;
     }
 
     try {
-      const user =await verificarAuth();
+      // Verificar se ainda está autenticado
+      const user = await verificarAuth();
       setAutenticado(true);
       setUsuario(user);
       setshowcaixa(true); 
-
     } catch (error) {
       setAutenticado(false);
-      alert("Você precisa estar logado para adicionar ao carrinho.");
+      toast.error("Você precisa estar logado para adicionar ao carrinho.");
       router.push("/login");
     }
   };
@@ -230,9 +241,6 @@ export default function DetalhesProduto(){
         return;
       }
 
-      // Debug - exibir o ID para verificação antes de enviar
-      console.log("Tentando adicionar produto com ID:", idProdutoNumerico);
-
       // Verificar se a quantidade é válida
       if (quantidadeSelecionada <= 0) {
         toast.error("Por favor, selecione uma quantidade válida.");
@@ -251,25 +259,56 @@ export default function DetalhesProduto(){
         quantidadeSelecionada
       );
       
-      setMensagemSucesso("Produto adicionado ao carrinho com sucesso!");
+      toast.success("Produto adicionado ao carrinho com sucesso!");
+      setMensagemSucesso(`Produto adicionado ao carrinho: ${quantidadeSelecionada} ${unidadeSelecionada} de ${produto.nome} - Total: ${Number(produto.preco * quantidadeSelecionada).toFixed(2)} AOA`);
       setTimeout(() => {
         setMensagemSucesso(null);
-      }, 3000);
+      }, 5000);
     } catch (error: any) {
       console.log("Erro ao adicionar ao carrinho:", error);
-      toast.error( error.message || "Erro ao adicionar ao carrinho. Tente novamente.");
+      toast.error(error.message || "Erro ao adicionar ao carrinho. Tente novamente.");
     }
   };
 
-  if (!produto) {
-    return <div>Carregando...</div>;
+  // Função para verificar se o usuário é dono do produto
+  const isOwner = () => {
+    return produto && usuario && usuario.id_usuario === produto.id_usuario;
+  };
+
+  // Renderização para estado de carregamento
+  if (carregando) {
+    return (
+      <div>
+        <Navbar />
+        <div className="flex justify-center items-center h-screen">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-marieth"></div>
+        </div>
+        <Footer />
+      </div>
+    );
   }
 
-  // if (produto.id_usuario !== usuario?.id_usuario) {
-  //   return <div>Produto não encontrado ou você não tem permissão para visualizar.</div>;
-  // }
-
-  
+  // Renderização para erro
+  if (erro || !produto) {
+    return (
+      <div>
+        <Navbar />
+        <div className="flex justify-center items-center h-screen">
+          <div className="text-center p-8 bg-white shadow-custom rounded-[10px]">
+            <h2 className="text-vermelho text-xl font-bold mb-4">Erro ao carregar produto</h2>
+            <p>{erro || "Produto não encontrado"}</p>
+            <button 
+              onClick={() => router.push("/")}
+              className="mt-4 bg-marieth hover:bg-verdeaceso text-white py-2 px-4 rounded"
+            >
+              Voltar à página inicial
+            </button>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   return(
     <div>
@@ -296,17 +335,18 @@ export default function DetalhesProduto(){
                 <h1 className="text-[1.5rem] lg:text-[2rem] text-profile font-bold">{produto.nome}</h1>
 
                 <div className="flex gap-2 text-[1.2rem] lg:text-[1.5rem] cursor-pointer text-tab">
-                  {/* Condição melhorada para exibir avaliações */}
-                  {(avaliacoes[produto.id_produtos] !== null && avaliacoes[produto.id_produtos] !== undefined) || avaliacaoRealizada ? (
+                  {carregandoAvaliacoes ? (
+                    <span className="text-sm text-gray-500">Carregando avaliações...</span>
+                  ) : (avaliacoes[produto.id_produtos] !== null && avaliacoes[produto.id_produtos] !== undefined) || avaliacaoRealizada ? (
                     <>
                       {[1, 2, 3, 4, 5].map((i) => (
                         <FaStar
                           key={i}
-                          className={i <= Math.floor(avaliacoes[produto.id_produtos] || 0) ? "text-amarela" : "text-gray-300"}
+                          className={i <= Math.floor(avaliacoes[produto.id_produtos] || media || 0) ? "text-amarela" : "text-gray-300"}
                         />
                       ))}
                       <span className="text-amarela -mt-[4px] ml-2">
-                        ({Number(avaliacoes[produto.id_produtos] || media)?.toFixed(1)})
+                        ({Number(avaliacoes[produto.id_produtos] || media || 0)?.toFixed(1)})
                       </span>
                     </>
                   ) : (
@@ -319,35 +359,78 @@ export default function DetalhesProduto(){
                   <span>{produto.preco} AOA/{produto.quantidade}{produto.Unidade}</span> 
                 </div>
 
-                    <div className="text-[1rem] lg:text-[1.8rem] font-bold text-profile">
-                  <span>Peso:{ produto.peso_kg}</span>
+                <div className="text-[1rem] lg:text-[1.8rem] font-bold text-profile">
+                  <span>Peso: {produto.peso_kg}kg</span>
                 </div>
                 
-
                 <div>
-                  {usuario && produto.id_usuario !== usuario.id_usuario && (
-                    <button 
-                    className="hover:bg-verdeaceso bg-marieth rounded-[5px] cursor-pointer text-white p-2 text-[0.9rem] border-none bottom-4 mb-4"
-                    onClick={handleBotaoMaisMenos}
-                  >
-                    Alterar Quantidade
-                  </button>)}
-                  {usuario && produto.id_usuario === usuario.id_usuario && (
-                      <div className="sr-only">não pode aparecer</div> )}
-                  
-                  <div className="flex items-center gap-4 p-3 lg:p-4 mb-2 rounded-[10px] bg-pretobranco">
-                    <div className="flex w-[50px] h-[50px] lg:w-[60px] lg:h-[60px] rounded-[50%] items-center justify-center bg-back">
-                      <AiFillHome/>
-                    </div>
-                    <div>
-                      <h3>{produto.nome}</h3>
-                      <div className="flex items-center gap-2 text-cortexto text-sm lg:text-base">
-                        <CiLocationOn/>
-                        <span>{produto.provincia}</span>
-                        <span>/Angola</span>
+                  {autenticado ? (
+                    !isOwner() ? (
+                      <>
+                        <button 
+                          className="hover:bg-verdeaceso bg-marieth rounded-[5px] cursor-pointer text-white p-2 text-[0.9rem] border-none bottom-4 mb-4"
+                          onClick={handleBotaoMaisMenos}
+                        >
+                          Alterar Quantidade
+                        </button>
+                        
+                        <div className="flex items-center gap-4 p-3 lg:p-4 mb-2 rounded-[10px] bg-pretobranco">
+                          <div className="flex w-[50px] h-[50px] lg:w-[60px] lg:h-[60px] rounded-[50%] items-center justify-center bg-back">
+                            <AiFillHome/>
+                          </div>
+                          <div>
+                            <h3>{produto.nome}</h3>
+                            <div className="flex items-center gap-2 text-cortexto text-sm lg:text-base">
+                              <CiLocationOn/>
+                              <span>{produto.provincia}</span>
+                              <span>/Angola</span>
+                            </div>
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="mt-4 text-vermelho font-bold text-center">Você é o dono deste produto!</div>
+                        
+                        <div className="flex items-center gap-4 p-3 lg:p-4 mb-2 rounded-[10px] bg-pretobranco">
+                          <div className="flex w-[50px] h-[50px] lg:w-[60px] lg:h-[60px] rounded-[50%] items-center justify-center bg-back">
+                            <AiFillHome/>
+                          </div>
+                          <div>
+                            <h3>{produto.nome}</h3>
+                            <div className="flex items-center gap-2 text-cortexto text-sm lg:text-base">
+                              <CiLocationOn/>
+                              <span>{produto.provincia}</span>
+                              <span>/Angola</span>
+                            </div>
+                          </div>
+                        </div>
+                      </>
+                    )
+                  ) : (
+                    <>
+                      <button 
+                        className="hover:bg-verdeaceso bg-marieth rounded-[5px] cursor-pointer text-white p-2 text-[0.9rem] border-none bottom-4 mb-4"
+                        onClick={() => router.push("/Login")}
+                      >
+                        Faça login para comprar
+                      </button>
+                      
+                      <div className="flex items-center gap-4 p-3 lg:p-4 mb-2 rounded-[10px] bg-pretobranco">
+                        <div className="flex w-[50px] h-[50px] lg:w-[60px] lg:h-[60px] rounded-[50%] items-center justify-center bg-back">
+                          <AiFillHome/>
+                        </div>
+                        <div>
+                          <h3>{produto.nome}</h3>
+                          <div className="flex items-center gap-2 text-cortexto text-sm lg:text-base">
+                            <CiLocationOn/>
+                            <span>{produto.provincia}</span>
+                            <span>/Angola</span>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
+                    </>
+                  )}
                 
                   {showcaixa && (
                     <div className="flex items-center justify-center fixed inset-0 bg-black bg-opacity-50 z-50">
@@ -355,10 +438,10 @@ export default function DetalhesProduto(){
                         <h2 className="font-bold text-xl lg:text-2xl mb-4">Alterar Quantidade</h2>
                         
                         <div className="mb-4 gap-2 grid grid-cols-2">
-                          <button onClick={() => setQuantidadeSelecionada(prev => prev + 0.5)} className="p-2 bg-marieth rounded-[5px] border-none cursor-pointer text-white text-[0.9rem] hover:bg-verdeaceso">+0.5</button>
-                          <button onClick={() => setQuantidadeSelecionada(prev => prev + 1)} className="p-2 bg-marieth rounded-[5px] border-none cursor-pointer text-white text-[0.9rem] hover:bg-verdeaceso">+1</button>
-                          <button onClick={() => setQuantidadeSelecionada(prev => prev + 5)} className="p-2 bg-marieth rounded-[5px] border-none cursor-pointer text-white text-[0.9rem] hover:bg-verdeaceso">+5</button>
-                          <button onClick={() => setQuantidadeSelecionada(prev => prev + 10)} className="p-2 bg-marieth rounded-[5px] border-none cursor-pointer text-white text-[0.9rem] hover:bg-verdeaceso">+10</button>
+                          <button onClick={() => setQuantidadeSelecionada(prev => Math.max(0.5, prev + 0.5))} className="p-2 bg-marieth rounded-[5px] border-none cursor-pointer text-white text-[0.9rem] hover:bg-verdeaceso">+0.5</button>
+                          <button onClick={() => setQuantidadeSelecionada(prev => Math.max(1, prev + 1))} className="p-2 bg-marieth rounded-[5px] border-none cursor-pointer text-white text-[0.9rem] hover:bg-verdeaceso">+1</button>
+                          <button onClick={() => setQuantidadeSelecionada(prev => Math.max(5, prev + 5))} className="p-2 bg-marieth rounded-[5px] border-none cursor-pointer text-white text-[0.9rem] hover:bg-verdeaceso">+5</button>
+                          <button onClick={() => setQuantidadeSelecionada(prev => Math.max(10, prev + 10))} className="p-2 bg-marieth rounded-[5px] border-none cursor-pointer text-white text-[0.9rem] hover:bg-verdeaceso">+10</button>
                         </div>
                         
                         <div className="flex flex-col gap-4 my-4 mx-0">
@@ -403,20 +486,17 @@ export default function DetalhesProduto(){
                             className="bg-marieth py-2 px-4 text-white rounded-[5px]"
                             onClick={() => {
                               if (quantidadeSelecionada <= 0) {
-                                alert("Por favor, selecione uma quantidade válida.");
+                                toast.error("Por favor, selecione uma quantidade válida.");
                                 return;
                               }
                               
                               if (quantidadeSelecionada > produto.quantidade) {
-                                alert("Quantidade selecionada maior que o disponível.");
+                                toast.error("Quantidade selecionada maior que o disponível.");
                                 return;
                               }
                               
                               setshowcaixa(false);
-                              setMensagemSucesso("Quantidade ajustada com sucesso!");
-                              setTimeout(() => {
-                                setMensagemSucesso(null);
-                              }, 3000);
+                              toast.success("Quantidade ajustada com sucesso!");
                             }}
                           >
                             Confirmar
@@ -426,33 +506,41 @@ export default function DetalhesProduto(){
                     </div>
                   )} 
                 
-               {usuario && produto.id_usuario !== usuario.id_usuario && (
-          <button
-            onClick={handleAdicionarAoCarrinho}
-            className="bg-marieth w-full py-2 px-1 border-none mt-4 rounded-[5px] text-white text-[1.2rem] lg:text-[1.5rem] cursor-pointer transition-colors duration-300
-            hover:bg-verdeaceso mb-2"
-          >
-            <div className="flex items-center justify-center gap-2">
-              <CgShoppingCart className="text-[1.5rem] lg:text-[1.8rem]" />
-              Adicionar ao Carrinho
-            </div>
-          </button>
-        )}  
-    {usuario && produto.id_usuario === usuario.id_usuario && (
-  <div className="mt-4 text-vermelho font-bold text-center">Você é o dono deste produto!</div>
-        )}
+                  {autenticado ? (
+                    !isOwner() ? (
+                      <button
+                        onClick={handleAdicionarAoCarrinho}
+                        className="bg-marieth w-full py-2 px-1 border-none mt-4 rounded-[5px] text-white text-[1.2rem] lg:text-[1.5rem] cursor-pointer transition-colors duration-300
+                        hover:bg-verdeaceso mb-2"
+                      >
+                        <div className="flex items-center justify-center gap-2">
+                          <CgShoppingCart className="text-[1.5rem] lg:text-[1.8rem]" />
+                          Adicionar ao Carrinho
+                        </div>
+                      </button>
+                    ) : (
+                      <div className="mt-4 mb-4 text-vermelho font-bold text-center">
+                        Você não pode adicionar seu próprio produto ao carrinho
+                      </div>
+                    )
+                  ) : (
+                    <button
+                      onClick={() => router.push("/login")}
+                      className="bg-marieth w-full py-2 px-1 border-none mt-4 rounded-[5px] text-white text-[1.2rem] lg:text-[1.5rem] cursor-pointer transition-colors duration-300
+                      hover:bg-verdeaceso mb-2"
+                    >
+                      <div className="flex items-center justify-center gap-2">
+                        <CgShoppingCart className="text-[1.5rem] lg:text-[1.8rem]" />
+                        Faça login para comprar
+                      </div>
+                    </button>
+                  )}
 
-                {mensagemSucesso && (
-                  <div className="bg-green-100 text-marieth p-4 rounded mt-4">
-                    <p>{mensagemSucesso}</p>
-                    {mensagemSucesso.includes("carrinho") && (
-                      <>
-                        <p>{quantidadeSelecionada} {unidadeSelecionada} de {produto.nome}</p>
-                        <p>Total: { Number(produto.preco * quantidadeSelecionada).toFixed(2)} AOA</p>
-                      </>
-                    )}
-                  </div>
-                )}
+                  {mensagemSucesso && (
+                    <div className="bg-green-100 text-marieth p-4 rounded mt-4">
+                      <p>{mensagemSucesso}</p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -489,7 +577,7 @@ export default function DetalhesProduto(){
                 </div>
                 <button 
                   onClick={handleEnviarAvaliacao}
-                  className="ml-4 bg-marieth hover:bg-verdeaceso text-white rounded-full p-2 flex items-center justify-center"
+                  className={`ml-4 ${notaTemporaria === 0 ? 'bg-gray-400' : 'bg-marieth hover:bg-verdeaceso'} text-white rounded-full p-2 flex items-center justify-center`}
                   title="Enviar avaliação"
                   disabled={notaTemporaria === 0}
                 >

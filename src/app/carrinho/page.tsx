@@ -528,7 +528,7 @@ return (
               onClick={handleIniciarCheckout}
               disabled={produtos.length === 0 || loadingFinalizarCompra || pesoTotal < 10}
             >
-              {loadingFinalizarCompra ? 'Processando...' : 'Finalizar Compra'}
+              {loadingFinalizarCompra ? 'Processando...' : 'Iniciar Compra'}
             </button>
           </div>
         )}

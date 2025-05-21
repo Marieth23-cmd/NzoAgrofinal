@@ -20,19 +20,39 @@ const PromoPage = () => {
   ]);
 
   useEffect(() => {
-    // Obter o ID do produto da URL
-    const searchParams = new URLSearchParams(window.location.search);
-    const id = searchParams.get('produtoId');
-    if (id) {
-      setProdutoId(parseInt(id));
-      const parsedId = id ? parseInt(id) : null;
-      console.log('produtoId na URL:', id, 'parsed:', parsedId);
-        if (parsedId && !isNaN(parsedId)) {
+    // Função para extrair parâmetros da URL
+    const getURLParams = () => {
+      // No ambiente do navegador, use window.location
+      if (typeof window !== 'undefined') {
+        const searchParams = new URLSearchParams(window.location.search);
+        return searchParams;
+      }
+      return new URLSearchParams('');
+    };
+
+    // Obter e validar o ID do produto
+    const carregarIdProduto = () => {
+      const searchParams = getURLParams();
+      const id = searchParams.get('produtoId');
+      
+      console.log('ID bruto da URL:', id);
+      
+      if (!id) {
+        setError('ID do produto não fornecido. Selecione um produto para destacar.');
+        return;
+      }
+      
+      const parsedId = parseInt(id);
+      console.log('ID convertido:', parsedId);
+      
+      if (isNaN(parsedId) || parsedId <= 0) {
+        setError('ID do produto inválido. Por favor, selecione um produto válido.');
+        return;
+      }
+      
       setProdutoId(parsedId);
-  } 
-    } else {
-      setError('ID do produto não fornecido. Selecione um produto para destacar.');
-    }
+      console.log('ID do produto definido com sucesso:', parsedId);
+    };
 
     // Carregar pacotes da API
     const carregarPacotes = async () => {
@@ -40,12 +60,15 @@ const PromoPage = () => {
         const data = await obterPacotesDestaque();
         if (data && data.length > 0) {
           setPacotes(data);
+          console.log('Pacotes carregados com sucesso:', data);
         }
       } catch (error) {
         console.error('Erro ao carregar pacotes:', error);
       }
     };
 
+    // Executar as funções
+    carregarIdProduto();
     carregarPacotes();
   }, []);
 
@@ -57,14 +80,22 @@ const PromoPage = () => {
 
     setLoading(true);
     setError(null);
+    console.log(`Iniciando processo de destaque para produto ID: ${produtoId} por ${dias} dias`);
 
     try {
       // Chamar a API para destacar o produto
       const resposta = await destacarProduto(produtoId, dias);
+      console.log('Resposta da API de destaque:', resposta);
+      
+      if (!resposta || !resposta.idPagamento) {
+        throw new Error('ID de pagamento não retornado pela API');
+      }
       
       // Redirecionar para a página de pagamento
+      console.log(`Redirecionando para pagamento ID: ${resposta.idPagamento}`);
       router.push(`/pagdestacar/${resposta.idPagamento}`);
     } catch (error: any) {
+      console.error('Erro ao destacar produto:', error);
       setError(error?.mensagem || 'Erro ao processar solicitação de destaque');
     } finally {
       setLoading(false);
@@ -99,6 +130,11 @@ const PromoPage = () => {
             <p className="text-gray-600 text-lg max-w-xl mx-auto">
               Escolha o melhor pacote promocional e aumente a visibilidade dos seus produtos na nossa plataforma
             </p>
+            {produtoId && (
+              <p className="mt-2 text-green-600">
+                Produto ID: {produtoId} selecionado para destaque
+              </p>
+            )}
           </div>
 
           {error && (

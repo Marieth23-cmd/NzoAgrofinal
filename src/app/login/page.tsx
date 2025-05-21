@@ -32,11 +32,15 @@ export default function Login() {
             const response = await login(email, senha);
             console.log("Usuário logado:", response);
             
-            // Verificação mais robusta do tipo de usuário
-            const tipoUsuario = response.tipo_usuario?.trim().toLowerCase() || "";
+            // Verificar se o usuário está na resposta
+            const usuario = response.usuario || {};
+            console.log("Usuário completo:", usuario);
+            
+            // Acessar o tipo de usuário diretamente do objeto usuário
+            const tipoUsuario = usuario.tipo_usuario?.trim().toLowerCase() || "";
             console.log("Tipo de usuário detectado:", tipoUsuario);
             
-            if (tipoUsuario === "Administrador") {
+            if (tipoUsuario === "administrador") {
                 toast.success("Login realizado com sucesso! Redirecionando para área administrativa...");
                 console.log("Redirecionando para /Administrador");
                 
