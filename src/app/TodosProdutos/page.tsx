@@ -9,6 +9,11 @@ import { useState, useEffect } from "react";
 import { getProdutos } from "../Services/produtos";
 import { buscarMediaEstrelas } from "../Services/avaliacoes";
 import { adicionarProdutoAoCarrinho } from "../Services/cart";
+import {toast, ToastContainer} from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { verificarAuth } from "../Services/auth";
+import { CgShoppingCart } from "react-icons/cg";
+import { AiOutlineLoading3Quarters } from "react-icons/ai";
 
 export default function Vitrine() {
   interface Produto {
@@ -18,11 +23,20 @@ export default function Vitrine() {
     quantidade: number;
     Unidade: string;
     preco: number;
+    id_usuario: number;
   }
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [visibleCount, setVisibleCount] = useState(12);
   const [avaliacoes, setAvaliacoes] = useState<{ [key: number]: number | null }>({});
   const [verMaisClicado, setVerMaisClicado] = useState(false);
+   const [usuario , setUsuario] = useState<{id_usuario:number , nome:string} | null>(null);
+  const [carregando, setCarregando] = useState(true); 
+  const [erro, setErro] = useState("");
+  const [carregandoAvaliacoes, setCarregandoAvaliacoes] = useState(true);
+  const [erroAvaliacoes, setErroAvaliacoes] = useState("");
+  const [autenticado, setAutenticado] = useState(false);
+
+
 
   useEffect(() => {
     async function fetchProdutos() {
@@ -37,9 +51,11 @@ export default function Vitrine() {
           }
     
           setAvaliacoes(avaliacaoData);
+          setCarregando(false);
 
       } catch (error:any) {
         alert(error.mensagem)
+        setErro(error.mensagem || "Erro ao carregar produtos");
         console.log(error.mensagem || "Erro ao carregar produtos");
       }
     }
@@ -49,6 +65,7 @@ export default function Vitrine() {
 
   const mostrarMaisProdutos = () => {
     setVerMaisClicado(true);
+
     setVisibleCount((prev) => prev + 12);
   };
   
@@ -59,9 +76,13 @@ export default function Vitrine() {
   const handleAdicionarAoCarrinho = async (id_produto: number) => {
     try {
       await adicionarProdutoAoCarrinho(id_produto.toString(), 1);
-      alert("Produto adicionado ao carrinho com sucesso!");
+      toast.success("Produto adicionado ao carrinho com sucesso!");
     } catch (error: any) {
-      alert(error.mensagem || "Erro ao adicionar o produto ao carrinho.");
+      if (error.message) {
+        toast.error(error.message);
+      } else {
+        toast.error("Erro ao adicionar produto ao carrinho");
+      }
     }
   };
   
@@ -77,6 +98,20 @@ export default function Vitrine() {
       };
       }
 
+     useEffect(() => {
+         const verificarLogin = async () => {
+           try {
+             const user = await verificarAuth();
+             setAutenticado(true);
+             setUsuario(user);
+           } catch (error) {
+             setAutenticado(false);
+           }
+         };
+     
+         verificarLogin();
+       }, []);
+
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -85,6 +120,16 @@ export default function Vitrine() {
       </head>
 
       <Navbar />
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover/>
 
       <div className="flex-grow flex flex-col mb-20 gap-2 mt-[48%] md:mt-[20%] lg:mt-[15%] mx-auto w-full max-w-[1200px] shadow-custom p-2 md:p-4 lg:p-8 rounded-[10px]">
         <div className="w-full p-2 md:p-4 lg:p-8">
@@ -156,12 +201,23 @@ export default function Vitrine() {
                     >
                       Ver detalhes
                     </Link>
-                    <button
-                      onClick={() => handleAdicionarAoCarrinho(produto.id_produtos)}
-                      className="hover:bg-verdeaceso py-1.5 md:py-2 text-sm md:text-base cursor-pointer px-4 text-white bg-marieth transition-colors duration-150 ease-in-out rounded-[0.3125rem]"
-                    >
-                      Adicionar ao Carrinho
-                    </button>
+                     {usuario && produto.id_usuario !== usuario.id_usuario && (
+                              <button
+                                onClick={() => handleAdicionarAoCarrinho(produto.id_produtos)}
+                                className="bg-marieth w-full py-2 px-1 border-none mt-4 rounded-[5px] text-white text-[1.2rem] lg:text-[1.5rem] cursor-pointer transition-colors duration-300
+                                hover:bg-verdeaceso mb-2"
+                              >
+                                <div className="flex items-center justify-center gap-2">
+                                  <CgShoppingCart className="text-[1.5rem] lg:text-[1.8rem]" />
+                                  Adicionar ao Carrinho
+                                </div>
+                              </button>
+                            )}  
+                        {usuario && produto.id_usuario === usuario.id_usuario && (
+                      <div className="mt-4 text-vermelho font-bold text-center">Você é o dono deste produto!
+                      
+                      </div>
+                            )}
                   </div>
                 </div>
               </div>

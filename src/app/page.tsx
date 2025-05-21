@@ -113,7 +113,8 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen overflow-x-hidden">
       {/* Usando Navbar normalmente como você já tinha */}
-      <Navbar />
+      <div className=" top-0 sticky z-[100]"><Navbar /></div>
+      
       
       {/* Sem padding adicional */}
       <div>
@@ -121,10 +122,10 @@ export default function Home() {
       <div className="backgroundimage w-full flex justify-center items-center mt-[20%] sm:mt-[5%] md:mt-[10%] lg:mt-[15%]">
           {/* Container interno com largura controlada e centralizado */}
           <div className="w-full max-w-3xl px-4 flex flex-col items-center">
-            <h1 className="text-[1rem] lg:text-[2rem] font-bold text-center w-full">
+            <h1 className="-ml-20 text-[1rem] lg:text-[2rem] font-bold text-center w-full">
               Conectando o Campo à sua Mesa
             </h1>
-            <p className="hidden lg:block text-center w-full">
+            <p className="-ml-20 text-center w-full">
               Encontre produtos frescos direto dos produtores locais
             </p>
             <button 

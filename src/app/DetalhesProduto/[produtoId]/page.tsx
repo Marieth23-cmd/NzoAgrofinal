@@ -58,8 +58,9 @@ export default function DetalhesProduto(){
   useEffect(() => {
     const verificarLogin = async () => {
       try {
-        await verificarAuth();
+        const user = await verificarAuth();
         setAutenticado(true);
+        setUsuario(user);
       } catch (error) {
         setAutenticado(false);
       }
@@ -202,9 +203,11 @@ export default function DetalhesProduto(){
     }
 
     try {
-      await verificarAuth();
+      const user =await verificarAuth();
       setAutenticado(true);
-      setshowcaixa(true);  
+      setUsuario(user);
+      setshowcaixa(true); 
+
     } catch (error) {
       setAutenticado(false);
       alert("Você precisa estar logado para adicionar ao carrinho.");
@@ -266,21 +269,7 @@ export default function DetalhesProduto(){
   //   return <div>Produto não encontrado ou você não tem permissão para visualizar.</div>;
   // }
 
-  useEffect(() => {
-  const verificarLogin = async() => {
-    try {
-      const user = await verificarAuth();
-      setAutenticado(true);
-      setUsuario(user); // user deve ter o ID!
-    } catch (error) {
-      setAutenticado(false);
-    }
   
-
-};
-  verificarLogin();
-}, []);
-
 
   return(
     <div>
