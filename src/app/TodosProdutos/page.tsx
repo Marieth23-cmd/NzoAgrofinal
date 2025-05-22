@@ -274,7 +274,8 @@ useEffect(() => {
                         ) : (
                           <button
                             onClick={() => handleAdicionarAoCarrinho(produto.id_produtos)}
-                            className="bg-marieth w-full py-2 px-1 border-none mt-4 rounded-[5px] text-white text-[1.2rem] lg:text-[1.5rem] cursor-pointer transition-colors duration-300 hover:bg-verdeaceso mb-2"
+                            className="bg-marieth w-full py-2 px-1 border-none mt-4 rounded-[5px] text-white text-[1.2rem] lg:text-[1.5rem] cursor-pointer 
+                            transition-colors duration-300 hover:bg-verdeaceso mb-2"
                           >
                             <div className="flex items-center justify-center gap-2">
                               <CgShoppingCart className="text-[1.5rem] lg:text-[1.8rem]" />

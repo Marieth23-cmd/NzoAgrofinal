@@ -1,5 +1,4 @@
-"use client";
-
+"use client"
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Head from 'next/head';
@@ -8,16 +7,8 @@ import { Chart as ChartJS,CategoryScale,LinearScale,PointElement,LineElement,Tit
 } from 'chart.js';
 
 // Register Chart.js components
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend
+ChartJS.register(CategoryScale,LinearScale,PointElement,LineElement, Title, Tooltip,Legend
 );
-
 // Define types
 type TabType = 'Dashboard' | 'Usuários' | 'Produtos' | 'Pedidos' | 'Transportadoras' | 'Relatórios';
 type UserType = 'Agricultor' | 'Compradora' | 'Fornecedor';

@@ -66,7 +66,7 @@ export default function DetalhesProduto(){
     try {
       const user = await verificarAuth();
       if (!user || typeof user !== 'object') {
-        console.error("Dados do usuário inválidos:", user);
+        console.log("Dados do usuário inválidos:", user);
         setAutenticado(false);
         setUsuario(null);
         return;
@@ -88,7 +88,7 @@ export default function DetalhesProduto(){
         tipo_usuario: user.tipo_usuario || ''
       });
     } catch (error) {
-      console.error("Erro na autenticação:", error);
+      console.log("Erro na autenticação:", error);
       setAutenticado(false);
       setUsuario(null);
     }
