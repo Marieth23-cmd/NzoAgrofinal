@@ -61,10 +61,19 @@ export const verificarAuth = async (): Promise<any> => {
         });
 
         console.log("Resposta da API de autenticação:", response.data);
+         console.log("✅ Resposta da API:", response.data);
+        console.log("Status da resposta:", response.status);
+        
         return response.data;
 
     } catch (error: any) {
         console.log("Erro ao verificar autenticação:");
+        console.log(error.response?.data || error.message);
+        console.log("Status:", error.response?.status);
+        console.log("Dados:", error.response?.data);
+        console.log("Mensagem:", error.message);
+        
+
 
         throw error.response?.data || { mensagem: "Erro desconhecido na verificação de autenticação" };
     }

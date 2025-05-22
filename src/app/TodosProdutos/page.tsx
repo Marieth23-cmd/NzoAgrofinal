@@ -79,34 +79,48 @@ export default function Vitrine() {
     fetchProdutos();
   }, []);
 
-  // Verificar autenticação do usuário
 useEffect(() => {
   const verificarLogin = async () => {
     try {
+      console.log("=== INICIANDO VERIFICAÇÃO DE LOGIN ===");
       const user = await verificarAuth();
       
+      console.log("Resposta completa do verificarAuth:", user);
+      console.log("Tipo da resposta:", typeof user);
+      
       if (!user || typeof user !== 'object') {
-        console.log("Dados do usuário inválidos:", user);
+        console.log("❌ Dados do usuário inválidos:", user);
         setAutenticado(false);
         setUsuario(null);
         return;
       }
       
-      console.log("Dados completos do usuário:", user);
+      console.log("✅ Dados completos do usuário:", user);
+      console.log("user.id_usuario:", user.id_usuario, "tipo:", typeof user.id_usuario);
+      console.log("user.nome:", user.nome);
+      
       setAutenticado(true);
       
       // Garantir que o ID do usuário seja um número
+      const userId = Number(user.id_usuario) || 0;
+      const userName = user.nome || '';
+      
+      console.log("userId convertido:", userId);
+      console.log("userName:", userName);
+      
       setUsuario({
-        id_usuario: Number(user.id_usuario) || 0,
-        nome: user.nome || ''
+        id_usuario: userId,
+        nome: userName
       });
       
-      console.log("Usuário definido:", {
-        id_usuario: Number(user.id_usuario) || 0,
-        nome: user.nome || ''
+      console.log("✅ Estado do usuário definido:", {
+        id_usuario: userId,
+        nome: userName
       });
-    } catch (error) {
-      console.log("Erro na autenticação:", error);
+      
+    } catch (error:any) {
+      console.log("❌ Erro na autenticação:", error);
+      console.log("Detalhes do erro:", error.message);
       setAutenticado(false);
       setUsuario(null);
     }
@@ -114,6 +128,7 @@ useEffect(() => {
 
   verificarLogin();
 }, []);
+
 
   const mostrarMaisProdutos = () => {
     setVerMaisClicado(true);
@@ -123,18 +138,23 @@ useEffect(() => {
   const produtosVisiveis = produtos.slice(0, visibleCount);
   const haMaisProdutos = visibleCount < produtos.length;
 
-  const handleAdicionarAoCarrinho = async (id_produto: number) => {
-    try {
-      await adicionarProdutoAoCarrinho(id_produto.toString(), 1);
-      toast.success("Produto adicionado ao carrinho com sucesso!");
-    } catch (error: any) {
-      if (error.message) {
-        toast.error(error.message);
-      } else {
-        toast.error("Erro ao adicionar produto ao carrinho");
-      }
+const handleAdicionarAoCarrinho = async (produto: Produto) => {
+  try {
+    console.log("Adicionando produto:", produto);
+    console.log("Unidade do produto:", produto.Unidade);
+    
+    // Enviar com a unidade do produto
+    await adicionarProdutoAoCarrinho(produto.id_produtos.toString(), 1, produto.Unidade);
+    toast.success("Produto adicionado ao carrinho com sucesso!");
+  } catch (error: any) {
+    if (error.message) {
+      toast.error(error.message);
+    } else {
+      toast.error("Erro ao adicionar produto ao carrinho");
     }
-  };
+  }
+};
+
   
   function calcularEstrelas(media: number) {
     const estrelasCheias = Math.floor(media);
@@ -266,31 +286,32 @@ useEffect(() => {
                         Ver detalhes
                       </Link>
                       
-                      {autenticado ? (
-                        isOwner(produto) ? (
-                          <div className="mt-4 text-vermelho font-bold text-center">
-                            Você é o dono deste produto!
-                          </div>
-                        ) : (
-                          <button
-                            onClick={() => handleAdicionarAoCarrinho(produto.id_produtos)}
-                            className="bg-marieth w-full py-2 px-1 border-none mt-4 rounded-[5px] text-white text-[1.2rem] lg:text-[1.5rem] cursor-pointer 
-                            transition-colors duration-300 hover:bg-verdeaceso mb-2"
-                          >
-                            <div className="flex items-center justify-center gap-2">
-                              <CgShoppingCart className="text-[1.5rem] lg:text-[1.8rem]" />
-                              Adicionar ao Carrinho
-                            </div>
-                          </button>
-                        )
-                      ) : (
-                        <Link
-                          href="/Login"
-                          className="bg-marieth w-full py-2 px-1 border-none mt-4 rounded-[5px] text-white text-center text-sm md:text-base cursor-pointer transition-colors duration-300 hover:bg-verdeaceso mb-2"
-                        >
-                          Faça login para adicionar ao carrinho
-                        </Link>
-                      )}
+                        {autenticado ? (
+                    isOwner(produto) ? (
+                      <div className="mt-4 text-vermelho font-bold text-center">
+                        Você é o dono deste produto!
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => handleAdicionarAoCarrinho(produto)}
+                        className="bg-marieth w-full py-2 px-4 border-none mt-4 rounded-[5px] text-white text-sm md:text-base lg:text-lg cursor-pointer 
+                        transition-colors duration-300 hover:bg-verdeaceso mb-2 flex items-center justify-center gap-2 h-10 md:h-12"
+                      >
+                        <CgShoppingCart className="text-lg md:text-xl" />
+                        <span>Adicionar ao Carrinho</span>
+                      </button>
+                    )
+                  ) : (
+                    <Link
+                      href="/login"
+                      className="bg-marieth w-full py-2 px-4 border-none mt-4 rounded-[5px] text-white text-center text-sm md:text-base cursor-pointer 
+                      transition-colors duration-300 hover:bg-verdeaceso mb-2 flex items-center justify-center h-10 md:h-12"
+                    >
+                      Faça login para adicionar ao carrinho
+                    </Link>
+                  )}
+
+
                     </div>
                   </div>
                 </div>

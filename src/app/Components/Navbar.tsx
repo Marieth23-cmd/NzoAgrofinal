@@ -207,13 +207,13 @@ const handleClick = useCallback((event: MouseEvent) => {
                 
                 <li className=" cursor-pointer hover:text-marieth "
                 onClick={()=>redirecionar("./relatoriocomprador")}>
-                     <BiBarChartSquare className="gap-2 ml-6 text-[1.6rem]  mt-[0.1rem]" /> 
+                     <BiBarChartSquare className="gap-2 ml-6 text-[1.6rem] " /> 
                     
                     </li>
                 
                 <li className=" cursor-pointer hover:text-marieth "
                 onClick={()=>redirecionar()}> 
-                    <IoPersonCircleOutline className="gap-2  text-[1.6rem] ml-2  mt-[0.1rem]" />
+                    <IoPersonCircleOutline className="gap-2  text-[1.6rem] ml-2  " />
                     
                     </li>
 
