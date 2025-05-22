@@ -244,7 +244,7 @@ export default function DetalhesProduto(){
       // Usar diretamente o ID da URL para garantir consistência
       const idProdutoNumerico = Number(produtoId);
       if (isNaN(idProdutoNumerico)) {
-        console.error("ID do produto inválido:", produtoId);
+        console.log("ID do produto inválido:", produtoId);
         toast.error("ID do produto inválido.");
         return;
       }

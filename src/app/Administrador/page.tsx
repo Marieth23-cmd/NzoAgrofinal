@@ -4,15 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Head from 'next/head';
 import { Line } from 'react-chartjs-2';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
+import { Chart as ChartJS,CategoryScale,LinearScale,PointElement,LineElement,Title, Tooltip,Legend,
 } from 'chart.js';
 
 // Register Chart.js components
@@ -150,10 +142,11 @@ export default function AdminDashboard() {
       <div className="dashboard">
         <button className="menu-toggle" onClick={handleMenuToggle}>
           <i className="mdi mdi-menu"></i>
+          jkskj
         </button>
 
         <aside className={`sidebar ${sidebarActive ? 'active' : ''}`}>
-          <div className="logo">
+          <div className="logo">beginAtZero
             <h1 className="text-marieth text-2xl font-bold">NzoAgro</h1>
           </div>
           <nav>
