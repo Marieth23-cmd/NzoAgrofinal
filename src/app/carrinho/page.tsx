@@ -12,7 +12,7 @@ import {
   removerProdutoDoCarrinho, 
   finalizarCompra, 
   calcularPrecoProduto, 
-  esvaziarCarrinho ,
+  esvaziarCarrinho,
   iniciarCheckout
 } from "../Services/cart";
 
@@ -30,39 +30,43 @@ interface Produto {
   foto_produto?: string;
   quantidade_estoque?: number;
   estoque_atual?: number;
-  Unidade?: string; // Adicionado campo para unidade real
-  unidade_estoque?:string
-
- 
-
+  Unidade?: string;
+  unidade_estoque?: string;
+  peso?: number;
 }
 
+interface CalculoCarrinho {
+  itens: any[];
+  subtotalProdutos: number;
+  pesoTotal: number;
+  frete: number;
+  comissao: number;
+  totalFinal: number;
+}
 
 export default function Carrinho() {
-  // Definindo os estados necessários
+  // Estados principais
   const [produtos, setProdutos] = useState<Produto[]>([]);
-  const [quantidade, setQuantidade] = useState<number>(1);
   const [loading, setLoading] = useState<boolean>(true);
   const router = useRouter();
   
+  // Estados do modal
   const [showcaixa, setshowcaixa] = useState<boolean>(false);
   const [produtoSelecionado, setProdutoSelecionado] = useState<Produto | null>(null);
-  const [loadingFinalizarCompra, setLoadingFinalizarCompra] = useState<boolean>(false);
+  const [quantidade, setQuantidade] = useState<number>(1);
   const [quantidadeDisponivel, setQuantidadeDisponivel] = useState<number>(0);
-  const [isCheckoutIniciado, setIsCheckoutIniciado] = useState(false);
-const [resumoCheckout, setResumoCheckout] = useState(null);
-const [loadingCheckout, setLoadingCheckout] = useState(false);
-  const [showModal, setShowModal] = useState(false);
-  // Adicione estados para controlar os totais de maneira mais explícita
-  const [freteTotal, setFreteTotal] = useState<number>(0);
-  const [comissaoTotal, setComissaoTotal] = useState<number>(0);
-  const [totalFinal, setTotalFinal] = useState<number>(0);
-  const [subtotal, setSubtotal] = useState<number>(0);
-  const [pesoTotal, setPesoTotal] = useState<number>(0);
   const [errorMessage, setErrorMessage] = useState<string>('');
-  const [calculoRealizado, setCalculoRealizado] = useState<boolean>(false); // Flag para controlar se o cálculo já foi realizado
+  
+  // Estados de loading
+  const [loadingFinalizarCompra, setLoadingFinalizarCompra] = useState<boolean>(false);
+  const [loadingCheckout, setLoadingCheckout] = useState(false);
+  
+  // Estados dos totais (vindos da API)
+  const [calculoCarrinho, setCalculoCarrinho] = useState<CalculoCarrinho | null>(null);
+  const [isCheckoutIniciado, setIsCheckoutIniciado] = useState(false);
+  const [resumoCheckout, setResumoCheckout] = useState(null);
 
-  // Função para carregar os produtos do carrinho
+  // Função para carregar produtos do carrinho
   const carregarProdutos = async () => {
     try {
       setLoading(true);
@@ -71,183 +75,53 @@ const [loadingCheckout, setLoadingCheckout] = useState(false);
       
       if (dados && dados.produtos && Array.isArray(dados.produtos)) {
         setProdutos(dados.produtos);
-        // Cálculo imediato do subtotal ao carregar os produtos
-        const calculoSubtotal = dados.produtos.reduce((total: number, produto: Produto) => {
-          // Certifique-se de que produto.preco seja um número válido
-          const preco = produto.preco ? parseFloat(produto.preco.toString()) : 0;
-          const quantidade = produto.quantidade || 0;
-          return total + (preco * quantidade);
-        }, 0);
-        setSubtotal(calculoSubtotal);
-        console.log("Subtotal calculado:", calculoSubtotal);
         
-        // Calcular peso total
-        const calculoPesoTotal = dados.produtos.reduce((total: number, produto: Produto) => {
-          const peso = produto.peso_kg ? parseFloat(produto.peso_kg.toString()) : 0;
-          const quantidade = produto.quantidade || 0;
-          return total + (peso * quantidade);
-        }, 0);
-        setPesoTotal(calculoPesoTotal);
-        console.log("Peso total calculado:", calculoPesoTotal);
-
-        // Se tiver produtos, chama a API para calcular valores
+        // Se tiver produtos, calcular os totais usando a rota /calcular-preco
         if (dados.produtos.length > 0) {
-          await atualizarCalculoPrecoTotal(dados.produtos);
+          await calcularTotaisCarrinho();
         } else {
-          resetarTotais();
+          setCalculoCarrinho(null);
         }
       } else {
         console.log("Nenhum produto encontrado ou formato de resposta inválido");
         setProdutos([]);
-        resetarTotais();
+        setCalculoCarrinho(null);
       }
     } catch (error) {
       console.log("Erro ao carregar produtos:", error);
       setProdutos([]);
-      resetarTotais();
+      setCalculoCarrinho(null);
     } finally {
       setLoading(false);
     }
   };
 
-  // Função para resetar os totais
-  const resetarTotais = () => {
-    setSubtotal(0);
-    setPesoTotal(0);
-    setFreteTotal(0);
-    setComissaoTotal(0);
-    setTotalFinal(0);
-    setCalculoRealizado(false);
-  };
-// Função para atualizar o cálculo de preço total usando a API
-const atualizarCalculoPrecoTotal = async (produtosAtuais: Produto[]) => {
-  try {
-    // Resetamos os valores para não acumular de cálculos anteriores
-    let freteCalculado = 0;
-    let comissaoCalculada = 0;
-    let totalCalculado = 0;
-    
-    // Primeiro calculamos o subtotal e peso total dos produtos
-    const subtotalCalculado = produtosAtuais.reduce((total: number, produto: Produto) => {
-      const preco = produto.preco ? parseFloat(produto.preco.toString()) : 0;
-      const quantidade = produto.quantidade || 0;
-      return total + (preco * quantidade);
-    }, 0);
-    
-    const pesoTotalCalculado = produtosAtuais.reduce((total: number, produto: Produto) => {
-      // Certifique-se que o peso está sendo corretamente lido
-      // Caso peso_kg seja undefined ou null, assume um valor padrão baseado na categoria
-      let peso = produto.peso_kg ? parseFloat(produto.peso_kg.toString()) : 0;
+  // Função para calcular totais usando a rota /calcular-preco que você já tem
+  const calcularTotaisCarrinho = async () => {
+    try {
+      // Usar a função calcularPrecoProduto que na verdade chama a rota /calcular-preco
+      // Como a rota não precisa de parâmetros específicos (pega do carrinho do usuário)
+      const resultado = await calcularPrecoProduto("", 0);
       
-      // Para debug: imprimir o peso de cada produto individualmente
-      console.log(`Produto ${produto.nome}: peso=${peso}, quantidade=${produto.quantidade}`);
-      
-      // Se peso for zero, atribuai um padrão fixo (exemplo: 1 kg)
-      if (peso === 0) {
-        peso = 1;
-      }
-      
-      const quantidade = produto.quantidade || 0;
-      return total + (peso * quantidade);
-    }, 0);
-        
-    // Atualizar os estados com os valores calculados
-    setSubtotal(subtotalCalculado);
-    setPesoTotal(pesoTotalCalculado);
-    
-    console.log("Peso total recalculado:", pesoTotalCalculado);
-    
-    // Se o peso total for menor que 10kg, não há frete e comissão conforme sua lógica de negócio
-    if (pesoTotalCalculado < 10) {
-      setFreteTotal(0);
-      setComissaoTotal(0);
-      // O total final neste caso é apenas o subtotal
-      setTotalFinal(subtotalCalculado);
-      setCalculoRealizado(true);
-      return;
-    }
-    
-    // Adicionamos um timeout para a chamada da API para evitar que ela fique pendente eternamente
-    const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Tempo esgotado ao calcular preço')), 5000);
-    });
-    
-    // Chamamos a API apenas uma vez com o primeiro produto e o peso total
-    // para obter os valores de frete e comissão
-    if (produtosAtuais.length > 0) {
-      try {
-        const produtoReferencia = produtosAtuais[0];
-        const produtoId = produtoReferencia.id_produtos || produtoReferencia.id;
-        
-        // Usamos Promise.race para implementar um timeout na chamada da API
-        const resultado: any = await Promise.race([
-          calcularPrecoProduto(
-            String(produtoId), 
-            1, // Quantidade fixa para cálculo
-            pesoTotalCalculado // Passamos o peso total como parâmetro adicional
-          ),
-          timeoutPromise
-        ]);
-        
-        // Obtemos os valores de frete e comissão da API
-        freteCalculado = resultado.frete || 0;
-        comissaoCalculada = resultado.comissao || 0;
-        
-        // O total final é a soma do subtotal (já calculado) + frete + comissão
-        totalCalculado = subtotalCalculado + freteCalculado + comissaoCalculada;
-        
-        console.log("Resultados do cálculo da API:");
-        console.log("Frete calculado:", freteCalculado);
-        console.log("Comissão calculada:", comissaoCalculada);
-        console.log("Total final calculado:", totalCalculado);
-        
-        // Atualizar os estados com os valores vindos da API
-        setFreteTotal(freteCalculado);
-        setComissaoTotal(comissaoCalculada);
-        setTotalFinal(totalCalculado);
-        setCalculoRealizado(true);
-      } catch (apiError) {
-        console.log("Erro durante chamada da API:", apiError);
-        
-        // Cálculo alternativo caso a API falhe
-        // Implementando a mesma lógica do backend diretamente no front-end como fallback
-        const calcularFrete = (peso: number) => {
-          if (peso >= 10 && peso <= 30) return { base: 10000, comissao: 1000 };
-          if (peso >= 31 && peso <= 50) return { base: 15000, comissao: 1500 };
-          if (peso >= 51 && peso <= 70) return { base: 20000, comissao: 2000 };
-          if (peso >= 71 && peso <= 100) return { base: 25000, comissao: 2500 };
-          if (peso >= 101 && peso <= 300) return { base: 35000, comissao: 3500 };
-          if (peso >= 301 && peso <= 500) return { base: 50000, comissao: 5000 };
-          if (peso >= 501 && peso <= 1000) return { base: 80000, comissao: 8000 };
-          if (peso >= 1001 && peso <= 2000) return { base: 120000, comissao: 12000 };
-          return { base: 0, comissao: 0 };
+      if (resultado) {
+        const dadosCalculo: CalculoCarrinho = {
+          itens: resultado.itens || [],
+          subtotalProdutos: resultado.subtotalProdutos || 0,
+          pesoTotal: resultado.pesoTotal || 0,
+          frete: resultado.frete || 0,
+          comissao: resultado.comissao || 0,
+          totalFinal: resultado.totalFinal || 0
         };
         
-        const frete = calcularFrete(pesoTotalCalculado);
-        freteCalculado = frete.base;
-        comissaoCalculada = frete.comissao;
-        totalCalculado = subtotalCalculado + freteCalculado + comissaoCalculada;
-        
-        console.log("Usando cálculo de fallback:");
-        console.log("Frete calculado:", freteCalculado);
-        console.log("Comissão calculada:", comissaoCalculada);
-        console.log("Total final calculado:", totalCalculado);
-        
-        setFreteTotal(freteCalculado);
-        setComissaoTotal(comissaoCalculada);
-        setTotalFinal(totalCalculado);
-        setCalculoRealizado(true);
+        setCalculoCarrinho(dadosCalculo);
+        console.log("Cálculo recebido da API:", dadosCalculo);
       }
-    } else {
-      resetarTotais();
+      
+    } catch (error) {
+      console.log("Erro ao calcular totais do carrinho:", error);
+      setCalculoCarrinho(null);
     }
-  } catch (error) {
-    console.log("Erro ao calcular preço total:", error);
-    // Caso haja erro, mantemos os valores atuais
-  }
-};
-
-
+  };
 
   useEffect(() => {
     carregarProdutos();
@@ -258,8 +132,8 @@ const atualizarCalculoPrecoTotal = async (produtosAtuais: Produto[]) => {
     try {
       const resposta = await esvaziarCarrinho();
       toast.success(resposta.message || "Carrinho esvaziado com sucesso!");
-      setProdutos([]); // Limpa a lista de produtos na interface
-      resetarTotais();
+      setProdutos([]);
+      setCalculoCarrinho(null);
     } catch (error: any) {
       console.log("Erro ao esvaziar carrinho:", error);
       toast.error(error.message || "Erro ao esvaziar o carrinho.");
@@ -286,13 +160,31 @@ const atualizarCalculoPrecoTotal = async (produtosAtuais: Produto[]) => {
       }
       
       if (novaQuantidade > quantidadeDisponivel) {
-        setErrorMessage(`Não é possível adicionar mais que ${quantidadeDisponivel} ${produtoSelecionado?.Unidade || "unidade"}`);
+        setErrorMessage(`Quantidade máxima disponível: ${quantidadeDisponivel} ${produtoSelecionado?.Unidade || "unidades"}. Não é possível adicionar mais.`);
         return;
       }
       
       setQuantidade(novaQuantidade);
       setErrorMessage('');
     }
+  };
+
+  // Função para validar e definir quantidade manualmente
+  const handleQuantidadeChange = (novaQuantidade: number) => {
+    if (!produtoSelecionado) return;
+    
+    if (isNaN(novaQuantidade) || novaQuantidade <= 0) {
+      setErrorMessage("A quantidade deve ser um número maior que zero");
+      return;
+    }
+    
+    if (novaQuantidade > quantidadeDisponivel) {
+      setErrorMessage(`Quantidade máxima disponível: ${quantidadeDisponivel} ${produtoSelecionado?.Unidade || "unidades"}. Não é possível exceder este limite.`);
+      return;
+    }
+    
+    setQuantidade(novaQuantidade);
+    setErrorMessage('');
   };
 
   // Função para confirmar a alteração de quantidade
@@ -305,8 +197,8 @@ const atualizarCalculoPrecoTotal = async (produtosAtuais: Produto[]) => {
         return;
       }
       
-     if (quantidade > quantidadeDisponivel) {
-        setErrorMessage(`Não é possível adicionar mais que ${quantidadeDisponivel} ${produtoSelecionado?.Unidade || "unidade"}`);
+      if (quantidade > quantidadeDisponivel) {
+        setErrorMessage(`Quantidade máxima disponível: ${quantidadeDisponivel} ${produtoSelecionado?.Unidade || "unidades"}. Não é possível exceder este limite.`);
         return;
       }
             
@@ -317,12 +209,14 @@ const atualizarCalculoPrecoTotal = async (produtosAtuais: Produto[]) => {
       );
       
       console.log("Resposta da atualização:", resposta);
+      toast.success("Quantidade atualizada com sucesso!");
       
-      // Recarregar produtos após atualização
+      // Recarregar produtos e recalcular totais
       await carregarProdutos();
       
       // Fechar o modal
       setshowcaixa(false);
+      setErrorMessage('');
     } catch (error: any) {
       console.log("Erro ao atualizar quantidade:", error);
       setErrorMessage(error.mensagem || "Erro ao atualizar quantidade do produto.");
@@ -337,7 +231,7 @@ const atualizarCalculoPrecoTotal = async (produtosAtuais: Produto[]) => {
       if (confirmacao) {
         const resposta = await removerProdutoDoCarrinho(String(produtoId));
         toast.success(resposta.mensagem || "Produto removido com sucesso!");
-        await carregarProdutos(); // Recarrega os produtos após remover
+        await carregarProdutos(); // Recarrega os produtos e recalcula totais
       }
     } catch (error: any) {
       console.log("Erro ao remover produto:", error);
@@ -345,285 +239,241 @@ const atualizarCalculoPrecoTotal = async (produtosAtuais: Produto[]) => {
     }
   };
 
-
-const handleIniciarCheckout = async () => {
-  if (produtos.length === 0) {
-    alert("Seu carrinho está vazio. Adicione produtos antes de finalizar a compra.");
-    return;
-  }
-  
-  if (pesoTotal < 10) {
-    alert("O peso total mínimo para efetivar a compra é de 10kg. Adicione mais produtos.");
-    return;
-  }
-  
-  try {
-    setLoadingCheckout(true);
-    const resposta = await iniciarCheckout();
+  // Função para iniciar checkout
+  const handleIniciarCheckout = async () => {
+    if (produtos.length === 0) {
+      alert("Seu carrinho está vazio. Adicione produtos antes de finalizar a compra.");
+      return;
+    }
     
-    // Guarda os dados do checkout para mostrar no resumo
-    setResumoCheckout(resposta);
-    setIsCheckoutIniciado(true);
-    toast.success("Checkout iniciado. Confirme seus dados para prosseguir com o pagamento.");
-    router.push("/enderecopedido");
-  } catch (error:any) {
-    console.log("Erro ao iniciar checkout:", error);
-    toast.error(error.mensagem || "Erro ao iniciar o checkout.");
-  } finally {
-    setLoadingCheckout(false);
-  }
-};
-
-// //4. Função para prosseguir com a finalização da compra após checkout iniciado
-// const handleConfirmarCompra = async () => {
-//   try {
-//     setLoadingFinalizarCompra(true);
+    if (!calculoCarrinho || calculoCarrinho.pesoTotal < 10) {
+      alert("O peso total mínimo para efetivar a compra é de 10kg. Adicione mais produtos.");
+      return;
+    }
     
-//     // Aqui você pode incluir dados de endereço se necessário
-//     // const dadosEndereco = {}; // Você pode coletar isso de um formulário
-    
-//     const resposta = await finalizarCompra();
-//     toast.success(resposta.mensagem || "Compra finalizada com sucesso!");
-    
-//     setProdutos([]);
-//     resetarTotais();
-//     setIsCheckoutIniciado(false);
-//     setResumoCheckout(null);
-    
-//     // Redireciona para página de endereço/confirmação
-//     router.push("/enderecopedido");
-//   } catch (error:any) {
-//     console.log("Erro ao finalizar compra:", error);
-//     toast.error(error.mensagem || "Erro ao finalizar a compra.");
-//   } finally {
-//     setLoadingFinalizarCompra(false);
-//   }
-// };
+    try {
+      setLoadingCheckout(true);
+      const resposta = await iniciarCheckout();
+      
+      setResumoCheckout(resposta);
+      setIsCheckoutIniciado(true);
+      toast.success("Checkout iniciado. Confirme seus dados para prosseguir com o pagamento.");
+      router.push("/enderecopedido");
+    } catch (error: any) {
+      console.log("Erro ao iniciar checkout:", error);
+      toast.error(error.mensagem || "Erro ao iniciar o checkout.");
+    } finally {
+      setLoadingCheckout(false);
+    }
+  };
 
-// <div className="flex gap-4 justify-end">
-//           <button 
-//             onClick={handleCancelarCheckout}
-//             className="bg-gray-300 py-2 px-4 rounded-[5px] font-medium"
-//             disabled={loadingFinalizarCompra}
-//           >
-//             Voltar
-//           </button>
-          
-// // 5. Função para cancelar o checkout e voltar ao carrinho
-// const handleCancelarCheckout = () => {
-//   setIsCheckoutIniciado(false);
-//   setResumoCheckout(null);
-// };
+  return (
+    <>
+      <Head>
+        <title>Carrinho</title>
+      </Head>
 
+      <Navbar />
+      <ToastContainer position="top-right" autoClose={5000} />
 
-return (
-  <>
-    <Head>
-      <title> Carrinho </title>
-    </Head>
+      <div className="mb-20 mt-[48%] lg:mt-[15%]">
+        <div className="max-w-[1200px] my-8 mx-auto py-0 px-4 items-center gap-4 grid grid-cols-1 relative border-b-[1px]">
+          <div className="flex items-end">
+            <h1 className="text-[1.5rem] lg:text-[2rem] text-marieth mb-8 p-4 font-bold">
+              Meu Carrinho
+            </h1>
+            {produtos.length > 0 && (
+              <button 
+                className="bg-vermelho text-white rounded-[5px] h-fit px-2 py-1 mb-12 ml-auto flex items-center gap-2 cursor-pointer"
+                onClick={handleEsvaziarCarrinho}
+              >
+                <FaTrash />
+                Esvaziar
+              </button>
+            )}
+          </div>
 
-    <Navbar />
-    <ToastContainer position="top-right" autoClose={5000} />
-    
+          {loading ? (
+            <p className="text-center text-gray-500 text-lg">Carregando produtos...</p>
+          ) : produtos.length === 0 ? (
+            <p className="text-center text-gray-500 text-lg mt-8">Carrinho vazio. Nenhum produto adicionado.</p>
+          ) : (
+            produtos.map((produto) => (
+              <div key={produto.id} className="flex p-1 border-b-[1px]">
+                <div className="h-24 w-24 min-w-24 flex items-center justify-center">
+                  <Image
+                    src={produto.foto_produto || '/logo.jpg'}
+                    alt={produto.nome || 'Produto'}
+                    height={96}
+                    width={96}
+                    className="object-cover rounded-[5px] max-h-24"
+                  />
+                </div>
+                <div className="flex-1 py-0 px-4 relative">
+                  <h3 className="font-bold mb-2">{produto.nome}</h3>
+                  <p className="font-bold text-marieth">
+                    Kzs {parseFloat(produto.preco.toString()).toFixed(2)}/{produto.Unidade || "unidade"}
+                  </p>
+                  <p>Quantidade: <span className="font-semibold">{produto.quantidade} {produto.Unidade || "unidades"}</span></p>
+                  <p>Estoque disponível: <span className="font-semibold">{produto.quantidade_estoque || produto.estoque_atual} {produto.unidade_estoque || produto.Unidade}</span></p>
+                  <p>Subtotal: <span className="font-bold">Kzs {(parseFloat(produto.preco.toString()) * produto.quantidade).toFixed(2)}</span></p>
+                  {produto.peso_kg && (
+                    <p>Peso total: {(parseFloat(produto.peso_kg.toString()) * produto.quantidade).toFixed(2)} kg</p>
+                  )}
+                  <FaTrash
+                    onClick={() => handleRemover(produto.id)}
+                    className="absolute top-2 right-2 text-vermelho text-[1.2rem] cursor-pointer hover:text-red-700"
+                  />
+                  <button
+                    className="hover:bg-verdeaceso bg-marieth rounded-[5px] cursor-pointer text-white p-2 text-[0.9rem] mt-2"
+                    onClick={() => handleEditar(produto)}
+                  >
+                    Alterar Quantidade
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
 
-    <div className="mb-20 mt-[48%] lg:mt-[15%]">
-      <div className="max-w-[1200px] my-8 mx-auto py-0 px-4 items-center gap-4 grid grid-cols-1 relative border-b-[1px]">
-        <div className="flex items-end">
-          <h1 className=" text-[1.5rem] lg:text-[2rem] text-marieth mb-8 p-4 font-bold">
-            Meu Carrinho
-          </h1>
-          {produtos.length > 0 && (
-            <button 
-              className="bg-vermelho text-white rounded-[5px] h-fit px-2 py-1 mb-12 ml-auto flex items-center gap-2 cursor-pointer"
-              onClick={handleEsvaziarCarrinho}
-            >
-              <FaTrash />
-              Esvaziar
-            </button>
+          {/* Resumo dos totais - agora usando dados da função importada */}
+          {produtos.length > 0 && calculoCarrinho && (
+            <div className="mt-8 p-4 bg-white rounded-[10px] shadow-custom">
+              <div className="flex justify-between border-b-[1px] border-solid border-tab py-2 px-0">
+                <span>Subtotal dos produtos:</span>
+                <span>Kzs {calculoCarrinho.subtotalProdutos.toFixed(2)}</span>
+              </div>
+
+              <div className="flex justify-between border-b-[1px] border-solid border-tab py-2 px-0">
+                <span>Frete:</span>
+                <span>Kzs {calculoCarrinho.frete.toFixed(2)}</span>
+              </div>
+
+              <div className="flex justify-between border-b-[1px] border-solid border-tab py-2 px-0">
+                <span>Comissão:</span>
+                <span>Kzs {calculoCarrinho.comissao.toFixed(2)}</span>
+              </div>
+              
+              <div className="flex justify-between border-b-[1px] border-solid border-tab py-2 px-0">
+                <span>Peso total:</span>
+                <span>{calculoCarrinho.pesoTotal.toFixed(2)} kg</span>
+              </div>
+
+              <div className="flex justify-between border-b-[1px] border-solid mt-[1rem] border-tab py-2 px-0">
+                <span className="text-marieth text-[1.2rem] font-bold">Total a pagar:</span>
+                <span className="text-[1.2rem] font-bold">Kzs {calculoCarrinho.totalFinal.toFixed(2)}</span>
+              </div>
+
+              {calculoCarrinho.pesoTotal < 10 && (
+                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded my-4">
+                  <p><strong>Atenção:</strong> O peso total mínimo para efetivar a compra é de 10kg. 
+                     Peso atual: {calculoCarrinho.pesoTotal.toFixed(2)}kg. Adicione mais produtos para continuar.</p>
+                </div>
+              )}
+
+              <button 
+                className={`transition-all ${loadingCheckout || calculoCarrinho.pesoTotal < 10 ? 'bg-gray-400 cursor-not-allowed' : 'hover:bg-verdeaceso bg-marieth'} text-[1.1rem] mt-4 block w-full p-4 text-white border-none rounded-[5px] cursor-pointer`}
+                onClick={handleIniciarCheckout}
+                disabled={produtos.length === 0 || loadingCheckout || calculoCarrinho.pesoTotal < 10}
+              >
+                {loadingCheckout ? 'Processando...' : 'Iniciar Compra'}
+              </button>
+            </div>
           )}
         </div>
 
-        {errorMessage && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-            <p>{errorMessage}</p>
-          </div>
-        )}
+        {/* Modal de ajuste de quantidade melhorado */}
+        {showcaixa && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="min-w-[300px] w-[90%] max-w-[500px] bg-white shadow-custom rounded-[10px] p-8 relative">
+              <h2 className="font-bold text-2xl mb-4 text-marieth">Alterar Quantidade</h2>
+              {produtoSelecionado && (
+                <div className="mb-4 p-3 bg-gray-50 rounded-[5px]">
+                  <p className="font-semibold">{produtoSelecionado.nome}</p>
+                  <p className="text-sm text-gray-600">
+                    Preço unitário: Kzs {parseFloat(produtoSelecionado.preco.toString()).toFixed(2)}/{produtoSelecionado.Unidade || "unidade"}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    Quantidade atual: {produtoSelecionado.quantidade} {produtoSelecionado.Unidade || "unidades"}
+                  </p>
+                  <p className="text-sm font-medium text-green-600">
+                    Disponível em estoque: {quantidadeDisponivel} {produtoSelecionado.Unidade || "unidades"}
+                  </p>
+                </div>
+              )}
 
-        {loading ? (
-          <p className="text-center text-gray-500 text-lg">Carregando produtos...</p>
-        ) : produtos.length === 0 ? (
-          <p className="text-center text-gray-500 text-lg mt-8">Carrinho vazio. Nenhum produto adicionado.</p>
-        ) : (
-          produtos.map((produto) => (
-            <div key={produto.id} className="flex p-1 border-b-[1px]">
-              <div className="h-24 w-24 min-w-24 flex items-center justify-center">
-                <Image
-                  src={produto.foto_produto || '/logo.jpg'}
-                  alt={produto.nome || 'Produto'}
-                  height={96}
-                  width={96}
-                  className="object-cover rounded-[5px] max-h-24"
-                />
+              {errorMessage && (
+                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                  <p className="text-sm font-medium">{errorMessage}</p>
+                </div>
+              )}
+
+              {/* Botões de incremento rápido */}
+              <div className="mb-4">
+                <p className="text-sm font-medium mb-2">Ajuste rápido:</p>
+                <div className="grid grid-cols-4 gap-2">
+                  <button onClick={() => handleIncrementoRapido(-10)} className="p-2 bg-red-500 rounded-[5px] text-white text-[0.8rem] hover:bg-red-600">-10</button>
+                  <button onClick={() => handleIncrementoRapido(-5)} className="p-2 bg-red-500 rounded-[5px] text-white text-[0.8rem] hover:bg-red-600">-5</button>
+                  <button onClick={() => handleIncrementoRapido(-1)} className="p-2 bg-red-500 rounded-[5px] text-white text-[0.8rem] hover:bg-red-600">-1</button>
+                  <button onClick={() => handleIncrementoRapido(-0.5)} className="p-2 bg-red-500 rounded-[5px] text-white text-[0.8rem] hover:bg-red-600">-0.5</button>
+                  <button onClick={() => handleIncrementoRapido(0.5)} className="p-2 bg-marieth rounded-[5px] text-white text-[0.8rem] hover:bg-verdeaceso">+0.5</button>
+                  <button onClick={() => handleIncrementoRapido(1)} className="p-2 bg-marieth rounded-[5px] text-white text-[0.8rem] hover:bg-verdeaceso">+1</button>
+                  <button onClick={() => handleIncrementoRapido(5)} className="p-2 bg-marieth rounded-[5px] text-white text-[0.8rem] hover:bg-verdeaceso">+5</button>
+                  <button onClick={() => handleIncrementoRapido(10)} className="p-2 bg-marieth rounded-[5px] text-white text-[0.8rem] hover:bg-verdeaceso">+10</button>
+                </div>
               </div>
-              <div className="flex-1 py-0 px-4 relative">
-                <h3 className="font-bold mb-2">{produto.nome}</h3>
-                <p className="font-bold text-marieth">
-                  Kzs {parseFloat(produto.preco.toString()).toFixed(2)}/{produto.quantidade}{produto.Unidade || "unidade"}
-                </p>
-                <p>Estoque: <span className="font-semibold">{produto.quantidade_estoque}{produto.unidade_estoque}</span></p>
-                <p>Subtotal: <span className="font-bold">Kzs {(parseFloat(produto.preco.toString()) * produto.quantidade).toFixed(2)}</span></p>
-                {produto.peso_kg && (
-                  <p>Peso: {(parseFloat(produto.peso_kg.toString()) * produto.quantidade).toFixed(2)} kg</p>
-                )}
-                <FaTrash
-                  onClick={() => handleRemover(produto.id)}
-                  className="absolute top-2 right-2 text-vermelho text-[1.2rem] cursor-pointer"
-                />
-                <button
-                  className="hover:bg-verdeaceso bg-marieth rounded-[5px] cursor-pointer text-white p-2 text-[0.9rem] mt-2"
-                  onClick={() => handleEditar(produto)}
+              
+              {/* Input manual de quantidade */}
+              <div className="flex flex-col gap-4 my-4 mx-0">
+                <label htmlFor="number" className="font-medium">
+                  Quantidade desejada:
+                  <input
+                    type="number"
+                    name="numero"
+                    id="number"
+                    min={0.1}
+                    max={quantidadeDisponivel}
+                    value={quantidade}
+                    onChange={(e) => handleQuantidadeChange(parseFloat(e.target.value))}
+                    step={0.1}
+                    className="w-full text-lg p-3 border-[1px] border-solid border-tab rounded-[5px] mt-1"
+                  />
+                </label>
+
+                {/* Informações de resumo */}
+                <div className="bg-blue-50 p-3 rounded-[5px]">
+                  <p className="font-bold text-marieth text-lg">
+                    Subtotal estimado: Kzs {(produtoSelecionado ? parseFloat(produtoSelecionado.preco.toString()) * quantidade : 0).toFixed(2)}
+                  </p>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {quantidade} {produtoSelecionado?.Unidade || "unidades"} × Kzs {produtoSelecionado ? parseFloat(produtoSelecionado.preco.toString()).toFixed(2) : 0}
+                  </p>
+                </div>
+              </div>
+
+              {/* Botões de ação */}
+              <div className="flex gap-4 justify-end cursor-pointer border-none mt-6">
+                <button 
+                  className="bg-gray-500 py-3 px-6 text-white rounded-[5px] hover:bg-gray-600 transition-colors" 
+                  onClick={() => {
+                    setshowcaixa(false);
+                    setErrorMessage('');
+                  }}
                 >
-                  Alterar Quantidade
+                  Cancelar
+                </button>
+                <button 
+                  className="bg-marieth py-3 px-6 text-white rounded-[5px] hover:bg-verdeaceso transition-colors" 
+                  onClick={handleConfirmar}
+                  disabled={!!errorMessage}
+                >
+                  Confirmar
                 </button>
               </div>
             </div>
-          ))
-        )}
-
-        {produtos.length > 0 && (
-          <div className="mt-8 p-4 bg-white rounded-[10px] shadow-custom">
-            <div className="flex justify-between border-b-[1px] border-solid border-tab py-2 px-0">
-              <span>Subtotal dos produtos:</span>
-              <span>kzs {subtotal.toFixed(2)}</span>
-            </div>
-
-            <div className="flex justify-between border-b-[1px] border-solid border-tab py-2 px-0">
-              <span>Frete:</span>
-              <span>kzs {freteTotal.toFixed(2)}</span>
-            </div>
-
-            <div className="flex justify-between border-b-[1px] border-solid border-tab py-2 px-0">
-              <span>Comissão:</span>
-              <span>kzs {comissaoTotal.toFixed(2)}</span>
-            </div>
-            
-            <div className="flex justify-between border-b-[1px] border-solid border-tab py-2 px-0">
-              <span>Peso total:</span>
-              <span>{pesoTotal.toFixed(2)} kg</span>
-            </div>
-
-            <div className="flex justify-between border-b-[1px] border-solid mt-[1rem] border-tab py-2 px-0">
-              <span className="text-marieth text-[1.2rem] font-bold">Total a pagar:</span>
-              <span>kzs {totalFinal.toFixed(2)}</span>
-            </div>
-
-            {pesoTotal < 10 && (
-              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded my-4">
-                <p>O peso total mínimo para efetivar a compra é de 10kg. Adicione mais produtos.</p>
-              </div>
-            )}
-
-            <button 
-              className={`transition-all ${loadingFinalizarCompra || pesoTotal < 10 ? 'bg-gray-400' : 'hover:bg-verdeaceso bg-marieth'} text-[1.1rem] mt-4 block w-full p-4 text-white border-none rounded-[5px] cursor-pointer`}
-              onClick={handleIniciarCheckout}
-              disabled={produtos.length === 0 || loadingFinalizarCompra || pesoTotal < 10}
-            >
-              {loadingFinalizarCompra ? 'Processando...' : 'Iniciar Compra'}
-            </button>
           </div>
         )}
       </div>
-
-      {/* Modal de ajuste de quantidade atualizado */}
-      {showcaixa && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="min-w-[300px] w-[90%] max-w-[400px] bg-white shadow-custom rounded-[10px] p-8 relative">
-            <h2 className="font-bold text-2xl mb-4">Alterar Quantidade</h2>
-            {produtoSelecionado && (
-              <p className="text-sm text-gray-600 mb-4">
-                Produto: {produtoSelecionado.nome} - Preço: Kzs {parseFloat(produtoSelecionado.preco.toString()).toFixed(2)}/{produtoSelecionado.Unidade || "unidade"}
-              </p>
-            )}
-
-            {errorMessage && (
-              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-                <p>{errorMessage}</p>
-              </div>
-            )}
-
-            <div className="mb-4 grid grid-cols-4 gap-2">
-              <button onClick={() => handleIncrementoRapido(-1)} className="p-2 bg-red-500 rounded-[5px] text-white text-[0.9rem] hover:bg-red-600">-1</button>
-              <button onClick={() => handleIncrementoRapido(-0.5)} className="p-2 bg-red-500 rounded-[5px] text-white text-[0.9rem] hover:bg-red-600">-0.5</button>
-              <button onClick={() => handleIncrementoRapido(0.5)} className="p-2 bg-marieth rounded-[5px] text-white text-[0.9rem] hover:bg-verdeaceso">+0.5</button>
-              <button onClick={() => handleIncrementoRapido(1)} className="p-2 bg-marieth rounded-[5px] text-white text-[0.9rem] hover:bg-verdeaceso">+1</button>
-              <button onClick={() => handleIncrementoRapido(-5)} className="p-2 bg-red-500 rounded-[5px] text-white text-[0.9rem] hover:bg-red-600">-5</button>
-              <button onClick={() => handleIncrementoRapido(-10)} className="p-2 bg-red-500 rounded-[5px] text-white text-[0.9rem] hover:bg-red-600">-10</button>
-              <button onClick={() => handleIncrementoRapido(5)} className="p-2 bg-marieth rounded-[5px] text-white text-[0.9rem] hover:bg-verdeaceso">+5</button>
-              <button onClick={() => handleIncrementoRapido(10)} className="p-2 bg-marieth rounded-[5px] text-white text-[0.9rem] hover:bg-verdeaceso">+10</button>
-            </div>
-            
-            <div className="flex flex-col gap-4 my-4 mx-0">
-              <label htmlFor="number">Ajustar quantidade
-                <input
-                  type="number"
-                  name="numero"
-                  id="number"
-                  min={0.1}
-                  max={quantidadeDisponivel}
-                  value={quantidade}
-                  onChange={(e) => {
-                    const novaQuantidade = parseFloat(e.target.value);
-                    if (!isNaN(novaQuantidade)) {
-                      if (novaQuantidade <= 0) {
-                        setErrorMessage("A quantidade deve ser maior que zero");
-                        return;
-                      }
-                      if (novaQuantidade > quantidadeDisponivel) {
-                        setErrorMessage(`Não é possível adicionar mais que ${quantidadeDisponivel} ${produtoSelecionado?.Unidade || 'unidades'}`);
-                        return;
-                      }
-                      setQuantidade(novaQuantidade);
-                      setErrorMessage(''); // Limpar mensagem de erro
-                    }
-                  }}
-                  step={0.1}
-                  className="w-full text-4 p-2 border-[1px] border-solid border-tab rounded-[5px]"
-                />
-              </label>
-              <p className="text-gray-500 text-sm">
-                Unidade: {produtoSelecionado?.Unidade || "unidade"}
-              </p>
-              <p className="text-gray-600 text-sm">
-                Disponível em estoque: <span className="font-semibold">{quantidadeDisponivel}</span> {produtoSelecionado?.Unidade || "unidade"}
-              </p> 
-
-              <p className="font-bold text-marieth">
-                Subtotal estimado: Kzs {(produtoSelecionado ? parseFloat(produtoSelecionado.preco.toString()) * quantidade : 0).toFixed(2)}
-              </p>
-            </div>
-
-            <div className="flex gap-4 justify-end cursor-pointer border-none">
-              <button 
-                className="bg-vermelho py-2 px-4 text-white rounded-[5px]" 
-                onClick={() => {
-                  setshowcaixa(false);
-                  setErrorMessage('');
-                }}
-              >
-                Cancelar
-              </button>
-              <button 
-                className="bg-marieth py-2 px-4 text-white rounded-[5px]" 
-                onClick={handleConfirmar}
-              >
-                Confirmar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-    <Footer />
-  </>
-);
+      <Footer />
+    </>
+  );
 }

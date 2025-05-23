@@ -3,7 +3,7 @@ import Head from 'next/head';
 import React, { useState, useEffect } from 'react';
 import Navbar from '../../Components/Navbar';
 import Footer from '../../Components/Footer';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { obterPacotesDestaque, destacarProduto, getProdutoById } from '../../Services/produtos';
 import Image from 'next/image';
 
@@ -26,27 +26,24 @@ const PromoPage = () => {
 
   // Função para extrair parâmetros da URL e carregar produto
   const carregarIdProduto = () => {
-    if (typeof window !== 'undefined') {
-      const searchParams = new URLSearchParams(window.location.search);
-      const id = searchParams.get('produtoId');
-      if (!id) {
-        setError('ID do produto não fornecido. Selecione um produto para destacar.');
-        return;
-      }
+    const params = useParams();
+    const idParam = params?.id;
+    const id = typeof idParam === 'string' ? parseInt(idParam, 10) : null;
 
-      const parsedId = parseInt(id);
-      console.log('ID convertido:', parsedId);
-
-      if (isNaN(parsedId) || parsedId <= 0) {
-        setError('ID do produto inválido. Por favor, selecione um produto válido.');
-        return;
-      }
-
-      setProdutoId(parsedId);
-
-      // Buscar informações do produto
-      carregarInfoProduto(parsedId);
+    if (!id) {
+      setError('ID do produto não fornecido. Selecione um produto para destacar.');
+      return;
     }
+
+    if (isNaN(id) || id <= 0) {
+      setError('ID do produto inválido. Por favor, selecione um produto válido.');
+      return;
+    }
+
+    setProdutoId(id);
+
+    // Buscar informações do produto
+    carregarInfoProduto(id);
   };
 
   // Carregar informações do produto

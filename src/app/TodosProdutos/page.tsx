@@ -24,6 +24,7 @@ export default function Vitrine() {
     Unidade: string;
     preco: number;
     idUsuario: number;
+    peso_kg:number
   }
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [visibleCount, setVisibleCount] = useState(12);
@@ -144,7 +145,7 @@ const handleAdicionarAoCarrinho = async (produto: Produto) => {
     console.log("Unidade do produto:", produto.Unidade);
     
     // Enviar com a unidade do produto
-    await adicionarProdutoAoCarrinho(produto.id_produtos.toString(), produto.quantidade, produto.Unidade);
+    await adicionarProdutoAoCarrinho(produto.id_produtos.toString(), produto.quantidade, produto.Unidade ,produto.peso_kg , produto.preco);
     toast.success("Produto adicionado ao carrinho com sucesso!");
   } catch (error: any) {
     if (error.message) {

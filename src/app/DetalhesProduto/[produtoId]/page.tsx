@@ -233,51 +233,75 @@ export default function DetalhesProduto(){
       router.push("/login");
     }
   };
+const handleAdicionarAoCarrinho = async () => {
+  if (!produto || !produtoId) {
+    toast.error("Produto não encontrado.");
+    return;
+  }
 
-  const handleAdicionarAoCarrinho = async () => {
-    if (!produto || !produtoId) {
-      toast.error("Produto não encontrado.");
+  try {
+    // Usar diretamente o ID da URL para garantir consistência
+    const idProdutoNumerico = Number(produtoId);
+    if (isNaN(idProdutoNumerico)) {
+      console.log("ID do produto inválido:", produtoId);
+      toast.error("ID do produto inválido.");
       return;
     }
 
-    try {
-      // Usar diretamente o ID da URL para garantir consistência
-      const idProdutoNumerico = Number(produtoId);
-      if (isNaN(idProdutoNumerico)) {
-        console.log("ID do produto inválido:", produtoId);
-        toast.error("ID do produto inválido.");
-        return;
-      }
+    // Determinar qual quantidade enviar:
+    // Se o usuário alterou (abriu o modal), usa a selecionada
+    // Se não alterou, usa a quantidade original do produto
+    const quantidadeParaEnviar = showcaixa || quantidadeSelecionada !== 0
+      ? quantidadeSelecionada 
+      : produto.quantidade;
 
-      // Verificar se a quantidade é válida
-      if (quantidadeSelecionada <= 0) {
-        toast.error("Por favor, selecione uma quantidade válida.");
-        return;
-      }
-      
-      // Verificar se não excede o estoque
-      if (quantidadeSelecionada > produto.quantidade) {
-        toast.error("Quantidade selecionada maior que o disponível.");
-        return;
-      }
+    // Determinar qual unidade enviar:
+    // Se o usuário selecionou uma unidade específica, usar ela
+    // Se não selecionou, usar a unidade original do produto
+    const unidadeParaEnviar = unidadeSelecionada && unidadeSelecionada !== "" 
+      ? unidadeSelecionada 
+      : produto.Unidade;
 
-      // Adicionar produto ao carrinho com o ID numérico
-      await adicionarProdutoAoCarrinho(
-        idProdutoNumerico,
-        quantidadeSelecionada
-      );
-      
-      toast.success("Produto adicionado ao carrinho com sucesso!");
-      setMensagemSucesso(`Produto adicionado ao carrinho: ${quantidadeSelecionada} ${unidadeSelecionada} de ${produto.nome} - Total: ${Number(produto.preco * quantidadeSelecionada).toFixed(2)} AOA`);
-      setTimeout(() => {
-        setMensagemSucesso(null);
-      }, 5000);
-    } catch (error: any) {
-      console.log("Erro ao adicionar ao carrinho:", error);
-      toast.error(error.message || "Erro ao adicionar ao carrinho. Tente novamente.");
+    // Verificar se a quantidade é válida
+    if (quantidadeParaEnviar <= 0) {
+      toast.error("Por favor, selecione uma quantidade válida.");
+      return;
     }
-  };
+    
+    // Verificar se não excede o estoque
+    if (quantidadeParaEnviar > produto.quantidade) {
+      toast.error("Quantidade selecionada maior que o disponível.");
+      return;
+    }
 
+    // Adicionar produto ao carrinho com os dados corretos
+    await adicionarProdutoAoCarrinho(
+      idProdutoNumerico,
+      quantidadeParaEnviar,  // Quantidade alterada pelo usuário OU quantidade do produto
+      unidadeParaEnviar,     // Unidade selecionada pelo usuário OU unidade do produto
+      produto.peso_kg,       // Peso do produto
+      produto.preco          // Preço do produto
+    );
+    
+    toast.success("Produto adicionado ao carrinho com sucesso!");
+    setMensagemSucesso(`Produto adicionado ao carrinho: ${quantidadeParaEnviar} ${unidadeParaEnviar} de ${produto.nome} - Total: ${Number(produto.preco * quantidadeParaEnviar).toFixed(2)} AOA`);
+    setTimeout(() => {
+      setMensagemSucesso(null);
+    }, 5000);
+    
+  } catch (error: any) {
+    console.log("Erro ao adicionar ao carrinho:", error);
+    
+    // Tratamento de erro mais específico
+    if (error.message) {
+      toast.error(error.message);
+    } else if (error.mensagem) {
+      toast.error(error.mensagem);
+    } else {
+      toast.error("Erro ao adicionar produto ao carrinho. Tente novamente.");
+    }
+  }
+};
   // Função para verificar se o usuário é dono do produto
   const isOwner = () => {
   console.log("Verificando propriedade do produto:");
