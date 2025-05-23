@@ -1,14 +1,17 @@
 "use client"
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import Head from 'next/head';
 import { Line } from 'react-chartjs-2';
-import { Chart as ChartJS,CategoryScale,LinearScale,PointElement,LineElement,Title, Tooltip,Legend,
-} from 'chart.js';
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
+import {  MdMenu, MdDashboard, MdGroup, MdShield, MdShoppingCart, MdInventory, MdBarChart, 
+   MdLocalShipping,  MdHeadset, MdDeliveryDining,MdAssignment,MdNotifications,MdPerson,
+   MdSearch,MdAttachMoney,MdEdit,MdDelete,MdAdd
+} from 'react-icons/md';
+import { FaChartBar, FaUsers, FaBox, FaMoneyBillWave 
+} from 'react-icons/fa';
 
 // Register Chart.js components
-ChartJS.register(CategoryScale,LinearScale,PointElement,LineElement, Title, Tooltip,Legend
-);
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
+
 // Define types
 type TabType = 'Dashboard' | 'Usuários' | 'Produtos' | 'Pedidos' | 'Transportadoras' | 'Relatórios';
 type UserType = 'Agricultor' | 'Compradora' | 'Fornecedor';
@@ -44,6 +47,16 @@ export default function AdminDashboard() {
     { name: 'Batata Doce', seller: 'Fernanda Silva', price: 'AOA 1,800', status: 'Ativo' },
   ]);
 
+
+  const [notifications, setNotifications] = useState<Notification[]>([
+    { id: 1, title: 'Novo Usuário', message: 'João Silva solicitou cadastro como Agricultor', time: '5 min atrás', read: false, type: 'info' },
+    { id: 2, title: 'Produto Esgotado', message: 'Tomate - estoque zerado', time: '1 hora atrás', read: false, type: 'warning' },
+    { id: 3, title: 'Pedido Entregue', message: 'Pedido #12343 foi entregue com sucesso', time: '2 horas atrás', read: true, type: 'success' },
+    { id: 4, title: 'Problema de Pagamento', message: 'Erro no pagamento do pedido #12340', time: '3 horas atrás', read: false, type: 'error' },
+    { id: 5, title: 'Nova Transportadora', message: 'TransRápido solicitou parceria', time: '1 dia atrás', read: true, type: 'info' }
+  ]);
+
+
   const handleMenuToggle = () => {
     setSidebarActive(!sidebarActive);
   };
@@ -63,7 +76,7 @@ export default function AdminDashboard() {
         label: 'Vendas (AOA)',
         data: [65000, 59000, 80000, 81000, 56000, 95000, 40000],
         fill: false,
-        borderColor: '#43a047',
+        borderColor: '#10b981',
         tension: 0.1,
       },
     ],
@@ -119,186 +132,401 @@ export default function AdminDashboard() {
     };
   }, []);
 
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'pendente':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'aprovado':
+      case 'ativo':
+        return 'bg-green-100 text-green-800';
+      case 'rejeitado':
+      case 'inativo':
+        return 'bg-red-100 text-red-800';
+      case 'processando':
+        return 'bg-blue-100 text-blue-800';
+      case 'entregue':
+        return 'bg-green-100 text-green-800';
+      case 'cancelado':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
   return (
-    <>
-      <Head>
-        <title>Portal Administrativo - NzoAgro</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <link
-          href="https://cdn.jsdelivr.net/npm/@mdi/font@7.2.96/css/materialdesignicons.min.css"
-          rel="stylesheet"
-        />
-      </Head>
+    <div className="min-h-screen bg-gray-50">
+      {/* Menu Toggle Button */}
+      <button 
+        className="menu-toggle md:hidden fixed top-4 left-4 z-50 bg-emerald-600 text-white p-2 rounded-md"
+        onClick={handleMenuToggle}
+      >
+        <MdMenu size={24} />
+      </button>
 
-      <div className="dashboard">
-        <button className="menu-toggle" onClick={handleMenuToggle}>
-          <i className="mdi mdi-menu"></i>
-          jkskj
-        </button>
+      {/* Sidebar */}
+      <aside className={`sidebar fixed top-0 left-0 h-full w-72 bg-white border-r border-gray-200 p-4 transition-transform duration-300 z-40 ${
+        sidebarActive ? 'translate-x-0' : '-translate-x-full'
+      } md:translate-x-0`}>
+        <div className="mb-6 flex items-center justify-center">
+          <h1 className="text-emerald-600 text-2xl font-bold">NzoAgro</h1>
+        </div>
+        
+        <nav className="space-y-2">
+          <a 
+            href="#dashboard" 
+            className={`flex items-center px-4 py-3 rounded-lg transition-colors ${
+              activeTab === 'Dashboard' ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-emerald-600'
+            }`}
+            onClick={(e) => { e.preventDefault(); handleTabChange('Dashboard'); }}
+          >
+            <MdDashboard className="mr-3" size={20} />
+            Dashboard
+          </a>
+          
+          <a 
+            href="#users" 
+            className={`flex items-center px-4 py-3 rounded-lg transition-colors ${
+              activeTab === 'Usuários' ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-emerald-600'
+            }`}
+            onClick={(e) => { e.preventDefault(); handleTabChange('Usuários'); }}
+          >
+            <MdGroup className="mr-3" size={20} />
+            Gestão de Usuários
+          </a>
+          
+          <a href="#security" className="flex items-center px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-emerald-600 transition-colors">
+            <MdShield className="mr-3" size={20} />
+            Segurança
+          </a>
+          
+          <a 
+            href="#orders" 
+            className={`flex items-center px-4 py-3 rounded-lg transition-colors ${
+              activeTab === 'Pedidos' ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-emerald-600'
+            }`}
+            onClick={(e) => { e.preventDefault(); handleTabChange('Pedidos'); }}
+          >
+            <MdShoppingCart className="mr-3" size={20} />
+            Pedidos
+          </a>
+          
+          <a 
+            href="#products" 
+            className={`flex items-center px-4 py-3 rounded-lg transition-colors ${
+              activeTab === 'Produtos' ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-emerald-600'
+            }`}
+            onClick={(e) => { e.preventDefault(); handleTabChange('Produtos'); }}
+          >
+            <MdInventory className="mr-3" size={20} />
+            Produtos
+          </a>
+          
+          <a 
+            href="#reports" 
+            className={`flex items-center px-4 py-3 rounded-lg transition-colors ${
+              activeTab === 'Relatórios' ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-emerald-600'
+            }`}
+            onClick={(e) => { e.preventDefault(); handleTabChange('Relatórios'); }}
+          >
+            <MdBarChart className="mr-3" size={20} />
+            Relatórios
+          </a>
+          
+          <a href="#logistics" className="flex items-center px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-emerald-600 transition-colors">
+            <MdLocalShipping className="mr-3" size={20} />
+            Logística
+          </a>
+          
+          <a href="#support" className="flex items-center px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-emerald-600 transition-colors">
+            <MdHeadset className="mr-3" size={20} />
+            Suporte
+          </a>
+          
+          <a 
+            href="#transportadoras" 
+            className={`flex items-center px-4 py-3 rounded-lg transition-colors ${
+              activeTab === 'Transportadoras' ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-emerald-600'
+            }`}
+            onClick={(e) => { e.preventDefault(); handleTabChange('Transportadoras'); }}
+          >
+            <MdDeliveryDining className="mr-3" size={20} />
+            Transportadoras
+          </a>
+          
+          <a href="#pedidos" className="flex items-center px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-emerald-600 transition-colors">
+            <MdAssignment className="mr-3" size={20} />
+            Controle de Pedidos
+          </a>
+        </nav>
+      </aside>
 
-        <aside className={`sidebar ${sidebarActive ? 'active' : ''}`}>
-          <div className="logo">beginAtZero
-            <h1 className="text-marieth text-2xl font-bold">NzoAgro</h1>
-          </div>
-          <nav>
-            <a 
-              href="#dashboard" 
-              className={`nav-item ${activeTab === 'Dashboard' ? 'active' : ''}`}
-              onClick={() => handleTabChange('Dashboard')}
-            >
-              <i className="mdi mdi-view-dashboard"></i>
-              Dashboard
-            </a>
-            <a 
-              href="#users" 
-              className={`nav-item ${activeTab === 'Usuários' ? 'active' : ''}`}
-              onClick={() => handleTabChange('Usuários')}
-            >
-              <i className="mdi mdi-account-group"></i>
-              Gestão de Usuários
-            </a>
-            <a href="#security" className="nav-item">
-              <i className="mdi mdi-shield-check"></i>
-              Segurança
-            </a>
-            <a 
-              href="#orders" 
-              className={`nav-item ${activeTab === 'Pedidos' ? 'active' : ''}`}
-              onClick={() => handleTabChange('Pedidos')}
-            >
-              <i className="mdi mdi-cart"></i>
-              Pedidos
-            </a>
-            <a 
-              href="#products" 
-              className={`nav-item ${activeTab === 'Produtos' ? 'active' : ''}`}
-              onClick={() => handleTabChange('Produtos')}
-            >
-              <i className="mdi mdi-package"></i>
-              Produtos
-            </a>
-            <a 
-              href="#reports" 
-              className={`nav-item ${activeTab === 'Relatórios' ? 'active' : ''}`}
-              onClick={() => handleTabChange('Relatórios')}
-            >
-              <i className="mdi mdi-chart-bar"></i>
-              Relatórios
-            </a>
-            <a 
-              href="#logistics" 
-              className="nav-item"
-            >
-              <i className="mdi mdi-truck"></i>
-              Logística
-            </a>
-            <a href="#support" className="nav-item">
-              <i className="mdi mdi-headset"></i>
-              Suporte
-            </a>
-            <a 
-              href="#transportadoras" 
-              className={`nav-item ${activeTab === 'Transportadoras' ? 'active' : ''}`}
-              onClick={() => handleTabChange('Transportadoras')}
-            >
-              <i className="mdi mdi-truck-delivery"></i>
-              Transportadoras
-            </a>
-            <a href="#pedidos" className="nav-item">
-              <i className="mdi mdi-clipboard-list"></i>
-              Controle de Pedidos
-            </a>
-          </nav>
-        </aside>
-
-        <header className="header">
-          <div className="search">
+      {/* Header */}
+      <header className="fixed top-0 right-0 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between z-30 md:left-72 left-0">
+        <div className="flex items-center ml-16 md:ml-0">
+          <div className="relative">
+            <MdSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
             <input 
               type="search" 
               placeholder="Pesquisar..." 
-              className="search-input" 
+              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg w-80 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent" 
             />
           </div>
-          <div className="user-profile">
-            <div className="notifications">
-              <i className="mdi mdi-bell notification-icon">
-                <span className="notification-badge">3</span>
-              </i>
+        </div>
+
+
+               {/* Notifications Dropdown */}
+            {notificationsOpen && (
+              <div className="notifications-dropdown absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-200 z-50">
+                <div className="p-4 border-b border-gray-200">
+                  <h3 className="font-semibold text-gray-800">Notificações</h3>
+                </div>
+                <div className="max-h-96 overflow-y-auto">
+                  {notifications.map((notification) => (
+                    <div 
+                      key={notification.id}
+                      className={`p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer ${
+                        !notification.read ? 'bg-blue-50' : ''
+                      }`}
+                      onClick={() => markNotificationAsRead(notification.id)}
+                    >
+                      <div className="flex items-start space-x-3">
+                        <div className="flex-shrink-0 mt-1">
+                          {getNotificationIcon(notification.type)}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900">
+                            {notification.title}
+                          </p>
+                          <p className="text-sm text-gray-500 mt-1">
+                            {notification.message}
+                          </p>
+                          <p className="text-xs text-gray-400 mt-1">
+                            {notification.time}
+                          </p>
+                        </div>
+                        {!notification.read && (
+                          <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-2"></div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="p-4 border-t border-gray-200">
+                  <button className="text-sm text-emerald-600 hover:text-emerald-700 font-medium">
+                    Ver todas as notificações
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+          
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 bg-emerald-600 rounded-full flex items-center justify-center">
+              <MdPerson className="text-white" size={20} />
             </div>
-            <div className="user-avatar">
-              <i className="mdi mdi-account"></i>
-            </div>
-            <div className="user-info">
-              <strong>Admin</strong>
+            <div className="hidden sm:block">
+              <span className="font-semibold text-gray-800">Admin</span>
             </div>
           </div>
-        </header>
+        </div>
+      </header>
 
-        <main className="main-content">
-          <div className="tab-container">
-            <div className="tabs">
-              {(['Dashboard', 'Usuários', 'Produtos', 'Pedidos', 'Transportadoras', 'Relatórios'] as TabType[]).map((tab) => (
-                <div 
-                  key={tab}
-                  className={`tab ${activeTab === tab ? 'active' : ''}`}
-                  onClick={() => handleTabChange(tab)}
-                >
-                  {tab}
-                </div>
-              ))}
+      {/* Logout Modal */}
+      {showLogoutModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-96 mx-4">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Confirmar Logout</h3>
+            <p className="text-gray-600 mb-6">Tem certeza que deseja terminar a sessão?</p>
+            <div className="flex space-x-3 justify-end">
+              <button 
+                className="px-4 py-2 text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
+                onClick={() => setShowLogoutModal(false)}
+              >
+                Cancelar
+              </button>
+              <button 
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                onClick={confirmLogout}
+              >
+                Sim, Terminar
+              </button>
             </div>
           </div>
+        </div>
+      )}
 
-          {activeTab === 'Dashboard' && (
-            <>
-              <div className="stats-grid">
-                <div className="stat-card">
-                  <h3>Usuários Ativos</h3>
-                  <div className="value">2,453</div>
+      {/* Main Content */}
+      <main className="md:ml-72 mt-16 p-8">
+        {/* Tabs */}
+        <div className="mb-8">
+          <div className="flex space-x-4 overflow-x-auto pb-2">
+            {(['Dashboard', 'Usuários', 'Produtos', 'Pedidos', 'Transportadoras', 'Relatórios'] as TabType[]).map((tab) => (
+              <button 
+                key={tab}
+                className={`px-6 py-3 rounded-lg whitespace-nowrap transition-colors ${
+                  activeTab === tab 
+                    ? 'bg-emerald-600 text-white' 
+                    : 'bg-white text-gray-600 hover:bg-gray-100'
+                }`}
+                onClick={() => handleTabChange(tab)}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Dashboard Tab */}
+        {activeTab === 'Dashboard' && (
+          <div className="space-y-8">
+            {/* Stats Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="bg-white p-6 rounded-lg shadow-sm">
+                <h3 className="text-gray-600 text-sm mb-2">Usuários Ativos</h3>
+                <div className="text-3xl font-bold text-emerald-600">2,453</div>
+                <div className="text-sm text-green-600 mt-2">+12% este mês</div>
+              </div>
+              <div className="bg-white p-6 rounded-lg shadow-sm">
+                <h3 className="text-gray-600 text-sm mb-2">Pedidos Hoje</h3>
+                <div className="text-3xl font-bold text-emerald-600">156</div>
+                <div className="text-sm text-green-600 mt-2">+8% ontem</div>
+              </div>
+              <div className="bg-white p-6 rounded-lg shadow-sm">
+                <h3 className="text-gray-600 text-sm mb-2">Produtos Ativos</h3>
+                <div className="text-3xl font-bold text-emerald-600">1,893</div>
+                <div className="text-sm text-yellow-600 mt-2">5 esgotados</div>
+              </div>
+              <div className="bg-white p-6 rounded-lg shadow-sm">
+                <h3 className="text-gray-600 text-sm mb-2">Receita Mensal</h3>
+                <div className="text-3xl font-bold text-emerald-600">AOA 985K</div>
+                <div className="text-sm text-green-600 mt-2">+15% mês anterior</div>
+              </div>
+            </div>
+
+            {/* Charts Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Sales Chart */}
+              <div className="bg-white rounded-lg shadow-sm">
+                <div className="p-6 border-b border-gray-200">
+                  <h2 className="text-xl font-semibold">Vendas dos Últimos 7 Dias</h2>
                 </div>
-                <div className="stat-card">
-                  <h3>Pedidos Hoje</h3>
-                  <div className="value">156</div>
-                </div>
-                <div className="stat-card">
-                  <h3>Produtos Ativos</h3>
-                  <div className="value">1,893</div>
-                </div>
-                <div className="stat-card">
-                  <h3>Receita Mensal</h3>
-                  <div className="value">AOA 985K</div>
+                <div className="p-6">
+                  <div className="h-80">
+                    <Line data={chartData} options={chartOptions} />
+                  </div>
                 </div>
               </div>
 
-              <div className="card">
-                <div className="card-header">
-                  <h2>Últimos Cadastros</h2>
-                  <button className="btn btn-primary">Ver Todos</button>
+              {/* Products by Category */}
+              <div className="bg-white rounded-lg shadow-sm">
+                <div className="p-6 border-b border-gray-200">
+                  <h2 className="text-xl font-semibold">Produtos por Categoria</h2>
                 </div>
-                <div className="card-body">
-                  <table className="table">
+                <div className="p-6">
+                  <div className="h-80">
+                    <Doughnut data={categoryData} options={{ responsive: true, maintainAspectRatio: false }} />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+
+
+        
+        <div className="flex items-center space-x-4">
+          <div className="relative">
+            <MdNotifications className="text-gray-600 cursor-pointer" size={24} />
+            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">3</span>
+          </div>
+          
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 bg-emerald-600 rounded-full flex items-center justify-center">
+              <MdPerson className="text-white" size={20} />
+            </div>
+            <div className="hidden sm:block">
+              <span className="font-semibold text-gray-800">Admin</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="md:ml-72 mt-16 p-8">
+        {/* Tabs */}
+        <div className="mb-8">
+          <div className="flex space-x-4 overflow-x-auto pb-2">
+            {(['Dashboard', 'Usuários', 'Produtos', 'Pedidos', 'Transportadoras', 'Relatórios'] as TabType[]).map((tab) => (
+              <button 
+                key={tab}
+                className={`px-6 py-3 rounded-lg whitespace-nowrap transition-colors ${
+                  activeTab === tab 
+                    ? 'bg-emerald-600 text-white' 
+                    : 'bg-white text-gray-600 hover:bg-gray-100'
+                }`}
+                onClick={() => handleTabChange(tab)}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Dashboard Tab */}
+        {activeTab === 'Dashboard' && (
+          <div className="space-y-8">
+            {/* Stats Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="bg-white p-6 rounded-lg shadow-sm">
+                <h3 className="text-gray-600 text-sm mb-2">Usuários Ativos</h3>
+                <div className="text-3xl font-bold text-emerald-600">2,453</div>
+              </div>
+              <div className="bg-white p-6 rounded-lg shadow-sm">
+                <h3 className="text-gray-600 text-sm mb-2">Pedidos Hoje</h3>
+                <div className="text-3xl font-bold text-emerald-600">156</div>
+              </div>
+              <div className="bg-white p-6 rounded-lg shadow-sm">
+                <h3 className="text-gray-600 text-sm mb-2">Produtos Ativos</h3>
+                <div className="text-3xl font-bold text-emerald-600">1,893</div>
+              </div>
+              <div className="bg-white p-6 rounded-lg shadow-sm">
+                <h3 className="text-gray-600 text-sm mb-2">Receita Mensal</h3>
+                <div className="text-3xl font-bold text-emerald-600">AOA 985K</div>
+              </div>
+            </div>
+
+            {/* Recent Registrations */}
+            <div className="bg-white rounded-lg shadow-sm">
+              <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+                <h2 className="text-xl font-semibold">Últimos Cadastros</h2>
+                <button className="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors">
+                  Ver Todos
+                </button>
+              </div>
+              <div className="p-6">
+                <div className="overflow-x-auto">
+                  <table className="w-full">
                     <thead>
-                      <tr>
-                        <th>Usuário</th>
-                        <th>Tipo</th>
-                        <th>Data</th>
-                        <th>Status</th>
-                        <th>Ações</th>
+                      <tr className="border-b border-gray-200">
+                        <th className="text-left py-3 px-4 font-semibold text-gray-700">Usuário</th>
+                        <th className="text-left py-3 px-4 font-semibold text-gray-700">Tipo</th>
+                        <th className="text-left py-3 px-4 font-semibold text-gray-700">Data</th>
+                        <th className="text-left py-3 px-4 font-semibold text-gray-700">Status</th>
+                        <th className="text-left py-3 px-4 font-semibold text-gray-700">Ações</th>
                       </tr>
                     </thead>
                     <tbody>
                       {users.map((user, index) => (
-                        <tr key={index}>
-                          <td>{user.name}</td>
-                          <td>{user.type}</td>
-                          <td>{user.date}</td>
-                          <td>
-                            <span className={`status ${user.status.toLowerCase()}`}>
+                        <tr key={index} className="border-b border-gray-100">
+                          <td className="py-3 px-4">{user.name}</td>
+                          <td className="py-3 px-4">{user.type}</td>
+                          <td className="py-3 px-4">{user.date}</td>
+                          <td className="py-3 px-4">
+                            <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(user.status)}`}>
                               {user.status}
                             </span>
                           </td>
-                          <td>
-                            <button className="btn btn-primary">
+                          <td className="py-3 px-4">
+                            <button className="bg-emerald-600 text-white px-3 py-1 rounded hover:bg-emerald-700 transition-colors">
                               {user.status === 'Pendente' ? 'Aprovar' : 
                                user.status === 'Rejeitado' ? 'Revisar' : 'Detalhes'}
                             </button>
@@ -309,108 +537,148 @@ export default function AdminDashboard() {
                   </table>
                 </div>
               </div>
+            </div>
 
-              <div className="card">
-                <div className="card-header">
-                  <h2>Vendas dos Últimos 7 Dias</h2>
-                </div>
-                <div className="card-body">
-                  <div className="chart-container">
-                    <Line data={chartData} options={chartOptions} />
-                  </div>
-                </div>
+            {/* Sales Chart */}
+            <div className="bg-white rounded-lg shadow-sm">
+              <div className="p-6 border-b border-gray-200">
+                <h2 className="text-xl font-semibold">Vendas dos Últimos 7 Dias</h2>
               </div>
-            </>
-          )}
-
-          {activeTab === 'Produtos' && (
-            <div className="card">
-              <div className="card-header">
-                <h2>Gerenciamento de Produtos</h2>
-                <div className="search">
-                  <input type="search" placeholder="Buscar produtos..." className="search-input" />
-                </div>
-              </div>
-              <div className="card-body">
-                <div className="product-grid">
-                  {products.map((product, index) => (
-                    <div key={index} className="product-card">
-                      <div className="product-image-placeholder" />
-                      <div className="product-info">
-                        <h3>{product.name}</h3>
-                        <p>Vendedor: {product.seller}</p>
-                        <p>Preço: {product.price}</p>
-                        <p>Status: {product.status}</p>
-                      </div>
-                      <div className="product-actions">
-                        <button className="btn btn-primary">Editar</button>
-                        <button className="delete-btn">Excluir</button>
-                      </div>
-                    </div>
-                  ))}
+              <div className="p-6">
+                <div className="h-80">
+                  <Line data={chartData} options={chartOptions} />
                 </div>
               </div>
             </div>
-          )}
+          </div>
+        )}
 
-          {activeTab === 'Usuários' && (
-            <div className="card">
-              <div className="card-header">
-                <h2>Gerenciamento de Usuários</h2>
-                <div className="search">
-                  <input type="search" placeholder="Buscar usuários..." className="search-input" />
-                </div>
+        {/* Products Tab */}
+        {activeTab === 'Produtos' && (
+          <div className="bg-white rounded-lg shadow-sm">
+            <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+              <h2 className="text-xl font-semibold">Gerenciamento de Produtos</h2>
+              <div className="relative">
+                <MdSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                <input 
+                  type="search" 
+                  placeholder="Buscar produtos..." 
+                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500" 
+                />
               </div>
-              <div className="card-body">
-                <table className="table">
+            </div>
+            <div className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {products.map((product, index) => (
+                  <div key={index} className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
+                    <div className="h-48 bg-gray-100 flex items-center justify-center">
+                      <span className="text-gray-400">Imagem do Produto</span>
+                    </div>
+                    <div className="p-4">
+                      <h3 className="font-semibold text-lg mb-2">{product.name}</h3>
+                      <p className="text-gray-600 mb-1">Vendedor: {product.seller}</p>
+                      <p className="text-gray-600 mb-1">Preço: {product.price}</p>
+                      <p className="text-gray-600 mb-4">Status: {product.status}</p>
+                      <div className="flex justify-between items-center">
+                        <button className="flex items-center bg-emerald-600 text-white px-3 py-2 rounded hover:bg-emerald-700 transition-colors">
+                          <MdEdit className="mr-1" size={16} />
+                          Editar
+                        </button>
+                        <button className="flex items-center bg-red-600 text-white px-3 py-2 rounded hover:bg-red-700 transition-colors">
+                          <MdDelete className="mr-1" size={16} />
+                          Excluir
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Users Tab */}
+        {activeTab === 'Usuários' && (
+          <div className="bg-white rounded-lg shadow-sm">
+            <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+              <h2 className="text-xl font-semibold">Gerenciamento de Usuários</h2>
+              <div className="relative">
+                <MdSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                <input 
+                  type="search" 
+                  placeholder="Buscar usuários..." 
+                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500" 
+                />
+              </div>
+            </div>
+            <div className="p-6">
+              <div className="overflow-x-auto">
+                <table className="w-full">
                   <thead>
-                    <tr>
-                      <th>Nome</th>
-                      <th>Email</th>
-                      <th>Tipo</th>
-                      <th>Status</th>
-                      <th>Data de Registro</th>
-                      <th>Ações</th>
+                    <tr className="border-b border-gray-200">
+                      <th className="text-left py-3 px-4 font-semibold text-gray-700">Nome</th>
+                      <th className="text-left py-3 px-4 font-semibold text-gray-700">Email</th>
+                      <th className="text-left py-3 px-4 font-semibold text-gray-700">Tipo</th>
+                      <th className="text-left py-3 px-4 font-semibold text-gray-700">Status</th>
+                      <th className="text-left py-3 px-4 font-semibold text-gray-700">Data de Registro</th>
+                      <th className="text-left py-3 px-4 font-semibold text-gray-700">Ações</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr>
-                      <td>João Silva</td>
-                      <td>joao.silva@email.com</td>
-                      <td>Agricultor</td>
-                      <td><span className="status approved">Ativo</span></td>
-                      <td>2023-08-15</td>
-                      <td>
-                        <button className="btn btn-primary">Editar</button>
+                    <tr className="border-b border-gray-100">
+                      <td className="py-3 px-4">João Silva</td>
+                      <td className="py-3 px-4">joao.silva@email.com</td>
+                      <td className="py-3 px-4">Agricultor</td>
+                      <td className="py-3 px-4">
+                        <span className="px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">Ativo</span>
+                      </td>
+                      <td className="py-3 px-4">2023-08-15</td>
+                      <td className="py-3 px-4">
+                        <button className="bg-emerald-600 text-white px-3 py-1 rounded hover:bg-emerald-700 transition-colors">
+                          Editar
+                        </button>
                       </td>
                     </tr>
-                    <tr>
-                      <td>Maria Santos</td>
-                      <td>maria.santos@email.com</td>
-                      <td>Compradora</td>
-                      <td><span className="status approved">Ativo</span></td>
-                      <td>2023-08-12</td>
-                      <td>
-                        <button className="btn btn-primary">Editar</button>
+                    <tr className="border-b border-gray-100">
+                      <td className="py-3 px-4">Maria Santos</td>
+                      <td className="py-3 px-4">maria.santos@email.com</td>
+                      <td className="py-3 px-4">Compradora</td>
+                      <td className="py-3 px-4">
+                        <span className="px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">Ativo</span>
+                      </td>
+                      <td className="py-3 px-4">2023-08-12</td>
+                      <td className="py-3 px-4">
+                        <button className="bg-emerald-600 text-white px-3 py-1 rounded hover:bg-emerald-700 transition-colors">
+                          Editar
+                        </button>
                       </td>
                     </tr>
-                    <tr>
-                      <td>Pedro Alves</td>
-                      <td>pedro.alves@email.com</td>
-                      <td>Fornecedor</td>
-                      <td><span className="status pending">Inativo</span></td>
-                      <td>2023-08-10</td>
-                      <td>
-                        <button className="btn btn-primary">Editar</button>
+                    <tr className="border-b border-gray-100">
+                      <td className="py-3 px-4">Pedro Alves</td>
+                      <td className="py-3 px-4">pedro.alves@email.com</td>
+                      <td className="py-3 px-4">Fornecedor</td>
+                      <td className="py-3 px-4">
+                        <span className="px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">Inativo</span>
+                      </td>
+                      <td className="py-3 px-4">2023-08-10</td>
+                      <td className="py-3 px-4">
+                        <button className="bg-emerald-600 text-white px-3 py-1 rounded hover:bg-emerald-700 transition-colors">
+                          Editar
+                        </button>
                       </td>
                     </tr>
                   </tbody>
                 </table>
               </div>
             </div>
-          )}
+          </div>
+        )}
 
-          {activeTab === 'Pedidos' && (
+
+
+
+
+{activeTab === 'Pedidos' && (
             <div className="card">
               <div className="card-header">
                 <h2>Gestão de Pedidos</h2>
@@ -528,493 +796,216 @@ export default function AdminDashboard() {
             </div>
           )}
 
-          {activeTab === 'Relatórios' && (
-            <div className="card">
-              <div className="card-header">
-                <h2>Relatórios</h2>
-              </div>
-              <div className="card-body">
-                <div className="stats-grid">
-                  <div className="report-card" onClick={() => alert("Gerando relatório de vendas...")}>
-                    <i className="mdi mdi-chart-bar" style={{ fontSize: '3rem', color: '#43a047' }}></i>
-                    <h3>Relatório de Vendas</h3>
-                  </div>
-                  <div className="report-card" onClick={() => alert("Gerando relatório de usuários...")}>
-                    <i className="mdi mdi-account-group" style={{ fontSize: '3rem', color: '#43a047' }}></i>
-                    <h3>Relatório de Usuários</h3>
-                  </div>
-                  <div className="report-card" onClick={() => alert("Gerando relatório de produtos...")}>
-                    <i className="mdi mdi-package" style={{ fontSize: '3rem', color: '#43a047' }}></i>
-                    <h3>Relatório de Produtos</h3>
-                  </div>
-                  <div className="report-card" onClick={() => alert("Gerando relatório financeiro...")}>
-                    <i className="mdi mdi-cash-multiple" style={{ fontSize: '3rem', color: '#43a047' }}></i>
-                    <h3>Relatório Financeiro</h3>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-        </main>
+
+{activeTab === 'Pedidos' && (
+  <div className="bg-white rounded-lg shadow-sm mb-6">
+    <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+      <h2 className="text-xl font-semibold text-gray-800">Gestão de Pedidos</h2>
+      <div className="relative">
+        <input 
+          type="search" 
+          placeholder="Buscar pedidos..." 
+          className="px-4 py-2 border border-gray-300 rounded-md w-80 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent" 
+        />
       </div>
-
-      <style jsx global>{`
-        :root {
-          --marieth: #43a047;
-          --marieth-dark: #2e7031;
-          --marieth-light: #76d275;
-          --sidebar-width: 280px;
-          --header-height: 60px;
-          --danger: #dc3545;
-          --warning: #ffc107;
-          --success: #28a745;
-        }
-
-        * {
-          margin: 0;
-          padding: 0;
-          box-sizing: border-box;
-        }
-
-        body {
-          font-family: 'Segoe UI', sans-serif;
-          background: #f5f5f5;
-          color: #333;
-        }
-
-        .dashboard {
-          display: grid;
-          grid-template-areas: 
-              "sidebar header"
-              "sidebar main";
-          grid-template-columns: var(--sidebar-width) 1fr;
-          grid-template-rows: var(--header-height) 1fr;
-          min-height: 100vh;
-          position: relative;
-        }
-
-        .menu-toggle {
-          display: none;
-          position: fixed;
-          top: 1rem;
-          left: 1rem;
-          z-index: 1000;
-          background: var(--marieth);
-          color: white;
-          border: none;
-          padding: 0.5rem;
-          border-radius: 5px;
-          cursor: pointer;
-        }
-
-        .sidebar {
-          grid-area: sidebar;
-          background: white;
-          border-right: 1px solid #eee;
-          padding: 1rem;
-          position: fixed;
-          width: var(--sidebar-width);
-          height: 100vh;
-          overflow-y: auto;
-          transition: transform 0.3s ease;
-        }
-
-        .header {
-          grid-area: header;
-          background: white;
-          border-bottom: 1px solid #eee;
-          padding: 1rem;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          position: fixed;
-          width: calc(100% - var(--sidebar-width));
-          right: 0;
-          z-index: 100;
-        }
-
-        .search-input {
-          padding: 0.5rem;
-          border-radius: 5px;
-          border: 1px solid #ddd;
-          width: 300px;
-        }
-
-        .main-content {
-          grid-area: main;
-          padding: 2rem;
-          margin-top: var(--header-height);
-        }
-
-        .logo {
-          margin-bottom: 1.5rem;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        .nav-item {
-          display: flex;
-          align-items: center;
-          padding: 0.8rem 1rem;
-          color: #666;
-          text-decoration: none;
-          border-radius: 8px;
-          margin-bottom: 0.5rem;
-          transition: all 0.3s ease;
-        }
-
-        .nav-item:hover {
-          background: #f5f5f5;
-          color: var(--marieth);
-        }
-
-        .nav-item.active {
-          background: var(--marieth);
-          color: white;
-        }
-
-        .nav-item i {
-          margin-right: 0.8rem;
-          font-size: 1.2rem;
-        }
-
-        .stats-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-          gap: 1.5rem;
-          margin-bottom: 2rem;
-        }
-
-        .stat-card {
-          background: white;
-          padding: 1.5rem;
-          border-radius: 10px;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-
-        .report-card {
-          background: white;
-          padding: 1.5rem;
-          border-radius: 10px;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          gap: 1rem;
-          cursor: pointer;
-          transition: transform 0.2s;
-        }
-
-        .report-card:hover {
-          transform: translateY(-5px);
-        }
-
-        .stat-card h3 {
-          color: #666;
-          font-size: 0.9rem;
-          margin-bottom: 0.5rem;
-        }
-
-        .stat-card .value {
-          font-size: 2rem;
-          font-weight: bold;
-          color: var(--marieth);
-        }
-
-        .card {
-          background: white;
-          border-radius: 10px;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-          margin-bottom: 1.5rem;
-        }
-
-        .card-header {
-          padding: 1.5rem;
-          border-bottom: 1px solid #eee;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-        }
-
-        .card-body {
-          padding: 1.5rem;
-        }
-
-        .table {
-          width: 100%;
-          border-collapse: collapse;
-        }
-
-        .table th,
-        .table td {
-          padding: 1rem;
-          text-align: left;
-          border-bottom: 1px solid #eee;
-        }
-
-        .table th {
-          background: #f9f9f9;
-          font-weight: 600;
-        }
-
-        .status {
-          padding: 0.3rem 0.8rem;
-          border-radius: 20px;
-          font-size: 0.85rem;
-        }
-
-        .status.pending {
-          background: #fff3cd;
-          color: #856404;
-        }
-
-        .status.approved {
-          background: #d4edda;
-          color: #155724;
-        }
-
-        .status.rejected {
-          background: #f8d7da;
-          color: #721c24;
-        }
-
-        .order-status {
-          display: inline-block;
-          padding: 0.4rem 1rem;
-          border-radius: 20px;
-          font-size: 0.85rem;
-          font-weight: 500;
-        }
-
-        .status-pending { background: #fff3cd; color: #856404; }
-        .status-processing { background: #cce5ff; color: #004085; }
-        .status-delivered { background: #d4edda; color: #155724; }
-        .status-cancelled { background: #f8d7da; color: #721c24; }
-
-        .user-profile {
-          display: flex;
-          align-items: center;
-          gap: 1rem;
-        }
-
-        .user-avatar {
-          width: 40px;
-          height: 40px;
-          border-radius: 50%;
-          background: var(--marieth);
-          color: white;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        .notification-icon {
-          font-size: 1.5rem;
-          position: relative;
-        }
-
-        .notification-badge {
-          background: var(--danger);
-          color: white;
-          border-radius: 50%;
-          padding: 0.2rem 0.5rem;
-          font-size: 0.8rem;
-          position: absolute;
-          top: -8px;
-          right: -8px;
-        }
-
-        .btn {
-          padding: 0.5rem 1rem;
-          border-radius: 5px;
-          border: none;
-          cursor: pointer;
-          font-weight: 500;
-          transition: all 0.3s ease;
-        }
-
-        .btn-primary {
-          background: var(--marieth);
-          color: white;
-        }
-
-        .btn-primary:hover {
-          background: var(--marieth-dark);
-        }
-
-        .chart-container {
-          height: 300px;
-          margin-top: 1rem;
-        }
-
-        .product-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-          gap: 1.5rem;
-          margin-top: 1rem;
-        }
-
-        .product-card {
-          background: white;
-          border-radius: 10px;
-          overflow: hidden;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-          transition: transform 0.2s;
-        }
-
-        .product-card:hover {
-          transform: translateY(-5px);
-        }
-
-        .product-image-placeholder {
-          width: 100%;
-          height: 200px;
-          background-color: #f0f0f0;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        .product-image-placeholder::after {
-          content: "Imagem do Produto";
-          color: #999;
-        }
-
-        .product-info {
-          padding: 1rem;
-        }
-
-        .product-actions {
-          padding: 1rem;
-          border-top: 1px solid #eee;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-        }
-
-        .delete-btn {
-          background: var(--danger);
-          color: white;
-          border: none;
-          padding: 0.5rem 1rem;
-          border-radius: 5px;
-          cursor: pointer;
-        }
-
-        .delete-btn:hover {
-          background: #c82333;
-        }
-
-        .tab-container {
-          margin-bottom: 2rem;
-        }
-
-        .tabs {
-          display: flex;
-          gap: 1rem;
-          margin-bottom: 1.5rem;
-          overflow-x: auto;
-          padding-bottom: 0.5rem;
-        }
-
-        .tab {
-          padding: 0.8rem 1.5rem;
-          background: white;
-          border-radius: 5px;
-          cursor: pointer;
-          white-space: nowrap;
-          transition: all 0.3s;
-        }
-
-        .tab.active {
-          background: var(--marieth);
-          color: white;
-        }
-
-        /* Responsive Design */
-        @media (max-width: 1024px) {
-          .stats-grid {
-            grid-template-columns: repeat(2, 1fr);
-          }
-          .product-grid {
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-          }
-        }
-
-        @media (max-width: 768px) {
-          .dashboard {
-            grid-template-areas: 
-                "header"
-                "main";
-            grid-template-columns: 1fr;
-          }
-
-          .menu-toggle {
-            display: block;
-          }
-
-          .sidebar {
-            transform: translateX(-100%);
-            z-index: 999;
-            width: 100%;
-            max-width: 100%;
-          }
-
-          .sidebar.active {
-            transform: translateX(0);
-          }
-
-          .header {
-            width: 100%;
-            padding-left: 4rem;
-          }
-
-          .main-content {
-            margin-left: 0;
-            padding: 1rem;
-          }
-
-          .stats-grid {
-            grid-template-columns: 1fr;
-          }
-
-          .product-grid {
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-          }
-
-          .tabs {
-            flex-wrap: nowrap;
-            overflow-x: auto;
-          }
-
-          .table {
-            display: block;
-            overflow-x: auto;
-            white-space: nowrap;
-          }
-        }
-
-        @media (max-width: 480px) {
-          .user-info {
-            display: none;
-          }
-
-          .card-header {
-            flex-direction: column;
-            gap: 1rem;
-          }
-
-          .product-grid {
-            grid-template-columns: 1fr;
-          }
-
-          .stat-card {
-            padding: 1rem;
-          }
-        }
-      `}</style>
-    </>
+    </div>
+    <div className="p-6">
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse">
+          <thead>
+            <tr>
+              <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">ID</th>
+              <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Cliente</th>
+              <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Data</th>
+              <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Valor</th>
+              <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Status</th>
+              <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td className="p-4 border-b border-gray-200">#12345</td>
+              <td className="p-4 border-b border-gray-200">Ana Maria</td>
+              <td className="p-4 border-b border-gray-200">2023-08-17</td>
+              <td className="p-4 border-b border-gray-200">AOA 5,400</td>
+              <td className="p-4 border-b border-gray-200">
+                <span className="inline-block px-4 py-2 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+                  Pendente
+                </span>
+              </td>
+              <td className="p-4 border-b border-gray-200">
+                <button className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors font-medium">
+                  Detalhes
+                </button>
+              </td>
+            </tr>
+            <tr>
+              <td className="p-4 border-b border-gray-200">#12344</td>
+              <td className="p-4 border-b border-gray-200">Roberto Carlos</td>
+              <td className="p-4 border-b border-gray-200">2023-08-17</td>
+              <td className="p-4 border-b border-gray-200">AOA 2,850</td>
+              <td className="p-4 border-b border-gray-200">
+                <span className="inline-block px-4 py-2 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                  Processando
+                </span>
+              </td>
+              <td className="p-4 border-b border-gray-200">
+                <button className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors font-medium">
+                  Detalhes
+                </button>
+              </td>
+            </tr>
+            <tr>
+              <td className="p-4 border-b border-gray-200">#12343</td>
+              <td className="p-4 border-b border-gray-200">Carla Silva</td>
+              <td className="p-4 border-b border-gray-200">2023-08-16</td>
+              <td className="p-4 border-b border-gray-200">AOA 7,200</td>
+              <td className="p-4 border-b border-gray-200">
+                <span className="inline-block px-4 py-2 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                  Entregue
+                </span>
+              </td>
+              <td className="p-4 border-b border-gray-200">
+                <button className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors font-medium">
+                  Detalhes
+                </button>
+              </td>
+            </tr>
+            <tr>
+              <td className="p-4 border-b border-gray-200">#12342</td>
+              <td className="p-4 border-b border-gray-200">Fernando Mendes</td>
+              <td className="p-4 border-b border-gray-200">2023-08-16</td>
+              <td className="p-4 border-b border-gray-200">AOA 3,150</td>
+              <td className="p-4 border-b border-gray-200">
+                <span className="inline-block px-4 py-2 rounded-full text-sm font-medium bg-red-100 text-red-800">
+                  Cancelado
+                </span>
+              </td>
+              <td className="p-4 border-b border-gray-200">
+                <button className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors font-medium">
+                  Detalhes
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+)}
+
+{activeTab === 'Transportadoras' && (
+  <div className="bg-white rounded-lg shadow-sm mb-6">
+    <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+      <h2 className="text-xl font-semibold text-gray-800">Cadastro de Transportadoras</h2>
+      <button className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors font-medium">
+        Nova Transportadora
+      </button>
+    </div>
+    <div className="p-6">
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse">
+          <thead>
+            <tr>
+              <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Nome</th>
+              <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">CNPJ/NIF</th>
+              <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Contato</th>
+              <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Status</th>
+              <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td className="p-4 border-b border-gray-200">TransRápido Ltda</td>
+              <td className="p-4 border-b border-gray-200">12.345.678/0001-90</td>
+              <td className="p-4 border-b border-gray-200">(+244) 923 456 789</td>
+              <td className="p-4 border-b border-gray-200">
+                <span className="inline-block px-3 py-1 rounded-full text-sm bg-green-100 text-green-800">
+                  Ativo
+                </span>
+              </td>
+              <td className="p-4 border-b border-gray-200">
+                <button className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors font-medium">
+                  Editar
+                </button>
+              </td>
+            </tr>
+            <tr>
+              <td className="p-4 border-b border-gray-200">Expresso Angola</td>
+              <td className="p-4 border-b border-gray-200">98.765.432/0001-21</td>
+              <td className="p-4 border-b border-gray-200">(+244) 923 987 654</td>
+              <td className="p-4 border-b border-gray-200">
+                <span className="inline-block px-3 py-1 rounded-full text-sm bg-green-100 text-green-800">
+                  Ativo
+                </span>
+              </td>
+              <td className="p-4 border-b border-gray-200">
+                <button className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors font-medium">
+                  Editar
+                </button>
+              </td>
+            </tr>
+            <tr>
+              <td className="p-4 border-b border-gray-200">LogistiVia</td>
+              <td className="p-4 border-b border-gray-200">45.678.901/0001-23</td>
+              <td className="p-4 border-b border-gray-200">(+244) 923 123 456</td>
+              <td className="p-4 border-b border-gray-200">
+                <span className="inline-block px-3 py-1 rounded-full text-sm bg-yellow-100 text-yellow-800">
+                  Inativo
+                </span>
+              </td>
+              <td className="p-4 border-b border-gray-200">
+                <button className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors font-medium">
+                  Editar
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+)}
+
+{activeTab === 'Relatórios' && (
+  <div className="bg-white rounded-lg shadow-sm mb-6">
+    <div className="p-6 border-b border-gray-200">
+      <h2 className="text-xl font-semibold text-gray-800">Relatórios</h2>
+    </div>
+    <div className="p-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div 
+          className="bg-white p-6 rounded-lg shadow-sm flex flex-col items-center justify-center gap-4 cursor-pointer hover:-translate-y-1 transition-transform" 
+          onClick={() => alert("Gerando relatório de vendas...")}
+        >
+          <FaChartBar className="text-5xl text-green-600" />
+          <h3 className="text-lg font-medium text-gray-800 text-center">Relatório de Vendas</h3>
+        </div>
+        <div 
+          className="bg-white p-6 rounded-lg shadow-sm flex flex-col items-center justify-center gap-4 cursor-pointer hover:-translate-y-1 transition-transform" 
+          onClick={() => alert("Gerando relatório de usuários...")}
+        >
+          <FaUsers className="text-5xl text-green-600" />
+          <h3 className="text-lg font-medium text-gray-800 text-center">Relatório de Usuários</h3>
+        </div>
+        <div 
+          className="bg-white p-6 rounded-lg shadow-sm flex flex-col items-center justify-center gap-4 cursor-pointer hover:-translate-y-1 transition-transform" 
+          onClick={() => alert("Gerando relatório de produtos...")}
+        >
+          <FaBox className="text-5xl text-green-600" />
+          <h3 className="text-lg font-medium text-gray-800 text-center">Relatório de Produtos</h3>
+        </div>
+        <div 
+          className="bg-white p-6 rounded-lg shadow-sm flex flex-col items-center justify-center gap-4 cursor-pointer hover:-translate-y-1 transition-transform" 
+          onClick={() => alert("Gerando relatório financeiro...")}
+        >
+          <FaMoneyBillWave className="text-5xl text-green-600" />
+          <h3 className="text-lg font-medium text-gray-800 text-center">Relatório Financeiro</h3>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+ </>
   );
 }
