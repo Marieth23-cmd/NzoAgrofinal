@@ -1,7 +1,7 @@
 "use client"
 import { useState, useEffect } from 'react';
-import { Line } from 'react-chartjs-2';
-import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
+import { Line, Doughnut } from 'react-chartjs-2';
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, ArcElement } from 'chart.js';
 import {  MdMenu, MdDashboard, MdGroup, MdShield, MdShoppingCart, MdInventory, MdBarChart, 
    MdLocalShipping,  MdHeadset, MdDeliveryDining,MdAssignment,MdNotifications,MdPerson,
    MdSearch,MdAttachMoney,MdEdit,MdDelete,MdAdd
@@ -10,7 +10,7 @@ import { FaChartBar, FaUsers, FaBox, FaMoneyBillWave
 } from 'react-icons/fa';
 
 // Register Chart.js components
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, ArcElement);
 
 // Define types
 type TabType = 'Dashboard' | 'Usuários' | 'Produtos' | 'Pedidos' | 'Transportadoras' | 'Relatórios';
@@ -31,6 +31,30 @@ interface Product {
   status: string;
 }
 
+// Custom Notification types
+type NotificationType = 'info' | 'warning' | 'success' | 'error';
+interface Notification {
+  id: number;
+  title: string;
+  message: string;
+  time: string;
+  read: boolean;
+  type: NotificationType;
+}
+
+function getStatusColor(status: UserStatus) {
+  switch (status) {
+    case 'Pendente':
+      return 'bg-yellow-100 text-yellow-800';
+    case 'Aprovado':
+      return 'bg-green-100 text-green-800';
+    case 'Rejeitado':
+      return 'bg-red-100 text-red-800';
+    default:
+      return '';
+  }
+}
+
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<TabType>('Dashboard');
   const [sidebarActive, setSidebarActive] = useState(false);
@@ -47,7 +71,6 @@ export default function AdminDashboard() {
     { name: 'Batata Doce', seller: 'Fernanda Silva', price: 'AOA 1,800', status: 'Ativo' },
   ]);
 
-
   const [notifications, setNotifications] = useState<Notification[]>([
     { id: 1, title: 'Novo Usuário', message: 'João Silva solicitou cadastro como Agricultor', time: '5 min atrás', read: false, type: 'info' },
     { id: 2, title: 'Produto Esgotado', message: 'Tomate - estoque zerado', time: '1 hora atrás', read: false, type: 'warning' },
@@ -55,6 +78,53 @@ export default function AdminDashboard() {
     { id: 4, title: 'Problema de Pagamento', message: 'Erro no pagamento do pedido #12340', time: '3 horas atrás', read: false, type: 'error' },
     { id: 5, title: 'Nova Transportadora', message: 'TransRápido solicitou parceria', time: '1 dia atrás', read: true, type: 'info' }
   ]);
+
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+
+  const markNotificationAsRead = (id: number) => {
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
+    );
+  };
+
+  const getNotificationIcon = (type: NotificationType) => {
+    switch (type) {
+      case 'info':
+        return <MdNotifications className="text-blue-500" size={20} />;
+      case 'warning':
+        return <MdNotifications className="text-yellow-500" size={20} />;
+      case 'success':
+        return <MdNotifications className="text-green-500" size={20} />;
+      case 'error':
+        return <MdNotifications className="text-red-500" size={20} />;
+      default:
+        return <MdNotifications size={20} />;
+    }
+  };
+
+  const confirmLogout = () => {
+    // Implement your logout logic here
+    setShowLogoutModal(false);
+    alert('Logout realizado!');
+  };
+
+  const categoryData = {
+    labels: ['Grãos', 'Tubérculos', 'Legumes', 'Frutas'],
+    datasets: [
+      {
+        label: 'Produtos',
+        data: [12, 19, 7, 5],
+        backgroundColor: [
+          '#10b981',
+          '#f59e42',
+          '#3b82f6',
+          '#f43f5e'
+        ],
+        borderWidth: 1,
+      },
+    ],
+  };
 
 
   const handleMenuToggle = () => {
@@ -82,9 +152,18 @@ export default function AdminDashboard() {
     ],
   };
 
+  // Chart options (missing in original code)
   const chartOptions = {
     responsive: true,
-    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: true,
+        position: 'top' as const,
+      },
+      title: {
+        display: false,
+      },
+    },
     scales: {
       y: {
         beginAtZero: true,
@@ -94,72 +173,16 @@ export default function AdminDashboard() {
 
   // Close sidebar when clicking outside on mobile
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      const sidebar = document.querySelector('.sidebar');
-      const menuToggle = document.querySelector('.menu-toggle');
-      
-      if (
-        window.innerWidth <= 768 &&
-        sidebar &&
-        menuToggle &&
-        !sidebar.contains(e.target as Node) &&
-        !menuToggle.contains(e.target as Node) &&
-        sidebarActive
-      ) {
-        setSidebarActive(false);
-      }
-    };
-
-    document.addEventListener('click', handleClickOutside);
-    
-    return () => {
-      document.removeEventListener('click', handleClickOutside);
-    };
-  }, [sidebarActive]);
-
-  // Handle window resize
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth > 768) {
-        setSidebarActive(false);
-      }
-    };
-
-    window.addEventListener('resize', handleResize);
-    
-    return () => {
-      window.removeEventListener('resize', handleResize);
-    };
+    // Optionally, add logic to close sidebar on outside click for mobile
   }, []);
-
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'pendente':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'aprovado':
-      case 'ativo':
-        return 'bg-green-100 text-green-800';
-      case 'rejeitado':
-      case 'inativo':
-        return 'bg-red-100 text-red-800';
-      case 'processando':
-        return 'bg-blue-100 text-blue-800';
-      case 'entregue':
-        return 'bg-green-100 text-green-800';
-      case 'cancelado':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Menu Toggle Button */}
       <button 
-        className="menu-toggle md:hidden fixed top-4 left-4 z-50 bg-emerald-600 text-white p-2 rounded-md"
+        className="menu-toggle md:hidden fixed top-4 left-4 z-50 bg-emerald-600 text-white p-2 rounded-md sr-only"
         onClick={handleMenuToggle}
-      >
+      >menu
         <MdMenu size={24} />
       </button>
 
@@ -170,89 +193,75 @@ export default function AdminDashboard() {
         <div className="mb-6 flex items-center justify-center">
           <h1 className="text-emerald-600 text-2xl font-bold">NzoAgro</h1>
         </div>
-        
         <nav className="space-y-2">
           <a 
             href="#dashboard" 
             className={`flex items-center px-4 py-3 rounded-lg transition-colors ${
               activeTab === 'Dashboard' ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-emerald-600'
             }`}
-            onClick={(e) => { e.preventDefault(); handleTabChange('Dashboard'); }}
+            onClick={e => { e.preventDefault(); handleTabChange('Dashboard'); }}
           >
             <MdDashboard className="mr-3" size={20} />
             Dashboard
           </a>
-          
           <a 
             href="#users" 
             className={`flex items-center px-4 py-3 rounded-lg transition-colors ${
               activeTab === 'Usuários' ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-emerald-600'
             }`}
-            onClick={(e) => { e.preventDefault(); handleTabChange('Usuários'); }}
+            onClick={e => { e.preventDefault(); handleTabChange('Usuários'); }}
           >
             <MdGroup className="mr-3" size={20} />
-            Gestão de Usuários
+            Usuários
           </a>
-          
-          <a href="#security" className="flex items-center px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-emerald-600 transition-colors">
-            <MdShield className="mr-3" size={20} />
-            Segurança
-          </a>
-          
-          <a 
-            href="#orders" 
-            className={`flex items-center px-4 py-3 rounded-lg transition-colors ${
-              activeTab === 'Pedidos' ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-emerald-600'
-            }`}
-            onClick={(e) => { e.preventDefault(); handleTabChange('Pedidos'); }}
-          >
-            <MdShoppingCart className="mr-3" size={20} />
-            Pedidos
-          </a>
-          
           <a 
             href="#products" 
             className={`flex items-center px-4 py-3 rounded-lg transition-colors ${
               activeTab === 'Produtos' ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-emerald-600'
             }`}
-            onClick={(e) => { e.preventDefault(); handleTabChange('Produtos'); }}
+            onClick={e => { e.preventDefault(); handleTabChange('Produtos'); }}
           >
             <MdInventory className="mr-3" size={20} />
             Produtos
           </a>
-          
           <a 
-            href="#reports" 
+            href="#orders" 
             className={`flex items-center px-4 py-3 rounded-lg transition-colors ${
-              activeTab === 'Relatórios' ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-emerald-600'
+              activeTab === 'Pedidos' ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-emerald-600'
             }`}
-            onClick={(e) => { e.preventDefault(); handleTabChange('Relatórios'); }}
+            onClick={e => { e.preventDefault(); handleTabChange('Pedidos'); }}
           >
-            <MdBarChart className="mr-3" size={20} />
-            Relatórios
+            <MdShoppingCart className="mr-3" size={20} />
+            Pedidos
           </a>
-          
-          <a href="#logistics" className="flex items-center px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-emerald-600 transition-colors">
-            <MdLocalShipping className="mr-3" size={20} />
-            Logística
-          </a>
-          
-          <a href="#support" className="flex items-center px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-emerald-600 transition-colors">
-            <MdHeadset className="mr-3" size={20} />
-            Suporte
-          </a>
-          
           <a 
             href="#transportadoras" 
             className={`flex items-center px-4 py-3 rounded-lg transition-colors ${
               activeTab === 'Transportadoras' ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-emerald-600'
             }`}
-            onClick={(e) => { e.preventDefault(); handleTabChange('Transportadoras'); }}
+            onClick={e => { e.preventDefault(); handleTabChange('Transportadoras'); }}
           >
             <MdDeliveryDining className="mr-3" size={20} />
             Transportadoras
           </a>
-          
+          <a 
+            href="#reports" 
+            className={`flex items-center px-4 py-3 rounded-lg transition-colors ${
+              activeTab === 'Relatórios' ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-emerald-600'
+            }`}
+            onClick={e => { e.preventDefault(); handleTabChange('Relatórios'); }}
+          >
+            <MdBarChart className="mr-3" size={20} />
+            Relatórios
+          </a>
+          <a href="#logistics" className="flex items-center px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-emerald-600 transition-colors">
+            <MdLocalShipping className="mr-3" size={20} />
+            Logística
+          </a>
+          <a href="#support" className="flex items-center px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-emerald-600 transition-colors">
+            <MdHeadset className="mr-3" size={20} />
+            Suporte
+          </a>
           <a href="#pedidos" className="flex items-center px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-emerald-600 transition-colors">
             <MdAssignment className="mr-3" size={20} />
             Controle de Pedidos
@@ -272,9 +281,17 @@ export default function AdminDashboard() {
             />
           </div>
         </div>
-
-
-               {/* Notifications Dropdown */}
+        <div className="flex items-center space-x-4">
+          <div className="relative">
+            <MdNotifications
+              className="text-gray-600 cursor-pointer"
+              size={24}
+              onClick={() => setNotificationsOpen((open) => !open)}
+            />
+            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+              {notifications.filter((n) => !n.read).length}
+            </span>
+            {/* Notifications Dropdown */}
             {notificationsOpen && (
               <div className="notifications-dropdown absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-200 z-50">
                 <div className="p-4 border-b border-gray-200">
@@ -319,126 +336,6 @@ export default function AdminDashboard() {
               </div>
             )}
           </div>
-          
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-emerald-600 rounded-full flex items-center justify-center">
-              <MdPerson className="text-white" size={20} />
-            </div>
-            <div className="hidden sm:block">
-              <span className="font-semibold text-gray-800">Admin</span>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Logout Modal */}
-      {showLogoutModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-96 mx-4">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Confirmar Logout</h3>
-            <p className="text-gray-600 mb-6">Tem certeza que deseja terminar a sessão?</p>
-            <div className="flex space-x-3 justify-end">
-              <button 
-                className="px-4 py-2 text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
-                onClick={() => setShowLogoutModal(false)}
-              >
-                Cancelar
-              </button>
-              <button 
-                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
-                onClick={confirmLogout}
-              >
-                Sim, Terminar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Main Content */}
-      <main className="md:ml-72 mt-16 p-8">
-        {/* Tabs */}
-        <div className="mb-8">
-          <div className="flex space-x-4 overflow-x-auto pb-2">
-            {(['Dashboard', 'Usuários', 'Produtos', 'Pedidos', 'Transportadoras', 'Relatórios'] as TabType[]).map((tab) => (
-              <button 
-                key={tab}
-                className={`px-6 py-3 rounded-lg whitespace-nowrap transition-colors ${
-                  activeTab === tab 
-                    ? 'bg-emerald-600 text-white' 
-                    : 'bg-white text-gray-600 hover:bg-gray-100'
-                }`}
-                onClick={() => handleTabChange(tab)}
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Dashboard Tab */}
-        {activeTab === 'Dashboard' && (
-          <div className="space-y-8">
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="bg-white p-6 rounded-lg shadow-sm">
-                <h3 className="text-gray-600 text-sm mb-2">Usuários Ativos</h3>
-                <div className="text-3xl font-bold text-emerald-600">2,453</div>
-                <div className="text-sm text-green-600 mt-2">+12% este mês</div>
-              </div>
-              <div className="bg-white p-6 rounded-lg shadow-sm">
-                <h3 className="text-gray-600 text-sm mb-2">Pedidos Hoje</h3>
-                <div className="text-3xl font-bold text-emerald-600">156</div>
-                <div className="text-sm text-green-600 mt-2">+8% ontem</div>
-              </div>
-              <div className="bg-white p-6 rounded-lg shadow-sm">
-                <h3 className="text-gray-600 text-sm mb-2">Produtos Ativos</h3>
-                <div className="text-3xl font-bold text-emerald-600">1,893</div>
-                <div className="text-sm text-yellow-600 mt-2">5 esgotados</div>
-              </div>
-              <div className="bg-white p-6 rounded-lg shadow-sm">
-                <h3 className="text-gray-600 text-sm mb-2">Receita Mensal</h3>
-                <div className="text-3xl font-bold text-emerald-600">AOA 985K</div>
-                <div className="text-sm text-green-600 mt-2">+15% mês anterior</div>
-              </div>
-            </div>
-
-            {/* Charts Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Sales Chart */}
-              <div className="bg-white rounded-lg shadow-sm">
-                <div className="p-6 border-b border-gray-200">
-                  <h2 className="text-xl font-semibold">Vendas dos Últimos 7 Dias</h2>
-                </div>
-                <div className="p-6">
-                  <div className="h-80">
-                    <Line data={chartData} options={chartOptions} />
-                  </div>
-                </div>
-              </div>
-
-              {/* Products by Category */}
-              <div className="bg-white rounded-lg shadow-sm">
-                <div className="p-6 border-b border-gray-200">
-                  <h2 className="text-xl font-semibold">Produtos por Categoria</h2>
-                </div>
-                <div className="p-6">
-                  <div className="h-80">
-                    <Doughnut data={categoryData} options={{ responsive: true, maintainAspectRatio: false }} />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-
-
-        
-        <div className="flex items-center space-x-4">
-          <div className="relative">
-            <MdNotifications className="text-gray-600 cursor-pointer" size={24} />
-            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">3</span>
-          </div>
-          
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-emerald-600 rounded-full flex items-center justify-center">
               <MdPerson className="text-white" size={20} />
@@ -1006,6 +903,8 @@ export default function AdminDashboard() {
     </div>
   </div>
 )}
- </>
+
+      </main>
+    </div>
   );
 }
