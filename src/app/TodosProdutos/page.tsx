@@ -144,7 +144,7 @@ const handleAdicionarAoCarrinho = async (produto: Produto) => {
     console.log("Unidade do produto:", produto.Unidade);
     
     // Enviar com a unidade do produto
-    await adicionarProdutoAoCarrinho(produto.id_produtos.toString(), 1, produto.Unidade);
+    await adicionarProdutoAoCarrinho(produto.id_produtos.toString(), produto.quantidade, produto.Unidade);
     toast.success("Produto adicionado ao carrinho com sucesso!");
   } catch (error: any) {
     if (error.message) {

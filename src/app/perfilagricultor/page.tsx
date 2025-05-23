@@ -260,13 +260,14 @@ export default function PerfilAgricultor() {
   };
 
   // Ir para página de edição de perfil
-  const irParaEditarPerfil = () => {
-    router.push("/editarperfil");
+  const irParaEditarPerfil = (produtoId:number) => {
+    router.push("/editarperfil/${produtoId}");
     setIsConfigOpen(false);
   };
 
-   const irParaPromoverProduto = () => {
-    router.push("/Promoverproduto");
+   const irParaPromoverProduto = (produtoId:number) => {
+    router.push("/Promoverproduto/${produtoId}");
+    setProdutoMenuAberto(null);
     setIsConfigOpen(false);
   };
 
@@ -388,7 +389,7 @@ export default function PerfilAgricultor() {
                   
                   {isConfigOpen && (
                     <div ref={configRef} className="absolute right-0 top-10 bg-white rounded-[10px] z-[1000] shadow-custom p-2 min-w-[150px]">
-                      <button onClick={irParaEditarPerfil} className="flex items-center gap-2 w-full cursor-pointer border-none py-2 px-4 bg-none transition-colors duration-100 text-profile hover:bg-light text-left">
+                      <button onClick={() => irParaEditarPerfil(0)} className="flex items-center gap-2 w-full cursor-pointer border-none py-2 px-4 bg-none transition-colors duration-100 text-profile hover:bg-light text-left">
                         <FiEdit /> Editar Perfil
                       </button>
                       
@@ -500,7 +501,7 @@ export default function PerfilAgricultor() {
                           <IoMdTrash /> Excluir produto
                         </button>
                         <button 
-                          onClick={() => irParaPromoverProduto()} 
+                          onClick={() => irParaPromoverProduto(produto.id_produtos)} 
                           className="flex items-center gap-2 w-full cursor-pointer border-none py-2 px-4 bg-none transition-colors duration-100 text-profile hover:bg-light text-left"
                         >
                           <FaBullhorn /> Promover Produto

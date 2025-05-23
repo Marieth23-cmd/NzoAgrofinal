@@ -1,10 +1,10 @@
 'use client';
 import Head from 'next/head';
 import React, { useState, useEffect } from 'react';
-import Navbar from '../Components/Navbar';
-import Footer from '../Components/Footer';
+import Navbar from '../../Components/Navbar';
+import Footer from '../../Components/Footer';
 import { useRouter } from 'next/navigation';
-import { obterPacotesDestaque, destacarProduto, getProdutoById } from '../Services/produtos';
+import { obterPacotesDestaque, destacarProduto, getProdutoById } from '../../Services/produtos';
 import Image from 'next/image';
 
 type Pacote = { dias: number; valor: number; descricao: string };
