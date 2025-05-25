@@ -7,7 +7,12 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { obterPacotesDestaque, destacarProduto, getProdutoById } from '../../Services/produtos';
 
 type Pacote = { dias: number; valor: number; descricao: string };
-type ProdutoInfo = { id: number; nome: string; [key: string]: any };
+type ProdutoInfo = { 
+  id?: number; 
+  id_produtos?: number; 
+  nome: string; 
+  [key: string]: any 
+};
 
 const PromoPage = () => {
   const router = useRouter();
@@ -29,63 +34,110 @@ const PromoPage = () => {
   // Função para extrair parâmetros da URL e carregar produto
   const carregarIdProduto = () => {
     try {
+      console.log('Iniciando carregamento do ID do produto...');
+      console.log('Search params:', searchParams?.toString());
+      console.log('Current pathname:', window.location.pathname);
+      console.log('Current search:', window.location.search);
+      
+      let idString: string | null = null;
+      
       // Tentar obter ID dos search params primeiro
-      const idFromParams = searchParams?.get('id');
+      if (searchParams) {
+        idString = searchParams.get('id') || searchParams.get('id_produtos') || searchParams.get('produto');
+        console.log('ID dos search params:', idString);
+      }
       
       // Se não encontrar nos search params, tentar extrair da URL atual
-      const currentPath = window.location.pathname;
-      const pathSegments = currentPath.split('/');
-      const idFromPath = pathSegments[pathSegments.length - 1];
+      if (!idString) {
+        const currentPath = window.location.pathname;
+        const pathSegments = currentPath.split('/').filter(segment => segment.length > 0);
+        console.log('Path segments:', pathSegments);
+        
+        // Buscar o último segmento que seja um número
+        for (let i = pathSegments.length - 1; i >= 0; i--) {
+          const segment = pathSegments[i];
+          const decodedSegment = decodeURIComponent(segment);
+          const potentialId = parseInt(decodedSegment, 10);
+          
+          if (!isNaN(potentialId) && potentialId > 0) {
+            idString = decodedSegment;
+            console.log('ID encontrado no path:', idString);
+            break;
+          }
+        }
+      }
       
-      const idString = idFromParams || idFromPath;
+      // Também tentar obter da query string manualmente
+      if (!idString) {
+        const urlParams = new URLSearchParams(window.location.search);
+        idString = urlParams.get('id') || urlParams.get('id_produtos') || urlParams.get('produto');
+        console.log('ID da query string manual:', idString);
+      }
       
       if (!idString) {
-        setError('ID do produto não fornecido. Selecione um produto para destacar.');
+        console.log('Nenhum ID encontrado na URL');
+        setError('ID do produto não fornecido. Acesse esta página através de um produto específico.');
         return;
       }
 
       // Decodificar a URL para lidar com caracteres especiais
       const decodedId = decodeURIComponent(idString);
+      console.log('ID decodificado:', decodedId);
+      
       const id = parseInt(decodedId, 10);
+      console.log('ID convertido para número:', id);
 
       if (isNaN(id) || id <= 0) {
-        setError('ID do produto inválido. Por favor, selecione um produto válido.');
+        console.log('ID inválido:', decodedId);
+        setError(`ID do produto inválido: "${decodedId}". Por favor, verifique o link e tente novamente.`);
         return;
       }
 
       setProdutoId(id);
-      console.log('ID do produto carregado:', id);
+      console.log('ID do produto definido com sucesso:', id);
 
       // Buscar informações do produto
       carregarInfoProduto(id);
     } catch (error) {
       console.error('Erro ao extrair ID do produto:', error);
-      setError('Erro ao processar ID do produto.');
+      setError('Erro ao processar ID do produto. Tente acessar novamente.');
     }
   };
 
   // Carregar informações do produto
   const carregarInfoProduto = async (id: number) => {
     try {
+      console.log('Buscando informações do produto ID:', id);
       const infoProduto = await getProdutoById(id);
+      console.log('Informações do produto retornadas:', infoProduto);
+      
+      if (!infoProduto) {
+        setError('Produto não encontrado. Verifique se o ID está correto.');
+        return;
+      }
+      
       setProdutoInfo(infoProduto);
-      console.log('Informações do produto carregadas:', infoProduto);
+      console.log('Informações do produto carregadas com sucesso');
     } catch (error) {
       console.error('Erro ao carregar informações do produto:', error);
-      setError('Não foi possível carregar as informações do produto.');
+      setError('Não foi possível carregar as informações do produto. Tente novamente.');
     }
   };
 
   // Carregar pacotes da API
   const carregarPacotes = async () => {
     try {
+      console.log('Carregando pacotes de destaque...');
       const data = await obterPacotesDestaque();
       if (data && data.length > 0) {
         setPacotes(data);
         console.log('Pacotes carregados com sucesso:', data);
+      } else {
+        console.log('Usando pacotes padrão (API não retornou dados)');
       }
     } catch (error) {
       console.error('Erro ao carregar pacotes:', error);
+      console.log('Usando pacotes padrão devido ao erro');
       // Os pacotes padrão já estão definidos no estado inicial
     }
   };
@@ -131,9 +183,15 @@ const PromoPage = () => {
     }).format(valor).replace('AOA', 'Kz');
   };
 
+  // Função para obter o ID real do produto (considerando ambos os formatos)
+  const obterIdProduto = (produto: ProdutoInfo): number => {
+    return produto.id_produtos || produto.id || 0;
+  };
+
   useEffect(() => {
     // Aguardar um pouco para garantir que o componente foi montado
     const timer = setTimeout(() => {
+      console.log('Executando useEffect - carregando dados...');
       carregarIdProduto();
       carregarPacotes();
     }, 100);
@@ -165,20 +223,41 @@ const PromoPage = () => {
                   Produto selecionado: {produtoInfo.nome}
                 </p>
                 <p className="text-sm text-green-600">
-                  ID: {produtoId}
+                  ID: {obterIdProduto(produtoInfo)}
                 </p>
               </div>
             )}
             {produtoId && !produtoInfo && !error && (
               <p className="mt-2 text-green-600">
-                Produto ID: {produtoId} selecionado para destaque
+                Carregando informações do produto ID: {produtoId}...
               </p>
             )}
           </div>
 
           {error && (
             <div className="mb-6 bg-red-50 border border-red-200 text-red-700 p-4 rounded-md text-center">
-              {error}
+              <p className="font-medium">Erro:</p>
+              <p>{error}</p>
+              <button 
+                onClick={() => {
+                  setError(null);
+                  carregarIdProduto();
+                }}
+                className="mt-2 text-sm text-red-600 hover:text-red-800 underline"
+              >
+                Tentar novamente
+              </button>
+            </div>
+          )}
+
+          {/* Debug info - remover em produção */}
+          {process.env.NODE_ENV === 'development' && (
+            <div className="mb-6 p-4 bg-gray-100 rounded-md text-sm">
+              <p><strong>Debug Info:</strong></p>
+              <p>URL atual: {typeof window !== 'undefined' ? window.location.href : 'N/A'}</p>
+              <p>Produto ID: {produtoId}</p>
+              <p>Search Params: {searchParams?.toString() || 'N/A'}</p>
+              <p>Produto Info: {produtoInfo ? JSON.stringify(produtoInfo) : 'N/A'}</p>
             </div>
           )}
 

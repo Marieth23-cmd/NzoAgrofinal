@@ -403,10 +403,10 @@ const handleAdicionarAoCarrinho = async () => {
                 
                 {/* Exibir preço e unidade corretamente */}
                 <div className="text-[1.4rem] lg:text-[1.8rem] font-bold text-marieth">
-                  <span>{produto.preco} AOA/{produto.Unidade}</span> 
+                  <span>{produto.preco} AOA/{produto.quantidade}{produto.Unidade}</span> 
                 </div>
 
-                <div className="text-[1rem] lg:text-[1.8rem] font-bold text-profile">
+                <div className="text-[1rem] lg:text-[1.4rem] font-bold text-profile">
                   <span>Peso: {produto.peso_kg}kg</span>
                 </div>
                 
