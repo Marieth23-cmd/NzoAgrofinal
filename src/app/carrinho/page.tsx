@@ -312,7 +312,7 @@ export default function Carrinho() {
                 <div className="flex-1 py-0 px-4 relative">
                   <h3 className="font-bold mb-2">{produto.nome}</h3>
                   <p className="font-bold text-marieth">
-                    Kzs {parseFloat(produto.preco.toString()).toFixed(2)}/{produto.Unidade || "unidade"}
+                    Kzs {parseFloat(produto.preco.toString()).toFixed(2)}/{produto.quantidade}{produto.Unidade || "unidade"}
                   </p>
                   <p>Quantidade: <span className="font-semibold">{produto.quantidade} {produto.Unidade || "unidades"}</span></p>
                   <p>Estoque disponível: <span className="font-semibold">{produto.quantidade_estoque || produto.estoque_atual} {produto.unidade_estoque || produto.Unidade}</span></p>
