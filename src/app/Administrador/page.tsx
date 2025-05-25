@@ -357,7 +357,7 @@ export default function AdminDashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {usuario.map((user: usuarios, index: number) => (
+                    {(usuario || []).map((user: usuarios, index: number) => (
                       <tr key={index} className="border-b border-gray-100">
                         <td className="py-3 px-4">
                           <img src={user.foto} alt={user.nome} className="w-8 h-8 rounded-full mr-3 inline-block" />
@@ -411,7 +411,7 @@ export default function AdminDashboard() {
               </div>
               <div className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {produtos.map((produto) => (
+                  {(produtos || []).map((produto) => (
                     <div key={produto.id_produtos} className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
                       <div className="h-48 bg-gray-100 flex items-center justify-center">
                         {produto.foto_produto ? (
@@ -426,11 +426,11 @@ export default function AdminDashboard() {
                         <p className="text-gray-600 mb-1">Preço: {produto.preco} AOA</p>
                         <p className="text-gray-600 mb-4">Quantidade: {produto.quantidade} {produto.Unidade}</p>
                         <div className="flex justify-between items-center">
-                          <button className="flex items-center bg-emerald-600 text-white px-3 py-2 rounded hover:bg-emerald-700 transition-colors">
+                          <button className="flex items-center bg-marieth text-white px-3 py-2 rounded hover:bg-marieth transition-colors">
                             <MdEdit className="mr-1" size={16} />
                             Editar
                           </button>
-                          <button onClick={() => excluirProduto(produto.id_produtos)} className="flex items-center bg-red-600 text-white px-3 py-2 rounded hover:bg-red-700 transition-colors">
+                          <button onClick={() => excluirProduto(produto.id_produtos)} className="flex items-center bg-vermelho text-white px-3 py-2 rounded hover:bg-red-700 transition-colors">
                             <MdDelete className="mr-1" size={16} />
                             Excluir
                           </button>
@@ -452,7 +452,7 @@ export default function AdminDashboard() {
                   <input 
                     type="search" 
                     placeholder="Buscar pedidos..." 
-                    className="px-4 py-2 border border-gray-300 rounded-md w-80 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent" 
+                    className="px-4 py-2 border border-gray-300 rounded-md w-80 focus:outline-none focus:ring-2 focus:ring-marieth focus:border-transparent" 
                   />
                 </div>
               </div>
@@ -499,7 +499,7 @@ export default function AdminDashboard() {
                           </span>
                         </td>
                         <td className="p-4 border-b border-gray-200">
-                          <button className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors font-medium">
+                          <button className="px-4 py-2 bg-marieth text-white rounded-md hover:bg-green-700 transition-colors font-medium">
                             Detalhes
                           </button>
                         </td>
@@ -516,7 +516,7 @@ export default function AdminDashboard() {
                           </span>
                         </td>
                         <td className="p-4 border-b border-gray-200">
-                          <button className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors font-medium">
+                          <button className="px-4 py-2 bg-marieth text-white rounded-md hover:bg-green-700 transition-colors font-medium">
                             Detalhes
                           </button>
                         </td>
@@ -538,28 +538,28 @@ export default function AdminDashboard() {
                     className="bg-white p-6 rounded-lg shadow-sm flex flex-col items-center justify-center gap-4 cursor-pointer hover:-translate-y-1 transition-transform" 
                     onClick={() => alert("Gerando relatório de vendas...")}
                   >
-                    <FaChartBar className="text-5xl text-green-600" />
+                    <FaChartBar className="text-5xl text-marieth" />
                     <h3 className="text-lg font-medium text-gray-800 text-center">Relatório de Vendas</h3>
                   </div>
                   <div 
                     className="bg-white p-6 rounded-lg shadow-sm flex flex-col items-center justify-center gap-4 cursor-pointer hover:-translate-y-1 transition-transform" 
                     onClick={() => alert("Gerando relatório de usuários...")}
                   >
-                    <FaUsers className="text-5xl text-green-600" />
+                    <FaUsers className="text-5xl text-marieth" />
                     <h3 className="text-lg font-medium text-gray-800 text-center">Relatório de Usuários</h3>
                   </div>
                   <div 
                     className="bg-white p-6 rounded-lg shadow-sm flex flex-col items-center justify-center gap-4 cursor-pointer hover:-translate-y-1 transition-transform" 
                     onClick={() => alert("Gerando relatório de produtos...")}
                   >
-                    <FaBox className="text-5xl text-green-600" />
+                    <FaBox className="text-5xl text-marieth" />
                     <h3 className="text-lg font-medium text-gray-800 text-center">Relatório de Produtos</h3>
                   </div>
                   <div 
                     className="bg-white p-6 rounded-lg shadow-sm flex flex-col items-center justify-center gap-4 cursor-pointer hover:-translate-y-1 transition-transform" 
                     onClick={() => alert("Gerando relatório financeiro...")}
                   >
-                    <FaMoneyBillWave className="text-5xl text-green-600" />
+                    <FaMoneyBillWave className="text-5xl text-marieth" />
                     <h3 className="text-lg font-medium text-gray-800 text-center">Relatório Financeiro</h3>
                   </div>
                 </div>
@@ -572,7 +572,7 @@ export default function AdminDashboard() {
             <div className="bg-white rounded-lg shadow-sm mb-6">
               <div className="p-6 border-b border-gray-200 flex justify-between items-center">
                 <h2 className="text-xl font-semibold text-gray-800">Gestão de Logística</h2>
-                <button className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-colors font-medium">
+                <button className="px-4 py-2 bg-marieth text-white rounded-md hover:bg-emerald-700 transition-colors font-medium">
                   <MdAdd className="inline mr-2" size={16} />
                   Nova Rota
                 </button>
@@ -591,10 +591,10 @@ export default function AdminDashboard() {
                   <div className="bg-green-50 p-4 rounded-lg">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-green-600 text-sm font-medium">Entregues</p>
+                        <p className="text-marieth text-sm font-medium">Entregues</p>
                         <p className="text-2xl font-bold text-green-800">156</p>
                       </div>
-                      <MdDeliveryDining className="text-green-600" size={32} />
+                      <MdDeliveryDining className="text-marieth" size={32} />
                     </div>
                   </div>
                   <div className="bg-yellow-50 p-4 rounded-lg">
@@ -690,9 +690,9 @@ export default function AdminDashboard() {
                   <div className="flex items-center justify-between">
                     <div>
                       <h3 className="text-gray-600 text-sm mb-2">Resolvidos Hoje</h3>
-                      <div className="text-3xl font-bold text-green-600">47</div>
+                      <div className="text-3xl font-bold text-marieth">47</div>
                     </div>
-                    <MdHeadset className="text-green-600" size={32} />
+                    <MdHeadset className="text-marieth" size={32} />
                   </div>
                 </div>
                 <div className="bg-white p-6 rounded-lg shadow-sm">
