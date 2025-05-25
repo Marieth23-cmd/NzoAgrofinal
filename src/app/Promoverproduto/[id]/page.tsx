@@ -3,19 +3,21 @@ import Head from 'next/head';
 import React, { useState, useEffect } from 'react';
 import Navbar from '../../Components/Navbar';
 import Footer from '../../Components/Footer';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { obterPacotesDestaque, destacarProduto, getProdutoById } from '../../Services/produtos';
-import Image from 'next/image';
 
 type Pacote = { dias: number; valor: number; descricao: string };
 type ProdutoInfo = { id: number; nome: string; [key: string]: any };
 
 const PromoPage = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  
   const [produtoId, setProdutoId] = useState<number | null>(null);
   const [produtoInfo, setProdutoInfo] = useState<ProdutoInfo | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  
   // Pacotes de destaque padrão (fallback caso a API falhe)
   const [pacotes, setPacotes] = useState<Pacote[]>([
     { dias: 3, valor: 6000, descricao: "Pacote básico - 3 dias de destaque" },
@@ -26,24 +28,40 @@ const PromoPage = () => {
 
   // Função para extrair parâmetros da URL e carregar produto
   const carregarIdProduto = () => {
-    const params = useParams();
-    const idParam = params?.id;
-    const id = typeof idParam === 'string' ? parseInt(idParam, 10) : null;
+    try {
+      // Tentar obter ID dos search params primeiro
+      const idFromParams = searchParams?.get('id');
+      
+      // Se não encontrar nos search params, tentar extrair da URL atual
+      const currentPath = window.location.pathname;
+      const pathSegments = currentPath.split('/');
+      const idFromPath = pathSegments[pathSegments.length - 1];
+      
+      const idString = idFromParams || idFromPath;
+      
+      if (!idString) {
+        setError('ID do produto não fornecido. Selecione um produto para destacar.');
+        return;
+      }
 
-    if (!id) {
-      setError('ID do produto não fornecido. Selecione um produto para destacar.');
-      return;
+      // Decodificar a URL para lidar com caracteres especiais
+      const decodedId = decodeURIComponent(idString);
+      const id = parseInt(decodedId, 10);
+
+      if (isNaN(id) || id <= 0) {
+        setError('ID do produto inválido. Por favor, selecione um produto válido.');
+        return;
+      }
+
+      setProdutoId(id);
+      console.log('ID do produto carregado:', id);
+
+      // Buscar informações do produto
+      carregarInfoProduto(id);
+    } catch (error) {
+      console.error('Erro ao extrair ID do produto:', error);
+      setError('Erro ao processar ID do produto.');
     }
-
-    if (isNaN(id) || id <= 0) {
-      setError('ID do produto inválido. Por favor, selecione um produto válido.');
-      return;
-    }
-
-    setProdutoId(id);
-
-    // Buscar informações do produto
-    carregarInfoProduto(id);
   };
 
   // Carregar informações do produto
@@ -96,7 +114,7 @@ const PromoPage = () => {
       console.log(`Redirecionando para pagamento ID: ${resposta.idPagamento}`);
       router.push(`/pagdestacar/${resposta.idPagamento}`);
     } catch (error: any) {
-      console.log('Erro ao destacar produto:', error);
+      console.error('Erro ao destacar produto:', error);
       setError(error?.mensagem || 'Erro ao processar solicitação de destaque');
     } finally {
       setLoading(false);
@@ -114,10 +132,14 @@ const PromoPage = () => {
   };
 
   useEffect(() => {
-    carregarIdProduto();
-    carregarPacotes();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    // Aguardar um pouco para garantir que o componente foi montado
+    const timer = setTimeout(() => {
+      carregarIdProduto();
+      carregarPacotes();
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [searchParams]);
 
   return (
     <div>
@@ -162,20 +184,31 @@ const PromoPage = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Pacote 3 Dias */}
-            <div className="bg-white rounded-xl p-6 text-center shadow hover:-translate-y-1 transition transform duration-300">
-              <div className="text-xl font-bold text-gray-800 mb-2">{pacotes[0].dias} Dias</div>
-              <div className="text-3xl font-extrabold text-green-600 mb-4">
-                {formatarValor(pacotes[0].valor)}
+            <div className="bg-white rounded-xl p-6 text-center shadow hover:-translate-y-1 transition transform duration-300 flex flex-col h-full">
+              <div className="flex-grow">
+                <div className="text-xl font-bold text-gray-800 mb-2">{pacotes[0].dias} Dias</div>
+                <div className="text-3xl font-extrabold text-green-600 mb-4">
+                  {formatarValor(pacotes[0].valor)}
+                </div>
+                <ul className="text-gray-600 text-sm mb-6 space-y-2 text-left">
+                  <li className="flex items-center">
+                    <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                    Destaque na página principal
+                  </li>
+                  <li className="flex items-center">
+                    <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                    Prioridade nas buscas
+                  </li>
+                  <li className="flex items-center">
+                    <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                    Badge especial no produto
+                  </li>
+                </ul>
               </div>
-              <ul className="text-gray-600 text-sm mb-6 space-y-2">
-                <li>Destaque na página principal</li>
-                <li>Prioridade nas buscas</li>
-                <li>Badge especial no produto</li>
-              </ul>
               <button
                 onClick={() => selectPackage(pacotes[0].dias)}
                 disabled={loading || !produtoId}
-                className={`bg-marieth text-white font-semibold py-2 px-4 w-full rounded transition ${
+                className={`bg-marieth text-white font-semibold py-3 px-4 w-full rounded transition mt-auto ${
                   loading || !produtoId ? 'opacity-50 cursor-not-allowed' : 'hover:bg-verdeaceso'
                 }`}
               >
@@ -184,21 +217,35 @@ const PromoPage = () => {
             </div>
 
             {/* Pacote 5 Dias */}
-            <div className="bg-white rounded-xl p-6 text-center shadow hover:-translate-y-1 transition transform duration-300">
-              <div className="text-xl font-bold text-gray-800 mb-2">{pacotes[1].dias} Dias</div>
-              <div className="text-3xl font-extrabold text-marieth mb-4">
-                {formatarValor(pacotes[1].valor)}
+            <div className="bg-white rounded-xl p-6 text-center shadow hover:-translate-y-1 transition transform duration-300 flex flex-col h-full">
+              <div className="flex-grow">
+                <div className="text-xl font-bold text-gray-800 mb-2">{pacotes[1].dias} Dias</div>
+                <div className="text-3xl font-extrabold text-marieth mb-4">
+                  {formatarValor(pacotes[1].valor)}
+                </div>
+                <ul className="text-gray-600 text-sm mb-6 space-y-2 text-left">
+                  <li className="flex items-center">
+                    <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                    Destaque na página principal
+                  </li>
+                  <li className="flex items-center">
+                    <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                    Prioridade nas buscas
+                  </li>
+                  <li className="flex items-center">
+                    <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                    Badge especial no produto
+                  </li>
+                  <li className="flex items-center">
+                    <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                    Notificações push
+                  </li>
+                </ul>
               </div>
-              <ul className="text-gray-600 text-sm mb-6 space-y-2">
-                <li>Destaque na página principal</li>
-                <li>Prioridade nas buscas</li>
-                <li>Badge especial no produto</li>
-                <li>Notificações push</li>
-              </ul>
               <button
                 onClick={() => selectPackage(pacotes[1].dias)}
                 disabled={loading || !produtoId}
-                className={`bg-marieth text-white font-semibold py-2 px-4 w-full rounded transition ${
+                className={`bg-marieth text-white font-semibold py-3 px-4 w-full rounded transition mt-auto ${
                   loading || !produtoId ? 'opacity-50 cursor-not-allowed' : 'hover:bg-verdeaceso'
                 }`}
               >
@@ -207,25 +254,42 @@ const PromoPage = () => {
             </div>
 
             {/* Pacote 7 Dias - Mais Popular */}
-            <div className="relative bg-white rounded-xl p-6 text-center shadow hover:-translate-y-1 transition transform duration-300">
-              <span className="absolute top-4 -right-12 transform rotate-45 bg-yellow-400 text-sm font-bold text-gray-800 py-1 px-12 shadow">
+            <div className="relative bg-white rounded-xl p-6 text-center shadow hover:-translate-y-1 transition transform duration-300 flex flex-col h-full">
+              <span className="absolute top-4 -right-12 transform rotate-45 bg-yellow-400 text-sm font-bold text-gray-800 py-1 px-12 shadow z-10">
                 Mais Popular
               </span>
-              <div className="text-xl font-bold text-gray-800 mb-2">{pacotes[2].dias} Dias</div>
-              <div className="text-3xl font-extrabold text-marieth mb-4">
-                {formatarValor(pacotes[2].valor)}
+              <div className="flex-grow">
+                <div className="text-xl font-bold text-gray-800 mb-2">{pacotes[2].dias} Dias</div>
+                <div className="text-3xl font-extrabold text-marieth mb-4">
+                  {formatarValor(pacotes[2].valor)}
+                </div>
+                <ul className="text-gray-600 text-sm mb-6 space-y-2 text-left">
+                  <li className="flex items-center">
+                    <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                    Destaque na página principal
+                  </li>
+                  <li className="flex items-center">
+                    <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                    Prioridade nas buscas
+                  </li>
+                  <li className="flex items-center">
+                    <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                    Badge especial no produto
+                  </li>
+                  <li className="flex items-center">
+                    <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                    Notificações push
+                  </li>
+                  <li className="flex items-center">
+                    <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                    Relatório de desempenho
+                  </li>
+                </ul>
               </div>
-              <ul className="text-gray-600 text-sm mb-6 space-y-2">
-                <li>Destaque na página principal</li>
-                <li>Prioridade nas buscas</li>
-                <li>Badge especial no produto</li>
-                <li>Notificações push</li>
-                <li>Relatório de desempenho</li>
-              </ul>
               <button
                 onClick={() => selectPackage(pacotes[2].dias)}
                 disabled={loading || !produtoId}
-                className={`bg-green-600 text-white font-semibold py-2 px-4 w-full rounded transition ${
+                className={`bg-green-600 text-white font-semibold py-3 px-4 w-full rounded transition mt-auto ${
                   loading || !produtoId ? 'opacity-50 cursor-not-allowed' : 'hover:bg-verdeaceso'
                 }`}
               >
@@ -234,23 +298,43 @@ const PromoPage = () => {
             </div>
 
             {/* Pacote 1 Mês */}
-            <div className="bg-white rounded-xl p-6 text-center shadow hover:-translate-y-1 transition transform duration-300">
-              <div className="text-xl font-bold text-gray-800 mb-2">{pacotes[3].dias} Dias</div>
-              <div className="text-3xl font-extrabold text-marieth mb-4">
-                {formatarValor(pacotes[3].valor)}
+            <div className="bg-white rounded-xl p-6 text-center shadow hover:-translate-y-1 transition transform duration-300 flex flex-col h-full">
+              <div className="flex-grow">
+                <div className="text-xl font-bold text-gray-800 mb-2">{pacotes[3].dias} Dias</div>
+                <div className="text-3xl font-extrabold text-marieth mb-4">
+                  {formatarValor(pacotes[3].valor)}
+                </div>
+                <ul className="text-gray-600 text-sm mb-6 space-y-2 text-left">
+                  <li className="flex items-center">
+                    <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                    Destaque na página principal
+                  </li>
+                  <li className="flex items-center">
+                    <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                    Prioridade máxima nas buscas
+                  </li>
+                  <li className="flex items-center">
+                    <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                    Badge especial no produto
+                  </li>
+                  <li className="flex items-center">
+                    <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                    Notificações push
+                  </li>
+                  <li className="flex items-center">
+                    <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                    Relatório de desempenho
+                  </li>
+                  <li className="flex items-center">
+                    <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                    Suporte prioritário
+                  </li>
+                </ul>
               </div>
-              <ul className="text-gray-600 text-sm mb-6 space-y-2">
-                <li>Destaque na página principal</li>
-                <li>Prioridade máxima nas buscas</li>
-                <li>Badge especial no produto</li>
-                <li>Notificações push</li>
-                <li>Relatório de desempenho</li>
-                <li>Suporte prioritário</li>
-              </ul>
               <button
                 onClick={() => selectPackage(pacotes[3].dias)}
                 disabled={loading || !produtoId}
-                className={`bg-marieth text-white font-semibold py-2 px-4 w-full rounded transition ${
+                className={`bg-marieth text-white font-semibold py-3 px-4 w-full rounded transition mt-auto ${
                   loading || !produtoId ? 'opacity-50 cursor-not-allowed' : 'hover:bg-verdeaceso'
                 }`}
               >

@@ -357,7 +357,7 @@ export default function AdminDashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {(usuario || []).map((user: usuarios, index: number) => (
+                    {Array.isArray(usuario) && usuario.map((user: usuarios, index: number) => (
                       <tr key={index} className="border-b border-gray-100">
                         <td className="py-3 px-4">
                           <img src={user.foto} alt={user.nome} className="w-8 h-8 rounded-full mr-3 inline-block" />
@@ -411,7 +411,7 @@ export default function AdminDashboard() {
               </div>
               <div className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {(produtos || []).map((produto) => (
+                  { Array.isArray(produtos) && produtos.map((produto) => (
                     <div key={produto.id_produtos} className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
                       <div className="h-48 bg-gray-100 flex items-center justify-center">
                         {produto.foto_produto ? (
@@ -690,7 +690,7 @@ export default function AdminDashboard() {
                   <div className="flex items-center justify-between">
                     <div>
                       <h3 className="text-gray-600 text-sm mb-2">Resolvidos Hoje</h3>
-                      <div className="text-3xl font-bold text-marieth">47</div>
+                      <div className="text-3xl font-bold text-yellow-600">47</div>
                     </div>
                     <MdHeadset className="text-marieth" size={32} />
                   </div>
