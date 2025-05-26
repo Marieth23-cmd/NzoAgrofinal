@@ -60,7 +60,7 @@ export default function Login() {
           
         } catch (error: any) {
             console.error("Erro de login:", error);
-            setErro(error.message || "Erro ao Iniciar Sessão!");
+            setErro(error.mensagem || "Erro ao Iniciar Sessão!");
             toast.error("Erro ao iniciar sessão. Tente novamente!");
         }
     };
@@ -68,7 +68,7 @@ export default function Login() {
     return (
         <main className="flex flex-col justify-center mt-28 items-center lg:mt-20">
             {/* ToastContainer deve estar dentro do return */}
-            <ToastContainer position="top-right" autoClose={5000} />
+            <ToastContainer position="top-right" autoClose={4000} />
             
             <div className="bg-white p-8 w-full rounded-lg max-w-[400px] m-4 shadow-lg">
                 <div className="flex mb-8 items-center justify-center">

@@ -8,8 +8,8 @@ import { FaStar } from "react-icons/fa";
 import { useState, useEffect } from "react";
 import { getProdutos } from "../Services/produtos";
 import { buscarMediaEstrelas } from "../Services/avaliacoes";
-import { adicionarProdutoAoCarrinho } from "../Services/cart";
-import {toast, ToastContainer} from 'react-toastify';
+import { adicionarProdutoAoCarrinho, listarProdutosDoCarrinho } from "../Services/cart";
+import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { verificarAuth } from "../Services/auth";
 import { CgShoppingCart } from "react-icons/cg";
@@ -24,35 +24,60 @@ export default function Vitrine() {
     Unidade: string;
     preco: number;
     idUsuario: number;
-    peso_kg:number
+    peso_kg: number;
   }
+
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [visibleCount, setVisibleCount] = useState(12);
   const [avaliacoes, setAvaliacoes] = useState<{ [key: number]: number | null }>({});
   const [verMaisClicado, setVerMaisClicado] = useState(false);
-  const [usuario, setUsuario] = useState<{id_usuario:number, nome:string} | null>(null);
-  const [carregando, setCarregando] = useState(true); 
+  const [usuario, setUsuario] = useState<{ id_usuario: number, nome: string } | null>(null);
+  const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState("");
   const [carregandoAvaliacoes, setCarregandoAvaliacoes] = useState(true);
   const [erroAvaliacoes, setErroAvaliacoes] = useState("");
   const [autenticado, setAutenticado] = useState(false);
 
+  // Novo: Guarda os IDs dos produtos já no carrinho
+  const [produtosNoCarrinho, setProdutosNoCarrinho] = useState<number[]>([]);
+  const [carregandoCarrinho, setCarregandoCarrinho] = useState(false);
+
+  // Carregar produtos do carrinho do usuário
+  const carregarProdutosNoCarrinho = async () => {
+    if (!autenticado) {
+      setProdutosNoCarrinho([]);
+      return;
+    }
+    setCarregandoCarrinho(true);
+    try {
+      const dados = await listarProdutosDoCarrinho();
+      // Supondo que a resposta tem array "produtos" ou "itens"
+      let ids: number[] = [];
+      if (dados) {
+        if (Array.isArray(dados.produtos)) {
+          ids = dados.produtos.map((p: any) => Number(p.id_produtos || p.id));
+        } else if (Array.isArray(dados.itens)) {
+          ids = dados.itens.map((p: any) => Number(p.id_produtos || p.id));
+        }
+      }
+      setProdutosNoCarrinho(ids);
+    } catch (err) {
+      setProdutosNoCarrinho([]);
+    } finally {
+      setCarregandoCarrinho(false);
+    }
+  };
+
   useEffect(() => {
     async function fetchProdutos() {
       try {
-         const data = await getProdutos();
-      
-      // Garantir que cada produto tenha idUsuario como número
-      const produtosFormatados = data.map((produto: any) => ({
-        ...produto,
-        idUsuario: Number(produto.idUsuario) || 0
-      }));
-      
-      console.log("Produtos formatados com idUsuario:", produtosFormatados);
-      setProdutos(produtosFormatados);
-      setCarregando(false);
-
-
+        const data = await getProdutos();
+        const produtosFormatados = data.map((produto: any) => ({
+          ...produto,
+          idUsuario: Number(produto.idUsuario) || 0
+        }));
+        setProdutos(produtosFormatados);
+        setCarregando(false);
 
         // Buscar avaliações para cada produto
         setCarregandoAvaliacoes(true);
@@ -62,109 +87,84 @@ export default function Vitrine() {
             const media = await buscarMediaEstrelas(produto.id_produtos);
             avaliacaoData[produto.id_produtos] = media?.media_estrelas || null;
           } catch (error) {
-            console.log(`Erro ao buscar avaliação para produto ${produto.id_produtos}:`, error);
             avaliacaoData[produto.id_produtos] = null;
           }
         }
-        
         setAvaliacoes(avaliacaoData);
         setCarregandoAvaliacoes(false);
-        setCarregando(false);
-      } catch (error:any) {
+      } catch (error: any) {
         setErro(error.mensagem || "Erro ao carregar produtos");
-        console.log("Erro ao carregar produtos:", error);
         setCarregando(false);
       }
     }
-
     fetchProdutos();
   }, []);
 
-useEffect(() => {
-  const verificarLogin = async () => {
-    try {
-      console.log("=== INICIANDO VERIFICAÇÃO DE LOGIN ===");
-      const user = await verificarAuth();
-      
-      console.log("Resposta completa do verificarAuth:", user);
-      console.log("Tipo da resposta:", typeof user);
-      
-      if (!user || typeof user !== 'object') {
-        console.log("❌ Dados do usuário inválidos:", user);
+  useEffect(() => {
+    const verificarLogin = async () => {
+      try {
+        const user = await verificarAuth();
+        if (!user || typeof user !== 'object') {
+          setAutenticado(false);
+          setUsuario(null);
+          return;
+        }
+        setAutenticado(true);
+        setUsuario({
+          id_usuario: Number(user.id_usuario) || 0,
+          nome: user.nome || ''
+        });
+      } catch (error: any) {
         setAutenticado(false);
         setUsuario(null);
-        return;
       }
-      
-      console.log("✅ Dados completos do usuário:", user);
-      console.log("user.id_usuario:", user.id_usuario, "tipo:", typeof user.id_usuario);
-      console.log("user.nome:", user.nome);
-      
-      setAutenticado(true);
-      
-      // Garantir que o ID do usuário seja um número
-      const userId = Number(user.id_usuario) || 0;
-      const userName = user.nome || '';
-      
-      console.log("userId convertido:", userId);
-      console.log("userName:", userName);
-      
-      setUsuario({
-        id_usuario: userId,
-        nome: userName
-      });
-      
-      console.log("✅ Estado do usuário definido:", {
-        id_usuario: userId,
-        nome: userName
-      });
-      
-    } catch (error:any) {
-      console.log("❌ Erro na autenticação:", error);
-      console.log("Detalhes do erro:", error.message);
-      setAutenticado(false);
-      setUsuario(null);
+    };
+    verificarLogin();
+  }, []);
+
+  // Carrega carrinho assim que autentica
+  useEffect(() => {
+    if (autenticado) carregarProdutosNoCarrinho();
+  }, [autenticado]);
+
+  // Quando adiciona um produto, recarrega os produtos do carrinho
+  const handleAdicionarAoCarrinho = async (produto: Produto) => {
+    if (produtosNoCarrinho.includes(produto.id_produtos)) {
+      toast.info("Este produto já está no carrinho!");
+      return;
+    }
+    try {
+      await adicionarProdutoAoCarrinho(
+        produto.id_produtos.toString(),
+        produto.quantidade,
+        produto.Unidade,
+        produto.peso_kg,
+        produto.preco
+      );
+      toast.success("Produto adicionado ao carrinho com sucesso!");
+      // Atualiza a lista dos produtos do carrinho
+      setProdutosNoCarrinho((prev) => [...prev, produto.id_produtos]);
+    } catch (error: any) {
+      if (error.message) {
+        toast.error(error.message);
+      } else {
+        toast.error("Erro ao adicionar produto ao carrinho");
+      }
     }
   };
-
-  verificarLogin();
-}, []);
-
 
   const mostrarMaisProdutos = () => {
     setVerMaisClicado(true);
     setVisibleCount((prev) => prev + 12);
   };
-  
+
   const produtosVisiveis = produtos.slice(0, visibleCount);
   const haMaisProdutos = visibleCount < produtos.length;
 
-const handleAdicionarAoCarrinho = async (produto: Produto) => {
-  try {
-    console.log("Adicionando produto:", produto);
-    console.log("Unidade do produto:", produto.Unidade);
-    console.log("Unidade do produto:", produto.peso_kg);
-    console.log("Unidade do produto:", produto.preco);
-    
-    
-    // Enviar com a unidade do produto
-    await adicionarProdutoAoCarrinho(produto.id_produtos.toString(), produto.quantidade, produto.Unidade ,produto.peso_kg , produto.preco);
-    toast.success("Produto adicionado ao carrinho com sucesso!");
-  } catch (error: any) {
-    if (error.message) {
-      toast.error(error.message);
-    } else {
-      toast.error("Erro ao adicionar produto ao carrinho");
-    }
-  }
-};
-
-  
   function calcularEstrelas(media: number) {
     const estrelasCheias = Math.floor(media);
     const temMeiaEstrela = media - estrelasCheias >= 0.25 && media - estrelasCheias < 0.75;
     const estrelasVazias = 5 - estrelasCheias - (temMeiaEstrela ? 1 : 0);
-
     return {
       cheias: estrelasCheias,
       meia: temMeiaEstrela ? 1 : 0,
@@ -174,40 +174,19 @@ const handleAdicionarAoCarrinho = async (produto: Produto) => {
 
   // Função para verificar se o usuário é o dono de um produto
   const isOwner = (produto: Produto) => {
-  console.log("Verificando propriedade do produto na vitrine:");
-  console.log("ID do usuário logado:", usuario?.id_usuario);
-  console.log("ID do dono do produto:", produto.idUsuario);
-  
-  // Converter IDs para número antes de comparar
-  const userID = Number(usuario?.id_usuario) || 0;
-  const produtoOwnerID = Number(produto.idUsuario) || 0;
-  
-  console.log("ID do usuário (numérico):", userID);
-  console.log("ID do dono do produto (numérico):", produtoOwnerID);
-  
-  // Verificar se os IDs são válidos e iguais
-  return userID > 0 && produtoOwnerID > 0 && userID === produtoOwnerID;
-};
-
+    const userID = Number(usuario?.id_usuario) || 0;
+    const produtoOwnerID = Number(produto.idUsuario) || 0;
+    return userID > 0 && produtoOwnerID > 0 && userID === produtoOwnerID;
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
       <head>
         <title>Ver todos os Produtos</title>
       </head>
-
       <Navbar />
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover/>
-
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} newestOnTop={false}
+        closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
       <div className="flex-grow flex flex-col mb-20 gap-2 mt-[48%] md:mt-[20%] lg:mt-[15%] mx-auto w-full max-w-[1200px] shadow-custom p-2 md:p-4 lg:p-8 rounded-[10px]">
         <div className="w-full p-2 md:p-4 lg:p-8">
           {carregando ? (
@@ -220,110 +199,110 @@ const handleAdicionarAoCarrinho = async (produto: Produto) => {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
-              {produtosVisiveis.map((produto) => (
-                <div
-                  key={produto.id_produtos}
-                  className="overflow-hidden bg-white rounded-[0.625rem] shadow-custom transition-transform duration-150 ease-in-out transform hover:translate-y-[0.3125rem]"
-                >
-                  {produto.foto_produto ? (
-                    <div className="relative w-full h-40 sm:h-44 md:h-48">
-                      <Image
-                        src={produto.foto_produto}
-                        alt={produto.nome}
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
-                  ) : (
-                    <div className="h-40 sm:h-44 md:h-48 w-full bg-gray-200 flex items-center justify-center text-sm text-gray-500">
-                      Imagem indisponível
-                    </div>
-                  )}
-                  
-                  <div className="p-3 sm:p-4 md:p-6">
-                    <h3 className="text-base sm:text-lg md:text-xl mb-2 text-profile font-semibold line-clamp-2">
-                      {produto.nome}
-                    </h3>
-
-                    <div className="flex gap-1 mb-2">
-                      {carregandoAvaliacoes ? (
-                        <span className="text-gray-500 text-xs md:text-sm">Carregando avaliações...</span>
-                      ) : avaliacoes[produto.id_produtos] !== null && avaliacoes[produto.id_produtos] !== undefined ? (
-                        (() => {
-                          const media = avaliacoes[produto.id_produtos]!;
-                          const { cheias, meia, vazias } = calcularEstrelas(media);
-
-                          return (
-                            <>
-                              {[...Array(cheias)].map((_, i) => (
-                                <FaStar key={"cheia" + i} className="text-amarela text-sm md:text-base" />
-                              ))}
-                              {meia === 1 && (
-                                <FaRegStarHalfStroke key="meia" className="text-amarela text-sm md:text-base" />
-                              )}
-                              {[...Array(vazias)].map((_, i) => (
-                                <FaRegStarHalfStroke key={"vazia" + i} className="text-gray-300 text-sm md:text-base" />
-                              ))}
-                              <span className="text-amarela -mt-[4px] ml-2 text-xs md:text-sm">
-                                ({Number(media).toFixed(1)})
-                              </span>
-                            </>
-                          );
-                        })()
-                      ) : (
-                        <p className="text-gray-500 text-xs md:text-sm">Sem avaliações</p>
-                      )}
-                    </div>
-
-                    <p className="text-base sm:text-lg md:text-xl font-bold mb-2 text-marieth">
-                      AOA {produto.preco.toLocaleString()}
-                    </p>
-                    <span className="text-xs md:text-sm">
-                      {produto.quantidade}/{produto.Unidade}
-                    </span>
-
-                    <div className="flex flex-col gap-2 mt-3">
-                      <Link
-                        href={`/DetalhesProduto/${produto.id_produtos}`}
-                        className="text-marieth text-center py-1.5 md:py-2 text-sm md:text-base cursor-pointer px-4 transition-all duration-150 ease-in-out border-[1px] border-solid bg-cinza rounded-[0.3125rem] hover:bg-marieth hover:text-white"
-                      >
-                        Ver detalhes
-                      </Link>
-                      
-                        {autenticado ? (
-                    isOwner(produto) ? (
-                      <div className="mt-4 text-vermelho font-bold text-center">
-                        Você é o dono deste produto!
+              {produtosVisiveis.map((produto) => {
+                const jaNoCarrinho = produtosNoCarrinho.includes(produto.id_produtos);
+                return (
+                  <div
+                    key={produto.id_produtos}
+                    className="overflow-hidden bg-white rounded-[0.625rem] shadow-custom transition-transform duration-150 ease-in-out transform hover:translate-y-[0.3125rem]"
+                  >
+                    {produto.foto_produto ? (
+                      <div className="relative w-full h-40 sm:h-44 md:h-48">
+                        <Image
+                          src={produto.foto_produto}
+                          alt={produto.nome}
+                          fill
+                          className="object-cover"
+                        />
                       </div>
                     ) : (
-                      <button
-                        onClick={() => handleAdicionarAoCarrinho(produto)}
-                        className="bg-marieth w-full py-2 px-4 border-none mt-4 rounded-[5px] text-white text-sm md:text-base lg:text-lg cursor-pointer 
-                        transition-colors duration-300 hover:bg-verdeaceso mb-2 flex items-center justify-center gap-2 h-10 md:h-12"
-                      >
-                        <CgShoppingCart className="text-lg md:text-xl" />
-                        <span>Adicionar ao Carrinho</span>
-                      </button>
-                    )
-                  ) : (
-                    <Link
-                      href="/login"
-                      className="bg-marieth w-full py-2 px-4 border-none mt-4 rounded-[5px] text-white text-center text-sm md:text-base cursor-pointer 
-                      transition-colors duration-300 hover:bg-verdeaceso mb-2 flex items-center justify-center h-10 md:h-12"
-                    >
-                      Faça login para adicionar ao carrinho
-                    </Link>
-                  )}
-
-
+                      <div className="h-40 sm:h-44 md:h-48 w-full bg-gray-200 flex items-center justify-center text-sm text-gray-500">
+                        Imagem indisponível
+                      </div>
+                    )}
+                    <div className="p-3 sm:p-4 md:p-6">
+                      <h3 className="text-base sm:text-lg md:text-xl mb-2 text-profile font-semibold line-clamp-2">
+                        {produto.nome}
+                      </h3>
+                      <div className="flex gap-1 mb-2">
+                        {carregandoAvaliacoes ? (
+                          <span className="text-gray-500 text-xs md:text-sm">Carregando avaliações...</span>
+                        ) : avaliacoes[produto.id_produtos] !== null && avaliacoes[produto.id_produtos] !== undefined ? (
+                          (() => {
+                            const media = avaliacoes[produto.id_produtos]!;
+                            const { cheias, meia, vazias } = calcularEstrelas(media);
+                            return (
+                              <>
+                                {[...Array(cheias)].map((_, i) => (
+                                  <FaStar key={"cheia" + i} className="text-amarela text-sm md:text-base" />
+                                ))}
+                                {meia === 1 && (
+                                  <FaRegStarHalfStroke key="meia" className="text-amarela text-sm md:text-base" />
+                                )}
+                                {[...Array(vazias)].map((_, i) => (
+                                  <FaRegStarHalfStroke key={"vazia" + i} className="text-gray-300 text-sm md:text-base" />
+                                ))}
+                                <span className="text-amarela -mt-[4px] ml-2 text-xs md:text-sm">
+                                  ({Number(media).toFixed(1)})
+                                </span>
+                              </>
+                            );
+                          })()
+                        ) : (
+                          <p className="text-gray-500 text-xs md:text-sm">Sem avaliações</p>
+                        )}
+                      </div>
+                      <p className="text-base sm:text-lg md:text-xl font-bold mb-2 text-marieth">
+                        AOA {produto.preco.toLocaleString()}
+                      </p>
+                      <span className="text-xs md:text-sm">
+                        {produto.quantidade}/{produto.Unidade}
+                      </span>
+                      <div className="flex flex-col gap-2 mt-3">
+                        <Link
+                          href={`/DetalhesProduto/${produto.id_produtos}`}
+                          className="text-marieth text-center py-1.5 md:py-2 text-sm md:text-base cursor-pointer px-4 transition-all duration-150 ease-in-out border-[1px] border-solid bg-cinza rounded-[0.3125rem] hover:bg-marieth hover:text-white"
+                        >
+                          Ver detalhes
+                        </Link>
+                        {autenticado ? (
+                          isOwner(produto) ? (
+                            <div className="mt-4 text-vermelho font-bold text-center">
+                              Você é o dono deste produto!
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => handleAdicionarAoCarrinho(produto)}
+                              className={`w-full py-2 px-4 border-none mt-4 rounded-[5px] text-white text-sm md:text-base lg:text-lg cursor-pointer transition-colors duration-300 mb-2 flex items-center justify-center gap-2 h-10 md:h-12 ${
+                                jaNoCarrinho
+                                  ? 'bg-gray-400 cursor-not-allowed'
+                                  : 'bg-marieth hover:bg-verdeaceso'
+                              }`}
+                              disabled={jaNoCarrinho || carregandoCarrinho}
+                            >
+                              <CgShoppingCart className="text-lg md:text-xl" />
+                              <span>
+                                {jaNoCarrinho ? "Já está no Carrinho" : "Adicionar ao Carrinho"}
+                              </span>
+                            </button>
+                          )
+                        ) : (
+                          <Link
+                            href="/login"
+                            className="bg-marieth w-full py-2 px-4 border-none mt-4 rounded-[5px] text-white text-center text-sm md:text-base cursor-pointer 
+                            transition-colors duration-300 hover:bg-verdeaceso mb-2 flex items-center justify-center h-10 md:h-12"
+                          >
+                            Faça login para adicionar ao carrinho
+                          </Link>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
-
         {!carregando && (
           haMaisProdutos ? (
             <button
@@ -339,7 +318,6 @@ const handleAdicionarAoCarrinho = async (produto: Produto) => {
           ) : null
         )}
       </div>
-
       <Footer />
     </div>
   );

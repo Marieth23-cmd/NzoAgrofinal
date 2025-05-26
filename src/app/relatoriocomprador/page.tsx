@@ -55,6 +55,10 @@ export default function Comprador() {
   const [dataFinal, setDataFinal] = useState<string>('');
   const [relatorio, setRelatorio] = useState<RelatorioItem[]>([]);
   const [estatisticas, setEstatisticas] = useState<Estatisticas | null>(null);
+  
+  // Estado para controlar se já foi feita a primeira busca
+  const [primeiraConsulta, setPrimeiraConsulta] = useState<boolean>(false);
+  
   const [dadosGrafico, setDadosGrafico] = useState({
     labels: [
       'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
@@ -132,12 +136,9 @@ export default function Comprador() {
     }
   };
 
-  // Função para carregar os dados iniciais
+  // Remover o useEffect que carregava dados automaticamente
   useEffect(() => {
-    carregarDados();
-    
-    // Não é mais necessário ajustar o tamanho manualmente, pois usamos classes Tailwind
-    // Podemos ainda manter uma referência para possíveis atualizações futuras
+    // Apenas configurar event listeners para redimensionamento se necessário
     const ajustarTamanhoGrafico = () => {
       if (chartRef.current) {
         // Qualquer ajuste adicional pode ser feito aqui se necessário no futuro
@@ -202,6 +203,10 @@ export default function Comprador() {
         // Não exibir erro para o usuário se apenas as estatísticas falharem
         // Apenas mantenha o gráfico vazio
       }
+      
+      // Marcar que a primeira consulta foi realizada com sucesso
+      setPrimeiraConsulta(true);
+      
     } catch (error) {
       console.log("Erro ao carregar relatório:", error);
       
@@ -209,6 +214,7 @@ export default function Comprador() {
       if (error instanceof Error && error.message.includes("sem dados")) {
         // Nenhum dado disponível para o período selecionado - não é um erro real
         setRelatorio([]);
+        setPrimeiraConsulta(true);
         // Não exibir mensagem de erro, apenas o estado vazio
       } else {
         // Erro real de conexão ou do servidor
@@ -295,7 +301,7 @@ export default function Comprador() {
       <div className="flex flex-col mb-20 md:mb-20 gap-2 mt-[48%] md:[45%] md:mt-[15%] mx-4 md:mx-8 max-w-full md:max-w-[1200px] shadow-custom p-4 md:p-8 rounded-[10px]">
         
         {/* Cabeçalho com layout responsivo */}
-        <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center mb-6 md:mb-8">
+        <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-centers mb-6 md:mb-8">
           <h1 className="text-marieth text-xl md:text-[2rem] font-bold mb-4 sm:mb-0">Relatório de Compras</h1>
           
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 w-full sm:w-auto sm:ml-auto items-start sm:items-center">
@@ -331,6 +337,12 @@ export default function Comprador() {
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
             {error}
+            <button 
+              onClick={() => setError(null)}
+              className="ml-2 text-red-500 hover:text-red-700"
+            >
+              ✕
+            </button>
           </div>
         )}
 
@@ -391,7 +403,13 @@ export default function Comprador() {
             </thead>    
 
             <tbody>
-              {relatorio.length > 0 ? (
+              {!primeiraConsulta ? (
+                <tr>
+                  <td colSpan={6} className="p-4 text-center border-b-[1px] border-b-solid border-b-tab text-xs md:text-sm text-gray-500">
+                    Clique no botão "Filtrar" para visualizar os dados de compras
+                  </td>
+                </tr>
+              ) : relatorio.length > 0 ? (
                 relatorio.map((item, index) => (
                   <tr key={index} className="hover:bg-th">
                     <td className="p-2 md:p-4 text-left border-b-[1px] border-b-solid border-b-tab text-xs md:text-sm">
