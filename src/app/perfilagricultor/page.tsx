@@ -261,12 +261,12 @@ export default function PerfilAgricultor() {
 
   // Ir para página de edição de perfil
   const irParaEditarPerfil = (produtoId:number) => {
-    router.push("/editarperfil/${produtoId}");
+    router.push(`/editarperfil/${produtoId}`);
     setIsConfigOpen(false);
   };
 
    const irParaPromoverProduto = (produtoId:number) => {
-    router.push("/Promoverproduto/${produtoId}");
+    router.push(`/Promoverproduto/${produtoId}`);
     setProdutoMenuAberto(null);
     setIsConfigOpen(false);
   };

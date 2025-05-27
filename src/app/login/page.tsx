@@ -118,7 +118,7 @@ export default function Login() {
 
                     <button
                         type="submit"
-                        className="bg-marieth text-white p-3 rounded w-full hover:bg-green-700"
+                        className="bg-marieth text-white p-3 rounded w-full hover:bg-verdeaceso"
                     >
                         Entrar
                     </button>
@@ -126,7 +126,7 @@ export default function Login() {
 
                 <p className="mt-4 text-center text-gray-600">Esqueceu a Senha?</p>
                 <p className="mt-4 text-center">
-                    Não tem uma conta? <a href="./Seleccionar" className="text-green-600">Cadastra-se</a>
+                    Não tem uma conta? <a href="./Seleccionar" className="text-marieth">Cadastra-se</a>
                 </p>
             </div>
         </main>

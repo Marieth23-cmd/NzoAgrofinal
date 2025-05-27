@@ -53,6 +53,58 @@ export default function DetalhesProduto(){
     idUsuario: number;
   };
 
+
+
+
+  // Buscar avaliações do produto
+  useEffect(() => {
+    if (!produtoId) return;
+    setCarregandoAvaliacoes(true);
+    buscarMediaEstrelas(Number(produtoId)).then(res => {
+      setMedia(res.media_estrelas || 0);
+      setTotal(res.total || 0);
+      setPercentagem(res.recomendacoes || 0);
+      setAvaliacoes((prev) => ({
+        ...prev,
+        [Number(produtoId)]: res.media_estrelas || null
+      }));
+    }).finally(() => setCarregandoAvaliacoes(false));
+  }, [produtoId, avaliacaoRealizada]);
+
+  // Função para selecionar estrela temporariamente
+  const handleSelecionarEstrela = (nota: number) => {
+    if (!autenticado) {
+      toast.warn("Você precisa estar logado para avaliar.");
+      router.push("/login");
+      return;
+    }
+    setNotaTemporaria(nota);
+  };
+
+  // Função para enviar avaliação
+  const handleEnviarAvaliacao = async () => {
+    if (!autenticado) {
+      toast.warn("Você precisa estar logado para avaliar.");
+      router.push("/login");
+      return;
+    }
+    if (!produtoId || notaTemporaria === 0) {
+      toast.warn(notaTemporaria === 0 ? "Selecione uma nota para avaliar." : "ID do produto não encontrado.");
+      return;
+    }
+    try {
+      await enviarAvaliacao(Number(produtoId), notaTemporaria);
+      setNotaSelecionada(notaTemporaria);
+      setNotaTemporaria(0);
+      setAvaliacaoRealizada(true);
+      toast.success("Avaliação enviada com sucesso!");
+    } catch (error: any) {
+      toast.error(error.message || "Erro ao enviar avaliação. Tente novamente.");
+    }
+  };
+
+  
+
   const [produto, setProduto] = useState<Produto | null>(null);
   const [avaliacoes, setAvaliacoes] = useState<{ [key: number]: number | null }>({});
   const [precoTotal, setPrecoTotal] = useState(0);
@@ -242,14 +294,35 @@ export default function DetalhesProduto(){
                         </button>
                       </>
                     )
-                  ) : (
+                ) : (
+                  <>
                     <button 
                       className="hover:bg-verdeaceso bg-marieth rounded-[5px] cursor-pointer text-white p-2 text-[0.9rem] border-none bottom-4 mb-4"
                       onClick={() => router.push("/login")}
                     >
                       Faça login para comprar
                     </button>
-                  )}
+                    <div className="flex items-center gap-4 p-3 lg:p-4 mb-2 rounded-[10px] bg-pretobranco">
+                      <div className="flex w-[50px] h-[50px] lg:w-[60px] lg:h-[60px] rounded-[50%] items-center justify-center bg-back">
+                        <AiFillHome />
+                      </div>
+                      <div>
+                        <h3>{produto.nome}</h3>
+                        <div className="flex items-center gap-2 text-cortexto text-sm lg:text-base">
+                          <CiLocationOn />
+                          <span>{produto.provincia}</span>
+                          <span>/Angola</span>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
+
+
+                  
+
+
+                 
                   {showcaixa && (
                     <div className="flex items-center justify-center fixed inset-0 bg-black bg-opacity-50 z-50">
                       <div className="bg-white shadow-custom rounded-[10px] p-4 lg:p-8 w-[90%] max-w-[400px] m-auto">
@@ -337,6 +410,56 @@ export default function DetalhesProduto(){
               </div>
             </div>
           </div>
+
+
+          {/* AVALIAÇÕES */}
+          <div className="mt-8 pt-8 border-t-[1px] border-solid border-tab">
+            <h2>Avaliações</h2>
+            <div className="flex flex-wrap gap-4 lg:gap-8 mb-4">
+              <div className="text-center">
+                <div className="text-[1.3rem] lg:text-[1.5rem] text-marieth font-bold">{media.toFixed(1)}</div>
+                <div className="text-sm lg:text-base">Média Geral</div>
+              </div>
+              <div className="text-center">
+                <div className="text-[1.3rem] lg:text-[1.5rem] text-marieth font-bold">{total}</div>
+                <div className="text-sm lg:text-base">Avaliações</div>
+              </div>
+              <div className="text-center">
+                <div className="text-[1.3rem] lg:text-[1.5rem] text-marieth font-bold">{percentagem}%</div>
+                <div className="text-sm lg:text-base">Recomendações</div>
+              </div>
+            </div>
+            <div className="mt-4 p-4 rounded-[10px] bg-back2">
+              <h3 className="mb-4 text-[1.1rem] lg:text-[1.2rem]">Avalie este Produto</h3>
+              <div className="flex items-center gap-2">
+                <div className="flex gap-2 text-[1.3rem] lg:text-[1.5rem] cursor-pointer text-tab">
+                  {[1, 2, 3, 4, 5].map((num) => (
+                    <FaStar
+                      key={num}
+                      className={notaTemporaria >= num ? "text-yellow-500" : "text-gray-300"}
+                      onClick={() => handleSelecionarEstrela(num)}
+                    />
+                  ))}
+                </div>
+                <button
+                  onClick={handleEnviarAvaliacao}
+                  className={`ml-4 ${notaTemporaria === 0 ? 'bg-gray-400' : 'bg-marieth hover:bg-verdeaceso'} text-white rounded-full p-2 flex items-center justify-center`}
+                  title="Enviar avaliação"
+                  disabled={notaTemporaria === 0}
+                >
+                  <FaPaperPlane className="text-lg" />
+                </button>
+              </div>
+              {notaSelecionada > 0 && (
+                <div className="mt-2 text-marieth">
+                  Sua avaliação: {notaSelecionada} {notaSelecionada === 1 ? 'estrela' : 'estrelas'}
+                </div>
+              )}
+            </div>
+          </div>
+
+
+
         </main>
       </div>
       <Footer/>

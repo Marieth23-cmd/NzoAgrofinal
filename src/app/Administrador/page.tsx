@@ -1,49 +1,57 @@
-"use client"
+
+"use client";
 import { useState, useEffect } from 'react';
 import { Line, Doughnut } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, ArcElement } from 'chart.js';
-import {  MdMenu, MdDashboard, MdGroup, MdShield, MdShoppingCart, MdInventory, MdBarChart, 
-   MdLocalShipping,  MdHeadset, MdDeliveryDining,MdAssignment,MdNotifications,MdPerson,
-   MdSearch,MdAttachMoney,MdEdit,MdDelete,MdAdd, MdSettings, MdNotificationsActive, MdSettingsApplications
+import {
+  MdMenu, MdDashboard, MdGroup, MdShield, MdShoppingCart, MdInventory, MdBarChart,
+  MdLocalShipping, MdHeadset, MdDeliveryDining, MdAssignment, MdNotifications, MdPerson,
+  MdSearch, MdAttachMoney, MdEdit, MdDelete, MdAdd, MdSettings
 } from 'react-icons/md';
 import { FaChartBar, FaUsers, FaBox, FaMoneyBillWave } from 'react-icons/fa';
-import { getProdutos ,deletarProduto } from '../Services/produtos';
+import { getProdutos, deletarProduto } from '../Services/produtos';
 import { logout } from '../Services/auth';
 import { useRouter } from 'next/navigation';
-import { getUsuarios } from '../Services/user';   
-import { badgeNotificacoes } from '../Services/notificacoes';
-import { verificarAuth } from '../Services/auth';
+import { getUsuarios } from '../Services/user';
 import { getPedidos } from '../Services/pedidos';
 
-
-// Register Chart.js components
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, ArcElement);
 
-type TabType = 'Dashboard' | 'Usuários' | 'Produtos' | 'Pedidos' | 'Transportadoras' | 'Relatórios' | 'Logística' | 'Suporte' | 'Controle de Pedidos'| 'Configurações'| 'Notificações';
+type TabType =
+  | 'Dashboard'
+  | 'Usuários'
+  | 'Produtos'
+  | 'Pedidos'
+  | 'Transportadoras'
+  | 'Relatórios'
+  | 'Logística'
+  | 'Suporte'
+  | 'Controle de Pedidos'
+  | 'Configurações'
+  | 'Notificações';
 type UserType = 'Agricultor' | 'Compradora' | 'Fornecedor';
 type UserStatus = 'Pendente' | 'Aprovado' | 'Rejeitado';
 
 interface Produto {
-    id_produtos: number;
-    nome: string;
-    foto_produto: string;
-    quantidade: number;
-    Unidade: string;
-    preco: number;
-    idUsuario: number;
-    peso_kg:number
+  id_produtos: number;
+  nome: string;
+  foto_produto: string;
+  quantidade: number;
+  Unidade: string;
+  preco: number;
+  idUsuario: number;
+  peso_kg: number;
 }
 
-interface usuarios{
-    id_usuario: number;
-    nome: string;
-    tipo_usuario: string;
-    data_criacao: string;
-    status: UserStatus;
-    foto: string;
+interface usuarios {
+  id_usuario: number;
+  nome: string;
+  tipo_usuario: string;
+  data_criacao: string;
+  status: UserStatus;
+  foto: string;
 }
 
-// Custom Notification types
 type NotificationType = 'info' | 'warning' | 'success' | 'error';
 interface Notification {
   id: number;
@@ -83,11 +91,21 @@ function getStatusColor(status: UserStatus) {
 
 export default function AdminDashboard() {
   const [produtos, setProdutos] = useState<Produto[]>([]);
-
   const [activeTab, setActiveTab] = useState<TabType>('Dashboard');
   const [sidebarActive, setSidebarActive] = useState(false);
   const [usuario, setUsuario] = useState<usuarios[]>([]);
   const [pedidos, setPedidos] = useState<Pedidos[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([
+    { id: 1, title: 'Novo Usuário', message: 'João Silva solicitou cadastro como Agricultor', time: '5 min atrás', read: false, type: 'info' },
+    { id: 2, title: 'Produto Esgotado', message: 'Tomate - estoque zerado', time: '1 hora atrás', read: false, type: 'warning' },
+    { id: 3, title: 'Pedido Entregue', message: 'Pedido #12343 foi entregue com sucesso', time: '2 horas atrás', read: true, type: 'success' },
+    { id: 4, title: 'Problema de Pagamento', message: 'Erro no pagamento do pedido #12340', time: '3 horas atrás', read: false, type: 'error' },
+    { id: 5, title: 'Nova Transportadora', message: 'TransRápido solicitou parceria', time: '1 dia atrás', read: true, type: 'info' }
+  ]);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [autenticado, setAutenticado] = useState<boolean | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     async function fetchProdutos() {
@@ -118,23 +136,26 @@ export default function AdminDashboard() {
     fetchUsuarios();
   }, []);
 
-
-  // Defina a interface para Pedido
-  interface Pedido {
-    data_pedido: string;
-    valor_total: number;
-    // adicione outros campos conforme necessário
-  }
+  useEffect(() => {
+    async function fetchPedidos() {
+      try {
+        const data = await getPedidos();
+        setPedidos(data);
+      } catch (error) {
+        setPedidos([]);
+        console.error("Erro ao buscar pedidos:", error);
+      }
+    }
+    fetchPedidos();
+  }, []);
 
   useEffect(() => {
     async function fetchCardsData() {
       try {
-        const pedidos: Pedido[] = await getPedidos();
         const usuariosAtivos = usuario.filter(u => u.status === 'Aprovado').length;
-        const pedidosHoje = pedidos.filter((p: Pedido) => new Date(p.data_pedido).toDateString() === new Date().toDateString()).length;
+        const pedidosHoje = pedidos.filter((p: Pedidos) => new Date(p.data_pedido).toDateString() === new Date().toDateString()).length;
         const produtosAtivos = produtos.length;
-        const receitaMensal = pedidos.reduce((total: number, pedido: Pedido) => total + pedido.valor_total, 0) / 1000; // Convertendo para milhares
-
+        const receitaMensal = pedidos.reduce((total: number, pedido: Pedidos) => total + pedido.valor_total, 0) / 1000;
         setCardsData({
           UsuariosActivo: usuariosAtivos,
           PedidosHoje: pedidosHoje,
@@ -142,32 +163,24 @@ export default function AdminDashboard() {
           ReceitaMensal: receitaMensal
         });
       } catch (error) {
+        setCardsData({
+          UsuariosActivo: 0,
+          PedidosHoje: 0,
+          ProdutosAtivos: 0,
+          ReceitaMensal: 0
+        });
         console.error("Erro ao buscar dados dos cartões:", error);
       }
     }
     fetchCardsData();
-  }, [produtos, usuario]);
+  }, [produtos, usuario, pedidos]);
 
-  // Cardsdata como objeto
   const [Cardsdata, setCardsData] = useState({
     UsuariosActivo: 0,
     PedidosHoje: 0,
     ProdutosAtivos: 0,
     ReceitaMensal: 0
   });
-
-  const [notifications, setNotifications] = useState<Notification[]>([
-    { id: 1, title: 'Novo Usuário', message: 'João Silva solicitou cadastro como Agricultor', time: '5 min atrás', read: false, type: 'info' },
-    { id: 2, title: 'Produto Esgotado', message: 'Tomate - estoque zerado', time: '1 hora atrás', read: false, type: 'warning' },
-    { id: 3, title: 'Pedido Entregue', message: 'Pedido #12343 foi entregue com sucesso', time: '2 horas atrás', read: true, type: 'success' },
-    { id: 4, title: 'Problema de Pagamento', message: 'Erro no pagamento do pedido #12340', time: '3 horas atrás', read: false, type: 'error' },
-    { id: 5, title: 'Nova Transportadora', message: 'TransRápido solicitou parceria', time: '1 dia atrás', read: true, type: 'info' }
-  ]);
-
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const [showLogoutModal, setShowLogoutModal] = useState(false);
-  const [autenticado, setAutenticado] = useState<boolean | null>(null);
-  const router = useRouter();
 
   const markNotificationAsRead = (id: number) => {
     setNotifications((prev) =>
@@ -193,7 +206,7 @@ export default function AdminDashboard() {
   const handleLogout = async () => {
     try {
       await logout();
-      setAutenticado(false); 
+      setAutenticado(false);
       router.push("/login");
     } catch (error) {
       console.log("Erro ao terminar sessão:", error);
@@ -207,7 +220,7 @@ export default function AdminDashboard() {
         setProdutos(produtos.filter(p => p.id_produtos !== produtoId));
         alert("Produto excluído com sucesso!");
       } catch (error) {
-        console.error("Erro ao excluir produto:", error);
+        console.error("Erro ao excluir produto. Tente novamente mais tarde.", error);
         alert("Erro ao excluir produto. Tente novamente mais tarde.");
       }
     }
@@ -241,7 +254,6 @@ export default function AdminDashboard() {
     }
   };
 
-  // Sales chart data
   const chartData = {
     labels: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'],
     datasets: [
@@ -255,7 +267,6 @@ export default function AdminDashboard() {
     ],
   };
 
-  // Chart options
   const chartOptions = {
     responsive: true,
     plugins: {
@@ -275,174 +286,293 @@ export default function AdminDashboard() {
   };
 
   return (
-    <>
-      <div className="min-h-screen bg-gray-50">
-        {/* Menu Toggle Button */}
-        <button
-          className="menu-toggle md:hidden fixed top-4 left-4 z-50 bg-emerald-600 text-white p-2 rounded-md sr-only"
-          onClick={handleMenuToggle}
-        >menu
-          <MdMenu size={24} />
-        </button>
+    <div className="min-h-screen bg-gray-50">
+      {/* Menu Toggle Button */}
+      <button
+        className="menu-toggle md:hidden fixed top-4 left-4 z-50 bg-emerald-600 text-white p-2 rounded-md sr-only"
+        onClick={handleMenuToggle}
+      >menu
+        <MdMenu size={24} />
+      </button>
 
-        {/* Sidebar */}
-        <aside className={`sidebar fixed top-0 left-0 h-full w-72 bg-white border-r border-gray-200 p-4 transition-transform duration-300 z-40 ${
-          sidebarActive ? 'translate-x-0' : '-translate-x-full'
-        } md:translate-x-0`}>
-          {/* ...sidebar content... */}
-        </aside>
+      {/* Sidebar */}
+      <aside className={`sidebar fixed top-0 left-0 h-full w-72 bg-white border-r border-gray-200 p-4 transition-transform duration-300 z-40 ${sidebarActive ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}>
+        <div className="mb-6 flex items-center justify-center">
+          <h1 className="text-emerald-600 text-2xl font-bold">NzoAgro</h1>
+        </div>
+        <nav className="space-y-2">
+          <a href="#" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'Dashboard' ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-emerald-600'}`} onClick={e => { e.preventDefault(); handleTabChange('Dashboard'); }}><MdDashboard className="mr-3" size={20} />Dashboard</a>
+          <a href="#" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'Usuários' ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-emerald-600'}`} onClick={e => { e.preventDefault(); handleTabChange('Usuários'); }}><MdGroup className="mr-3" size={20} />Usuários</a>
+          <a href="#" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'Produtos' ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-emerald-600'}`} onClick={e => { e.preventDefault(); handleTabChange('Produtos'); }}><MdInventory className="mr-3" size={20} />Produtos</a>
+          <a href="#" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'Pedidos' ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-emerald-600'}`} onClick={e => { e.preventDefault(); handleTabChange('Pedidos'); }}><MdShoppingCart className="mr-3" size={20} />Pedidos</a>
+          <a href="#" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'Transportadoras' ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-emerald-600'}`} onClick={e => { e.preventDefault(); handleTabChange('Transportadoras'); }}><MdDeliveryDining className="mr-3" size={20} />Transportadoras</a>
+          <a href="#" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'Relatórios' ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-emerald-600'}`} onClick={e => { e.preventDefault(); handleTabChange('Relatórios'); }}><MdBarChart className="mr-3" size={20} />Relatórios</a>
+          <a href="#" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'Logística' ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-emerald-600'}`} onClick={e => { e.preventDefault(); handleTabChange('Logística'); }}><MdLocalShipping className="mr-3" size={20} />Logística</a>
+          <a href="#" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'Suporte' ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-emerald-600'}`} onClick={e => { e.preventDefault(); handleTabChange('Suporte'); }}><MdHeadset className="mr-3" size={20} />Suporte</a>
+          <a href="#" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'Controle de Pedidos' ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-emerald-600'}`} onClick={e => { e.preventDefault(); handleTabChange('Controle de Pedidos'); }}><MdAssignment className="mr-3" size={20} />Controle de Pedidos</a>
+          <a href="#" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'Configurações' ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-emerald-600'}`} onClick={e => { e.preventDefault(); handleTabChange('Configurações'); }}><MdSettings className="mr-3" size={20} />Configurações</a>
+        </nav>
+      </aside>
 
-        {/* Header */}
-        <header className="fixed top-0 right-0 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between z-30 md:left-72 left-0">
-          {/* ...header content... */}
-        </header>
-
-        {/* Main Content */}
-        <main className="md:ml-72 mt-16 p-8">
-          {/* Tabs */}
-          <div className="mb-8 flex flex-wrap gap-2">
-            {(['Dashboard', 'Usuários', 'Produtos', 'Pedidos', 'Transportadoras', 'Relatórios', 'Logística', 'Suporte', 'Controle de Pedidos', 'Configurações'] as TabType[]).map((tab) => (
-              <button 
-                key={tab}
-                className={`px-6 py-3 rounded-lg whitespace-nowrap transition-colors ${
-                  activeTab === tab 
-                    ? 'bg-marieth text-white' 
-                    : 'bg-white text-gray-600 hover:bg-gray-100'
-                }`}
-                onClick={() => handleTabChange(tab)}
-              >
-                {tab}
-              </button>
-            ))}
+      {/* Header */}
+      <header className="fixed top-0 right-0 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between z-30 md:left-72 left-0">
+        <div className="flex items-center ml-16 md:ml-0">
+          <div className="relative">
+            <MdSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+            <input
+              type="search"
+              placeholder="Pesquisar..."
+              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg w-80 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+            />
           </div>
-
-          {/* Dashboard Tab */}
-          {activeTab === 'Dashboard' && (
-            <div className="space-y-8">
-              {/* Stats Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="bg-white p-6 rounded-lg shadow-sm">
-                  <h3 className="text-gray-600 text-sm mb-2">Usuários Ativos</h3>
-                  <div className="text-3xl font-bold text-marieth">{Cardsdata.UsuariosActivo}</div>
+        </div>
+        <div className="flex items-center space-x-4 relative">
+          <div className="relative">
+            <MdNotifications className="text-gray-600 cursor-pointer" size={24} onClick={() => setNotificationsOpen(!notificationsOpen)} />
+            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">{notifications.filter(n => !n.read).length}</span>
+            {notificationsOpen && (
+              <div className="notifications-dropdown absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-200 z-50">
+                <div className="p-4 border-b border-gray-200">
+                  <h3 className="font-semibold text-gray-800">Notificações</h3>
                 </div>
-                <div className="bg-white p-6 rounded-lg shadow-sm">
-                  <h3 className="text-gray-600 text-sm mb-2">Pedidos Hoje</h3>
-                  <div className="text-3xl font-bold text-marieth">{Cardsdata.PedidosHoje}</div>
-                </div>
-                <div className="bg-white p-6 rounded-lg shadow-sm">
-                  <h3 className="text-gray-600 text-sm mb-2">Produtos Ativos</h3>
-                  <div className="text-3xl font-bold text-marieth">{Cardsdata.ProdutosAtivos}</div>
-                </div>
-                <div className="bg-white p-6 rounded-lg shadow-sm">
-                  <h3 className="text-gray-600 text-sm mb-2">Receita Mensal</h3>
-                  <div className="text-3xl font-bold text-marieth">AOA {Cardsdata.ReceitaMensal}K</div>
-                </div>
-              </div>
-              {/* Recent Registrations */}
-              <div className="bg-white rounded-lg shadow-sm">
-                <div className="p-6 border-b border-gray-200 flex justify-between items-center">
-                  <h2 className="text-xl font-semibold">Últimos Cadastros</h2>
-                  <button className="bg-marieth text-white px-4 py-2 rounded-lg hover:bg-verdeaceso transition-colors">
-                    Ver Todos
-                  </button>
-                </div>
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-gray-200">
-                      <th className="text-left py-3 px-4 font-semibold text-gray-700">Usuário</th>
-                      <th className="text-left py-3 px-4 font-semibold text-gray-700">Tipo</th>
-                      <th className="text-left py-3 px-4 font-semibold text-gray-700">Data</th>
-                      <th className="text-left py-3 px-4 font-semibold text-gray-700">Status</th>
-                      <th className="text-left py-3 px-4 font-semibold text-gray-700">Ações</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {Array.isArray(usuario) && usuario.map((user: usuarios, index: number) => (
-                      <tr key={index} className="border-b border-gray-100">
-                        <td className="py-3 px-4">
-                          <img src={user.foto} alt={user.nome} className="w-8 h-8 rounded-full mr-3 inline-block" />
-                          {user.nome}
-                        </td>
-                        <td className="py-3 px-4">{user.tipo_usuario}</td>
-                        <td className="py-3 px-4">{user.data_criacao}</td>
-                        <td className="py-3 px-4">
-                          <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(user.status)}`}>
-                            {user.status}
-                          </span>
-                        </td>
-                        <td className="py-3 px-4">
-                          <button className="bg-marieth text-white px-3 py-1 rounded hover:bg-verdeaceso transition-colors">
-                            {user.status === 'Pendente' ? 'Aprovar' : 
-                              user.status === 'Rejeitado' ? 'Revisar' : 'Detalhes'}
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              {/* Sales Chart */}
-              <div className="bg-white rounded-lg shadow-sm">
-                <div className="p-6 border-b border-gray-200">
-                  <h2 className="text-xl font-semibold">Vendas dos Últimos 7 Dias</h2>
-                </div>
-                <div className="p-6">
-                  <div className="h-80">
-                    <Line data={chartData} options={chartOptions} />
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Produtos Tab */}
-          {activeTab === 'Produtos' && (
-            <div className="bg-white rounded-lg shadow-sm">
-              <div className="p-6 border-b border-gray-200 flex justify-between items-center">
-                <h2 className="text-xl font-semibold">Gerenciamento de Produtos</h2>
-                <div className="relative">
-                  <MdSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                  <input 
-                    type="search" 
-                    placeholder="Buscar produtos..." 
-                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-verdeaceso" 
-                  />
-                </div>
-              </div>
-              <div className="p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  { Array.isArray(produtos) && produtos.map((produto) => (
-                    <div key={produto.id_produtos} className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
-                      <div className="h-48 bg-gray-100 flex items-center justify-center">
-                        {produto.foto_produto ? (
-                          <img src={produto.foto_produto} alt={produto.nome} className="h-full object-cover" />
-                        ) : (
-                          <span className="text-gray-400">Imagem do Produto</span>
-                        )}
-                      </div>      
-                      <div className="p-4">
-                        <h3 className="font-semibold text-lg mb-2">{produto.nome}</h3>
-                        <p className="text-gray-600 mb-1">Vendedor: {produto.idUsuario}</p>
-                        <p className="text-gray-600 mb-1">Preço: {produto.preco} AOA</p>
-                        <p className="text-gray-600 mb-4">Quantidade: {produto.quantidade} {produto.Unidade}</p>
-                        <div className="flex justify-between items-center">
-                          <button className="flex items-center bg-marieth text-white px-3 py-2 rounded hover:bg-marieth transition-colors">
-                            <MdEdit className="mr-1" size={16} />
-                            Editar
-                          </button>
-                          <button onClick={() => excluirProduto(produto.id_produtos)} className="flex items-center bg-vermelho text-white px-3 py-2 rounded hover:bg-red-700 transition-colors">
-                            <MdDelete className="mr-1" size={16} />
-                            Excluir
-                          </button>
+                <div className="max-h-96 overflow-y-auto">
+                  {notifications.map((notification) => (
+                    <div
+                      key={notification.id}
+                      className={`p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer ${!notification.read ? 'bg-blue-50' : ''}`}
+                      onClick={() => markNotificationAsRead(notification.id)}
+                    >
+                      <div className="flex items-start space-x-3">
+                        <div className="flex-shrink-0 mt-1">
+                          {getNotificationIcon(notification.type)}
                         </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900">
+                            {notification.title}
+                          </p>
+                          <p className="text-sm text-gray-500 mt-1">
+                            {notification.message}
+                          </p>
+                          <p className="text-xs text-gray-400 mt-1">
+                            {notification.time}
+                          </p>
+                        </div>
+                        {!notification.read && (
+                          <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-2"></div>
+                        )}
                       </div>
                     </div>
                   ))}
                 </div>
+                <div className="p-4 border-t border-gray-200">
+                  <button className="text-sm text-emerald-600 hover:text-emerald-700 font-medium">
+                    Ver todas as notificações
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 bg-emerald-600 rounded-full flex items-center justify-center">
+              <MdPerson className="text-white" size={20} />
+            </div>
+            <div className="hidden sm:block">
+              <span className="font-semibold text-gray-800">Admin</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Logout Modal */}
+      {showLogoutModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-96 mx-4">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Confirmar Logout</h3>
+            <p className="text-gray-600 mb-6">Tem certeza que deseja terminar a sessão?</p>
+            <div className="flex space-x-3 justify-end">
+              <button
+                className="px-4 py-2 text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
+                onClick={() => setShowLogoutModal(false)}
+              >
+                Cancelar
+              </button>
+              <button
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                onClick={handleLogout}
+              >
+                Sim, Terminar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Main Content */}
+      <main className="md:ml-72 mt-16 p-8">
+        {/* Tabs */}
+        <div className="mb-8 flex flex-wrap gap-2">
+          {([
+            'Dashboard',
+            'Usuários',
+            'Produtos',
+            'Pedidos',
+            'Transportadoras',
+            'Relatórios',
+            'Logística',
+            'Suporte',
+            'Controle de Pedidos',
+            'Configurações'
+          ] as TabType[]).map((tab) => (
+            <button
+              key={tab}
+              className={`px-6 py-3 rounded-lg whitespace-nowrap transition-colors ${activeTab === tab ? 'bg-emerald-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-100'}`}
+              onClick={() => handleTabChange(tab)}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+
+        {/* Dashboard Tab */}
+        {activeTab === 'Dashboard' && (
+          <div className="space-y-8">
+            {/* Stats Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="bg-white p-6 rounded-lg shadow-sm">
+                <h3 className="text-gray-600 text-sm mb-2">Usuários Ativos</h3>
+                <div className="text-3xl font-bold text-emerald-600">{Cardsdata.UsuariosActivo}</div>
+              </div>
+              <div className="bg-white p-6 rounded-lg shadow-sm">
+                <h3 className="text-gray-600 text-sm mb-2">Pedidos Hoje</h3>
+                <div className="text-3xl font-bold text-emerald-600">{Cardsdata.PedidosHoje}</div>
+              </div>
+              <div className="bg-white p-6 rounded-lg shadow-sm">
+                <h3 className="text-gray-600 text-sm mb-2">Produtos Ativos</h3>
+                <div className="text-3xl font-bold text-emerald-600">{Cardsdata.ProdutosAtivos}</div>
+              </div>
+              <div className="bg-white p-6 rounded-lg shadow-sm">
+                <h3 className="text-gray-600 text-sm mb-2">Receita Mensal</h3>
+                <div className="text-3xl font-bold text-emerald-600">AOA {Cardsdata.ReceitaMensal}K</div>
               </div>
             </div>
-          )}
+            {/* Recent Registrations */}
+            <div className="bg-white rounded-lg shadow-sm">
+              <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+                <h2 className="text-xl font-semibold">Últimos Cadastros</h2>
+                <button className="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors">
+                  Ver Todos
+                </button>
+              </div>
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Usuário</th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Tipo</th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Data</th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Status</th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Ações</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Array.isArray(usuario) && usuario.map((user: usuarios, index: number) => (
+                    <tr key={index} className="border-b border-gray-100">
+                      <td className="py-3 px-4">
+                        <img src={user.foto} alt={user.nome} className="w-8 h-8 rounded-full mr-3 inline-block" />
+                        {user.nome}
+                      </td>
+                      <td className="py-3 px-4">{user.tipo_usuario}</td>
+                      <td className="py-3 px-4">{user.data_criacao}</td>
+                      <td className="py-3 px-4">
+                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(user.status)}`}>
+                          {user.status}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4">
+                        <button className="bg-emerald-600 text-white px-3 py-1 rounded hover:bg-emerald-700 transition-colors">
+                          {user.status === 'Pendente' ? 'Aprovar' :
+                            user.status === 'Rejeitado' ? 'Revisar' : 'Detalhes'}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {/* Sales Chart */}
+            <div className="bg-white rounded-lg shadow-sm">
+              <div className="p-6 border-b border-gray-200">
+                <h2 className="text-xl font-semibold">Vendas dos Últimos 7 Dias</h2>
+              </div>
+              <div className="p-6">
+                <div className="h-80">
+                  <Line data={chartData} options={chartOptions} />
+                </div>
+              </div>
+            </div>
+            {/* Produtos por Categoria */}
+            <div className="bg-white rounded-lg shadow-sm">
+              <div className="p-6 border-b border-gray-200">
+                <h2 className="text-xl font-semibold">Produtos por Categoria</h2>
+              </div>
+              <div className="p-6">
+                <div className="h-80">
+                  <Doughnut data={categoryData} options={{ responsive: true, maintainAspectRatio: false }} />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
+        {/* Produtos Tab */}
+        {activeTab === 'Produtos' && (
+          <div className="bg-white rounded-lg shadow-sm">
+            <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+              <h2 className="text-xl font-semibold">Gerenciamento de Produtos</h2>
+              <div className="relative">
+                <MdSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                <input
+                  type="search"
+                  placeholder="Buscar produtos..."
+                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+            </div>
+            <div className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {Array.isArray(produtos) && produtos.map((produto) => (
+                  <div key={produto.id_produtos} className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
+                    <div className="h-48 bg-gray-100 flex items-center justify-center">
+                      {produto.foto_produto ? (
+                        <img src={produto.foto_produto} alt={produto.nome} className="h-full object-cover" />
+                      ) : (
+                        <span className="text-gray-400">Imagem do Produto</span>
+                      )}
+                    </div>
+                    <div className="p-4">
+                      <h3 className="font-semibold text-lg mb-2">{produto.nome}</h3>
+                      <p className="text-gray-600 mb-1">Vendedor: {produto.idUsuario}</p>
+                      <p className="text-gray-600 mb-1">Preço: {produto.preco} AOA</p>
+                      <p className="text-gray-600 mb-4">Quantidade: {produto.quantidade} {produto.Unidade}</p>
+                      <div className="flex justify-between items-center">
+                        <button className="flex items-center bg-emerald-600 text-white px-3 py-2 rounded hover:bg-emerald-700 transition-colors">
+                          <MdEdit className="mr-1" size={16} />
+                          Editar
+                        </button>
+                        <button onClick={() => excluirProduto(produto.id_produtos)} className="flex items-center bg-red-600 text-white px-3 py-2 rounded hover:bg-red-700 transition-colors">
+                          <MdDelete className="mr-1" size={16} />
+                          Excluir
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+
+  
           {/* Pedidos Tab */}
           {activeTab === 'Pedidos' && (
             <div className="bg-white rounded-lg shadow-sm mb-6">
@@ -1056,8 +1186,9 @@ export default function AdminDashboard() {
               </div>
             </div>
           )}
-        </main>
-      </div>
-    </>
+
+       
+      </main>
+    </div>
   );
 }
