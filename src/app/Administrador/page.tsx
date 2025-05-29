@@ -1,4 +1,3 @@
-
 "use client";
 import { useState, useEffect } from 'react';
 import { Line, Doughnut } from 'react-chartjs-2';
@@ -28,7 +27,11 @@ type TabType =
   | 'Suporte'
   | 'Controle de Pedidos'
   | 'Configurações'
-  | 'Notificações';
+  | 'Notificações'
+  | 'Cadastro de Transportadora'
+  | 'Gerenciamento de Usuarios'
+  | 'Logout';
+type TabTypeWithActions = TabType | 'Logout' | 'Cadastro de Transportadora' | 'Gerenciamento de Usuarios';
 type UserType = 'Agricultor' | 'Compradora' | 'Fornecedor';
 type UserStatus = 'Pendente' | 'Aprovado' | 'Rejeitado';
 
@@ -75,6 +78,17 @@ interface Pedidos {
     subtotal: number;
   }>;
 }
+
+
+interface CadastroTransportadora {
+    nome: string;
+    nif: string;
+    telefone: string;
+    email: string;
+    senha: string;
+    provincia_base?: string;
+}
+
 
 function getStatusColor(status: UserStatus) {
   switch (status) {
@@ -311,6 +325,10 @@ export default function AdminDashboard() {
           <a href="#" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'Suporte' ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-emerald-600'}`} onClick={e => { e.preventDefault(); handleTabChange('Suporte'); }}><MdHeadset className="mr-3" size={20} />Suporte</a>
           <a href="#" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'Controle de Pedidos' ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-emerald-600'}`} onClick={e => { e.preventDefault(); handleTabChange('Controle de Pedidos'); }}><MdAssignment className="mr-3" size={20} />Controle de Pedidos</a>
           <a href="#" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'Configurações' ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-emerald-600'}`} onClick={e => { e.preventDefault(); handleTabChange('Configurações'); }}><MdSettings className="mr-3" size={20} />Configurações</a>
+          <a href="#" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'Notificações' ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-emerald-600'}`} onClick={e => { e.preventDefault(); handleTabChange('Notificações'); }}><MdNotifications className="mr-3" size={20} />Notificações</a>
+          <a href="#" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'Logout' ? 'bg-red-600 text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-red-600'}`} onClick={e => { e.preventDefault(); setShowLogoutModal(true); }}><MdPerson className="mr-3" size={20} />Logout</a>
+          <a href="#" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'Cadastro de Transportadora' ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-emerald-600'}`} onClick={e => { e.preventDefault(); handleTabChange('Cadastro de Transportadora'); }}><MdAdd className="mr-3" size={20} />Cadastro de Transportadora</a>
+          <a href="#" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'Gerenciamento de Usuarios' ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-emerald-600'}`} onClick={e => { e.preventDefault(); handleTabChange('Gerenciamento de Usuarios'); }}><MdEdit className="mr-3" size={20} />Gerenciamento de Usuarios</a>
         </nav>
       </aside>
 
@@ -421,7 +439,13 @@ export default function AdminDashboard() {
             'Logística',
             'Suporte',
             'Controle de Pedidos',
-            'Configurações'
+            'Configurações',
+            'Notificações',
+            'Logout',
+            'Cadastro de Transportadora',
+            'Gerenciamento de Usuarios'
+
+
           ] as TabType[]).map((tab) => (
             <button
               key={tab}
@@ -570,6 +594,112 @@ export default function AdminDashboard() {
             </div>
           </div>
         )}
+            //cadastrar transportadora
+        {/* Usuários Tab */}
+
+        {activeTab === 'Usuários' && (
+          <div className="bg-white rounded-lg shadow-sm mb-6">
+            <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+              <h2 className="text-xl font-semibold text-gray-800">Gerenciamento de Usuários</h2>
+              <div className="relative">
+                <input 
+                  type="search" 
+                  placeholder="Buscar usuários..." 
+                  className="px-4 py-2 border border-gray-300 rounded-md w-80 focus:outline-none focus:ring-2 focus:ring-marieth focus:border-transparent" 
+                />
+              </div>
+            </div>
+            
+            <div className="p-6">
+
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr>
+                      <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">ID</th>
+                      <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Nome</th>
+                      <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Tipo</th>
+                      <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Data de Criação</th>
+                      <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Status</th>
+                      <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {usuario.map((user) => (
+                      <tr key={user.id_usuario}>
+                        <td className="p-4 border-b border-gray-200">{user.id_usuario}</td>
+                        <td className="p-4 border-b border-gray-200">{user.nome}</td>
+                        <td className="p-4 border-b border-gray-200">{user.tipo_usuario}</td>
+                        <td className="p-4 border-b border-gray-200">{user.data_criacao}</td>
+                        <td className={`p-4 border-b border-gray-200 ${getStatusColor(user.status)}`}>
+                          {user.status}
+                        </td> 
+                        <td className="p-4 border-b border-gray-200">
+                          <button className="px-4 py-2 bg-marieth text-white rounded-md hover:bg-green-700 transition-colors font-medium">
+                            Detalhes
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+          {/* Transportadoras Tab */}
+          {activeTab === 'Transportadoras' && (
+            <div className="bg-white rounded-lg shadow-sm mb-6">
+              <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+                <h2 className="text-xl font-semibold text-gray-800">Cadastro de Transportadoras</h2>
+                <div className="relative">
+                  <input 
+                    type="search" 
+                    placeholder="Buscar transportadoras..." 
+                    className="px-4 py-2 border border-gray-300 rounded-md w-80 focus:outline-none focus:ring-2 focus:ring-marieth focus:border-transparent" 
+                  />
+                </div>
+              </div>
+              
+              <div className="p-6">
+
+                <form className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Nome</label>
+                    <input type="text" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-marieth focus:border-transparent" placeholder="Nome da Transportadora" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">NIF</label>
+                    <input type="text" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-marieth focus:border-transparent" placeholder="Número de Identificação Fiscal" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Telefone</label>
+                    <input type="text" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-marieth focus:border-transparent" placeholder="Telefone de Contato" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Email</label>
+                    <input type="email" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-marieth focus:border-transparent" placeholder="Email de Contato" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Senha</label>
+                    <label htmlFor="senha"></label>
+                    <input id="senha" type="password" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-marieth focus:border-transparent" placeholder="Senha de Acesso" />
+                  </div>
+                  <div>
+                    <label htmlFor="confirmar_senha" className="block text-sm font-medium text-gray-700">Confirmação de Senha</label>
+                    <input id="confirmar_senha" type="password" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-marieth focus:border-transparent" placeholder="Confirme sua senha" />
+                  </div>
+                  <div className="flex justify-end">
+                    <button type="submit" className="px-6 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-colors font-medium">
+                      Cadastrar Transportadora
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
 
 
   

@@ -145,15 +145,20 @@ export default function Relatorios() {
 
   // Função para obter tipo de usuário
   const getTipoUsuario = (): 'Comprador' | 'Agricultor' | 'Fornecedor' => {
+  // Verificar se estamos no cliente antes de acessar localStorage
+  if (typeof window !== 'undefined') {
     const tipoUsuario = localStorage.getItem('tipo_usuario');
     return tipoUsuario as 'Comprador' | 'Agricultor' | 'Fornecedor' || 'Comprador';
-  };
+  }
+  // Retornar valor padrão durante o SSR
+  return 'Comprador';
+};
 
-  // Verificar se pode ver vendas
-  const podeVerVendas = () => {
-    const tipo_usuario = getTipoUsuario();
-    return tipo_usuario === 'Agricultor' || tipo_usuario === 'Fornecedor';
-  };
+// Verificar se pode ver vendas (também corrigida)
+const podeVerVendas = () => {
+  const tipo_usuario = getTipoUsuario();
+  return tipo_usuario === 'Agricultor' || tipo_usuario === 'Fornecedor';
+};
 
   // Opções do gráfico
   const options: ChartOptions<'bar'> = { 
