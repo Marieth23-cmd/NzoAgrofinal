@@ -13,6 +13,10 @@ import { logout } from '../Services/auth';
 import { useRouter } from 'next/navigation';
 import { getUsuarios } from '../Services/user';
 import { getPedidos } from '../Services/pedidos';
+import {cadastrarTransportadora} from '../Services/transportadora';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, ArcElement);
 
@@ -32,7 +36,7 @@ type TabType =
   | 'Gerenciamento de Usuarios'
   | 'Logout';
 type TabTypeWithActions = TabType | 'Logout' | 'Cadastro de Transportadora' | 'Gerenciamento de Usuarios';
-type UserType = 'Agricultor' | 'Compradora' | 'Fornecedor';
+type UserType = 'Agricultor' | 'Comprador' | 'Fornecedor';
 type UserStatus = 'Pendente' | 'Aprovado' | 'Rejeitado';
 
 interface Produto {
@@ -87,6 +91,7 @@ interface CadastroTransportadora {
     email: string;
     senha: string;
     provincia_base?: string;
+    confirmar_senha?: string;
 }
 
 
@@ -201,6 +206,50 @@ export default function AdminDashboard() {
       prev.map((n) => (n.id === id ? { ...n, read: true } : n))
     );
   };
+  const [showCadastroTransportadora, setShowCadastroTransportadora] = useState(false);
+  const [showGerenciamentoUsuarios, setShowGerenciamentoUsuarios] = useState(false);
+const [formData, setFormData] = useState<CadastroTransportadora>({
+    nome: '',
+    nif: '',
+    telefone: '',
+    email: '',
+    senha: '',
+    provincia_base: '',
+    confirmar_senha: ''
+  });
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const handleCadastroTransportadora = () => {
+    setShowCadastroTransportadora(!showCadastroTransportadora);
+  };
+
+  const handleGerenciamentoUsuarios = () => {
+    setShowGerenciamentoUsuarios(!showGerenciamentoUsuarios);
+  };
+ const cadastrarTransportadoraHandler = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (formData.senha !== formData.confirmar_senha) {
+      toast.error("As senhas não coincidem.");
+      return;
+    }
+    try {
+      const { confirmar_senha, ...dadosParaCadastro } = formData;
+      const response = await cadastrarTransportadora(dadosParaCadastro);
+      toast.success("Transportadora cadastrada com sucesso!");
+      console.log("Transportadora cadastrada:", response);
+    } catch (error) {
+      console.error("Erro ao cadastrar transportadora:", error);
+      toast.error("Erro ao cadastrar transportadora. Tente novamente mais tarde.");
+    }
+  }
+
+
+
+
 
   const getNotificationIcon = (type: NotificationType) => {
     switch (type) {
@@ -232,10 +281,10 @@ export default function AdminDashboard() {
       try {
         await deletarProduto(produtoId);
         setProdutos(produtos.filter(p => p.id_produtos !== produtoId));
-        alert("Produto excluído com sucesso!");
+        toast.success("Produto excluído com sucesso!");
       } catch (error) {
         console.error("Erro ao excluir produto. Tente novamente mais tarde.", error);
-        alert("Erro ao excluir produto. Tente novamente mais tarde.");
+        toast.error("Erro ao excluir produto. Tente novamente mais tarde.");
       }
     }
   };
@@ -301,9 +350,10 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <ToastContainer position="top-right" autoClose={4000} />
       {/* Menu Toggle Button */}
       <button
-        className="menu-toggle md:hidden fixed top-4 left-4 z-50 bg-emerald-600 text-white p-2 rounded-md sr-only"
+        className="menu-toggle md:hidden fixed top-4 left-4 z-50 bg-marieth text-white p-2 rounded-md sr-only"
         onClick={handleMenuToggle}
       >menu
         <MdMenu size={24} />
@@ -312,7 +362,7 @@ export default function AdminDashboard() {
       {/* Sidebar */}
       <aside className={`sidebar fixed top-0 left-0 h-full w-72 bg-white border-r border-gray-200 p-4 transition-transform duration-300 z-40 ${sidebarActive ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}>
         <div className="mb-6 flex items-center justify-center">
-          <h1 className="text-emerald-600 text-2xl font-bold">NzoAgro</h1>
+          <h1 className="text-marieth text-2xl font-bold">NzoAgro</h1>
         </div>
         <nav className="space-y-2">
           <a href="#" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'Dashboard' ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-emerald-600'}`} onClick={e => { e.preventDefault(); handleTabChange('Dashboard'); }}><MdDashboard className="mr-3" size={20} />Dashboard</a>
@@ -383,7 +433,7 @@ export default function AdminDashboard() {
                   ))}
                 </div>
                 <div className="p-4 border-t border-gray-200">
-                  <button className="text-sm text-emerald-600 hover:text-emerald-700 font-medium">
+                  <button className="text-sm text-marieth hover:text-green-700 font-medium">
                     Ver todas as notificações
                   </button>
                 </div>
@@ -391,7 +441,7 @@ export default function AdminDashboard() {
             )}
           </div>
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-emerald-600 rounded-full flex items-center justify-center">
+            <div className="w-10 h-10 bg-marieth rounded-full flex items-center justify-center">
               <MdPerson className="text-white" size={20} />
             </div>
             <div className="hidden sm:block">
@@ -428,35 +478,39 @@ export default function AdminDashboard() {
       {/* Main Content */}
       <main className="md:ml-72 mt-16 p-8">
         {/* Tabs */}
-        <div className="mb-8 flex flex-wrap gap-2">
-          {([
-            'Dashboard',
-            'Usuários',
-            'Produtos',
-            'Pedidos',
-            'Transportadoras',
-            'Relatórios',
-            'Logística',
-            'Suporte',
-            'Controle de Pedidos',
-            'Configurações',
-            'Notificações',
-            'Logout',
-            'Cadastro de Transportadora',
-            'Gerenciamento de Usuarios'
-
-
-          ] as TabType[]).map((tab) => (
-            <button
-              key={tab}
-              className={`px-6 py-3 rounded-lg whitespace-nowrap transition-colors ${activeTab === tab ? 'bg-emerald-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-100'}`}
-              onClick={() => handleTabChange(tab)}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
-
+        {/* Tabs com scroll horizontal */}
+<div className="mb-8 overflow-x-auto">
+  <div className="flex gap-2 min-w-max px-2 py-1">
+    {([
+      'Dashboard',
+      'Usuários', 
+      'Produtos',
+      'Pedidos',
+      'Transportadoras',
+      'Relatórios',
+      'Logística',
+      'Suporte',
+      'Controle de Pedidos',
+      'Configurações',
+      'Notificações',
+      'Logout',
+      'Cadastro de Transportadora',
+      'Gerenciamento de Usuarios'
+    ] as TabType[]).map((tab) => (
+      <button
+        key={tab}
+        className={`px-6 py-3 rounded-lg whitespace-nowrap transition-colors flex-shrink-0 ${
+          activeTab === tab 
+            ? 'bg-marieth text-white' 
+            : 'bg-white text-gray-600 hover:bg-gray-100'
+        }`}
+        onClick={() => handleTabChange(tab)}
+      >
+        {tab}
+      </button>
+    ))}
+  </div>
+</div>
         {/* Dashboard Tab */}
         {activeTab === 'Dashboard' && (
           <div className="space-y-8">
@@ -464,26 +518,26 @@ export default function AdminDashboard() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <div className="bg-white p-6 rounded-lg shadow-sm">
                 <h3 className="text-gray-600 text-sm mb-2">Usuários Ativos</h3>
-                <div className="text-3xl font-bold text-emerald-600">{Cardsdata.UsuariosActivo}</div>
+                <div className="text-3xl font-bold text-marieth">{Cardsdata.UsuariosActivo}</div>
               </div>
               <div className="bg-white p-6 rounded-lg shadow-sm">
                 <h3 className="text-gray-600 text-sm mb-2">Pedidos Hoje</h3>
-                <div className="text-3xl font-bold text-emerald-600">{Cardsdata.PedidosHoje}</div>
+                <div className="text-3xl font-bold text-marieth">{Cardsdata.PedidosHoje}</div>
               </div>
               <div className="bg-white p-6 rounded-lg shadow-sm">
                 <h3 className="text-gray-600 text-sm mb-2">Produtos Ativos</h3>
-                <div className="text-3xl font-bold text-emerald-600">{Cardsdata.ProdutosAtivos}</div>
+                <div className="text-3xl font-bold text-marieth">{Cardsdata.ProdutosAtivos}</div>
               </div>
               <div className="bg-white p-6 rounded-lg shadow-sm">
                 <h3 className="text-gray-600 text-sm mb-2">Receita Mensal</h3>
-                <div className="text-3xl font-bold text-emerald-600">AOA {Cardsdata.ReceitaMensal}K</div>
+                <div className="text-3xl font-bold text-marieth">AOA {Cardsdata.ReceitaMensal}K</div>
               </div>
             </div>
             {/* Recent Registrations */}
             <div className="bg-white rounded-lg shadow-sm">
               <div className="p-6 border-b border-gray-200 flex justify-between items-center">
                 <h2 className="text-xl font-semibold">Últimos Cadastros</h2>
-                <button className="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors">
+                <button className="bg-marieth text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors">
                   Ver Todos
                 </button>
               </div>
@@ -512,7 +566,7 @@ export default function AdminDashboard() {
                         </span>
                       </td>
                       <td className="py-3 px-4">
-                        <button className="bg-emerald-600 text-white px-3 py-1 rounded hover:bg-emerald-700 transition-colors">
+                        <button className="bg-marieth text-white px-3 py-1 rounded hover:bg-green-700 transition-colors">
                           {user.status === 'Pendente' ? 'Aprovar' :
                             user.status === 'Rejeitado' ? 'Revisar' : 'Detalhes'}
                         </button>
@@ -578,7 +632,7 @@ export default function AdminDashboard() {
                       <p className="text-gray-600 mb-1">Preço: {produto.preco} AOA</p>
                       <p className="text-gray-600 mb-4">Quantidade: {produto.quantidade} {produto.Unidade}</p>
                       <div className="flex justify-between items-center">
-                        <button className="flex items-center bg-emerald-600 text-white px-3 py-2 rounded hover:bg-emerald-700 transition-colors">
+                        <button className="flex items-center bg-marieth text-white px-3 py-2 rounded hover:bg-green-700 transition-colors">
                           <MdEdit className="mr-1" size={16} />
                           Editar
                         </button>
@@ -594,7 +648,7 @@ export default function AdminDashboard() {
             </div>
           </div>
         )}
-            //cadastrar transportadora
+            
         {/* Usuários Tab */}
 
         {activeTab === 'Usuários' && (
@@ -625,7 +679,7 @@ export default function AdminDashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {usuario.map((user) => (
+                    { Array.isArray(usuario) && usuario.map((user) => (
                       <tr key={user.id_usuario}>
                         <td className="p-4 border-b border-gray-200">{user.id_usuario}</td>
                         <td className="p-4 border-b border-gray-200">{user.nome}</td>
@@ -664,34 +718,34 @@ export default function AdminDashboard() {
               
               <div className="p-6">
 
-                <form className="space-y-4">
+                <form onSubmit={cadastrarTransportadoraHandler} className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Nome</label>
-                    <input type="text" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-marieth focus:border-transparent" placeholder="Nome da Transportadora" />
+                    <label  className="block text-sm font-medium text-gray-700">Nome</label>
+                    <input value={formData.nome} onChange={handleInputChange} name="nome" type="text" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-marieth focus:border-transparent" placeholder="Nome da Transportadora" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">NIF</label>
-                    <input type="text" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-marieth focus:border-transparent" placeholder="Número de Identificação Fiscal" />
+                    <input value={formData.nif} onChange={handleInputChange} name="nif" type="text" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-marieth focus:border-transparent" placeholder="Número de Identificação Fiscal" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Telefone</label>
-                    <input type="text" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-marieth focus:border-transparent" placeholder="Telefone de Contato" />
+                    <input value={formData.telefone} onChange={handleInputChange} name="telefone" type="text" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-marieth focus:border-transparent" placeholder="Telefone de Contato" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Email</label>
-                    <input type="email" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-marieth focus:border-transparent" placeholder="Email de Contato" />
+                    <input value={formData.email} onChange={handleInputChange} name="email" type="email" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-marieth focus:border-transparent" placeholder="Email de Contato" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Senha</label>
                     <label htmlFor="senha"></label>
-                    <input id="senha" type="password" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-marieth focus:border-transparent" placeholder="Senha de Acesso" />
+                    <input id="senha" value={formData.senha} onChange={handleInputChange} name="senha" type="password" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-marieth focus:border-transparent" placeholder="Senha de Acesso" />
                   </div>
                   <div>
                     <label htmlFor="confirmar_senha" className="block text-sm font-medium text-gray-700">Confirmação de Senha</label>
-                    <input id="confirmar_senha" type="password" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-marieth focus:border-transparent" placeholder="Confirme sua senha" />
+                    <input id="confirmar_senha" value={formData.confirmar_senha} onChange={handleInputChange} name="confirmar_senha" type="password" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-marieth focus:border-transparent" placeholder="Confirme sua senha" />
                   </div>
                   <div className="flex justify-end">
-                    <button type="submit" className="px-6 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-colors font-medium">
+                    <button type="submit" className="px-6 py-2 bg-marieth text-white rounded-md hover:bg-green-700 transition-colors font-medium">
                       Cadastrar Transportadora
                     </button>
                   </div>
@@ -743,7 +797,7 @@ export default function AdminDashboard() {
                           </span>
                         </td>
                         <td className="p-4 border-b border-gray-200">
-                          <button className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors font-medium">
+                          <button className="px-4 py-2 bg-marieth text-white rounded-md hover:bg-green-700 transition-colors font-medium">
                             Detalhes
                           </button>
                         </td>
@@ -826,7 +880,7 @@ export default function AdminDashboard() {
               </div>
             </div>
           )}
-
+          
           {/* Logística Tab */}
           {activeTab === 'Logística' && (
             <div className="bg-white rounded-lg shadow-sm mb-6">
@@ -898,7 +952,7 @@ export default function AdminDashboard() {
                         </td>
                         <td className="p-4 border-b border-gray-200">18:00</td>
                         <td className="p-4 border-b border-gray-200">
-                          <button className="px-3 py-1 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors mr-2">
+                          <button className="px-3 py-1 bg-marieth text-white rounded hover:bg-green-700 transition-colors mr-2">
                             Rastrear
                           </button>
                         </td>
@@ -912,7 +966,7 @@ export default function AdminDashboard() {
                         </td>
                         <td className="p-4 border-b border-gray-200">20:00</td>
                         <td className="p-4 border-b border-gray-200">
-                          <button className="px-3 py-1 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors mr-2">
+                          <button className="px-3 py-1 bg-marieth text-white rounded hover:bg-green-700 transition-colors mr-2">
                             Rastrear
                           </button>
                         </td>
@@ -1152,7 +1206,7 @@ export default function AdminDashboard() {
                           </td>
                           <td className="p-4 border-b border-gray-200">
                             <div className="flex space-x-2">
-                              <button className="px-3 py-1 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors text-sm">
+                              <button className="px-3 py-1 bg-marieth text-white rounded hover:bg-green-700 transition-colors text-sm">
                                 Ver
                               </button>
                               <button className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm">
@@ -1194,7 +1248,7 @@ export default function AdminDashboard() {
                           </td>
                           <td className="p-4 border-b border-gray-200">
                             <div className="flex space-x-2">
-                              <button className="px-3 py-1 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors text-sm">
+                              <button className="px-3 py-1 bg-marieth text-white rounded hover:bg-green-700 transition-colors text-sm">
                                 Ver
                               </button>
                               <button className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm">
@@ -1255,7 +1309,7 @@ export default function AdminDashboard() {
                         placeholder="Seu e-mail" 
                       />
                     </div>
-                    <button type="submit" className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors font-medium">
+                    <button type="submit" className="px-4 py-2 bg-marieth text-white rounded-md hover:bg-green-700 transition-colors font-medium">
                       Salvar Alterações
                     </button>
                   </form>
@@ -1264,15 +1318,15 @@ export default function AdminDashboard() {
                   <h3 className="text-lg font-medium text-gray-800">Preferências de Notificação</h3>
                   <form className="space-y-4">
                     <div className="flex items-center space-x-2">
-                      <input type="checkbox" id="email-notifications" className="h-4 w-4 text-green-600 border-gray-300 rounded focus:ring-green-500" />
+                      <input type="checkbox" id="email-notifications" className="h-4 w-4 text-green-600 border-gray-300 rounded focus:ring-verdeaceso" />
                       <label htmlFor="email-notifications" className="text-sm text-gray-700">Notificações por E-mail</label>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <input type="checkbox" id="sms-notifications" className="h-4 w-4 text-green-600 border-gray-300 rounded focus:ring-green-500" />
+                      <input type="checkbox" id="sms-notifications" className="h-4 w-4 text-green-600 border-gray-300 rounded focus:ring-verdeaceso" />
                       <label htmlFor="sms-notifications" className="text-sm text-gray-700">Notificações por SMS</label>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <input type="checkbox" id="push-notifications" className="h-4 w-4 text-green-600 border-gray-300 rounded focus:ring-green-500" />
+                      <input type="checkbox" id="push-notifications" className="h-4 w-4 text-green-600 border-gray-300 rounded focus:ring-verdeaceso" />
                       <label htmlFor="push-notifications" className="text-sm text-gray-700">Notificações Push</label>
                     </div>
                     <button type="submit" className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors font-medium">
@@ -1292,7 +1346,7 @@ export default function AdminDashboard() {
                         placeholder="Digite a nova senha" 
                       />
                     </div>
-                    <button type="submit" className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors font-medium">
+                    <button type="submit" className="px-4 py-2 bg-marieth text-white rounded-md hover:bg-green-700 transition-colors font-medium">
                       Alterar Senha
                     </button>
                   </form>
@@ -1301,14 +1355,14 @@ export default function AdminDashboard() {
                   <h3 className="text-lg font-medium text-gray-800">Integrações</h3>
                   <form className="space-y-4">
                     <div className="flex items-center space-x-2">
-                      <input type="checkbox" id="integrate-payments" className="h-4 w-4 text-green-600 border-gray-300 rounded focus:ring-green-500" />
+                      <input type="checkbox" id="integrate-payments" className="h-4 w-4 text-marieth border-gray-300 rounded focus:ring-verdeaceso" />
                       <label htmlFor="integrate-payments" className="text-sm text-gray-700">Integração com Pagamentos</label>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <input type="checkbox" id="integrate-shipping" className="h-4 w-4 text-green-600 border-gray-300 rounded focus:ring-green-500" />
+                      <input type="checkbox" id="integrate-shipping" className="h-4 w-4 text-marieth border-gray-300 rounded focus:ring-verdeaceso" />
                       <label htmlFor="integrate-shipping" className="text-sm text-gray-700">Integração com Logística</label>
                     </div>
-                    <button type="submit" className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors font-medium">
+                    <button type="submit" className="px-4 py-2 bg-marieth text-white rounded-md hover:bg-green-700 transition-colors font-medium">
                       Salvar Integrações
                     </button>
                   </form>

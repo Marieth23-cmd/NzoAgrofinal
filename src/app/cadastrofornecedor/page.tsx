@@ -129,8 +129,8 @@ export default function CadastroFornecedor() {
             <div className="p-6 text-center text-white bg-primary">
                 <h1 className="text-[32px] font-bold">Cadastrar Fornecedor</h1>
             </div>
-            <div className="mb-20 mt-10"> 
-                <div className="bg-white rounded-[10px] p-8 w-full max-w-[800px] lg:ml-[20%] shadow-custom">
+            <div className="flex items-center justify-center mb-20 mt-10"> 
+                <div className="bg-white rounded-[10px] p-8 w-full max-w-[800px] shadow-custom">
                     <div className="mx-32"></div>
 
                     {sucesso ? (
