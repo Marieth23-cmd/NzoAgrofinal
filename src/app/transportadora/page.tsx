@@ -1,3 +1,4 @@
+// Dashboard.tsx
 "use client";
 import React from "react";
 import { FaHome, FaUser, FaTruck, FaBell, FaCog, FaEdit } from "react-icons/fa";
@@ -99,27 +100,10 @@ const Dashboard = () => {
               </div>
             </div>
           ))}
-
-
-          <div className="flex gap-2">
-            <button className="bg-marieth text-white px-3 py-2 rounded-md w-full">
-              Aceitar
-            </button>
-            <button className="bg-marieth text-white px-3 py-2 rounded-md w-full">
-              Mensagem
-            </button>
-            <button className="bg-red-500 text-white px-3 py-2 rounded-md w-full">
-              Rejeitar
-            </button>
-          </div> 
         </div>
       </main>
     </div>
-
-  
   );
 };
-
-
 
 export default Dashboard;
