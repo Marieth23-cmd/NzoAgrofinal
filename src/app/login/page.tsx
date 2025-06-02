@@ -48,7 +48,16 @@ export default function Login() {
                 setTimeout(() => {
                     router.push("/Administrador");
                 }, 1500);
-            } else {
+            } 
+            else if (tipoUsuario === "transportadora") {
+                toast.success("Login realizado com sucesso! Bem-vindo(a) de volta!");
+                console.log("Redirecionando para /Cliente");
+                setTimeout(() => {
+                    router.push("/transportadora");
+                }, 2000);
+            }
+            
+            else {
                 toast.success("Login realizado com sucesso! Bem-vindo(a) de volta!");
                 console.log("Redirecionando para página inicial");
                 setTimeout(() => {

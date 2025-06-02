@@ -178,7 +178,7 @@ export default function PagamentoPage() {
               {status === 'aguardando' && (
                 <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
                   <p className="text-sm text-red-700">
-                    ⏰ <strong>Atenção:</strong> Esta referência expira em 15 minutos
+                    ⏰ <strong>Atenção:</strong> Esta referência expira em 24h
                   </p>
                 </div>
               )}
@@ -317,8 +317,58 @@ export default function PagamentoPage() {
             </div>
           </div>
         </div>
+
+        
       </div>
       <Footer />
     </main>
   )
 }
+
+
+
+{/* // Componente React para demonstração
+const TestarPagamento = () => {
+  const [referencia, setReferencia] = useState('');
+  const [resultado, setResultado] = useState(null);
+
+  const simular = async () => {
+    // Sua função de simulação aqui
+    const res = await simularPagamento(referencia);
+    setResultado(res);
+  };
+
+
+//     <div>
+//       <input 
+//         value={referencia} 
+//         onChange={(e) => setReferencia(e.target.value)} */}
+//        
+ {/* // Componente React para demonstração
+const TestarPagamento = () => {
+  const [referencia, setReferencia] = useState('');
+  const [resultado, setResultado] = useState(null);
+
+  const simular = async () => {
+    // Sua função de simulação aqui
+    const res = await simularPagamento(referencia);
+    setResultado(res);
+  };
+
+
+//     <div>
+//       <input 
+//         value={referencia} 
+//         onChange={(e) => setReferencia(e.target.value)} */}
+{/* //         placeholder="Cole a referência aqui"
+//       />
+//       <button onClick={simular}>🧪 Simular Pagamento</button>
+      
+//       {resultado && (
+//         <div className="resultado">
+//           ✅ Pagamento simulado! Valor recebido: {resultado.valor_recebido}
+//         </div>
+//       )}
+//     </div>
+//   );
+// }; */}
