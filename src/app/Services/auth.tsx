@@ -4,10 +4,10 @@ console.log('API URL:', process.env.NEXT_PUBLIC_API_URL)
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"
 console.log('API URL:', API_URL)
 // Função para fazer login
-export const login = async (email: string, senha: string): Promise<any> => {
+export const login = async (email:string, contacto:string, senha:string): Promise<any> => {
     try {
         const response = await axios.post(
-            `${API_URL}/login`,{ email, senha }, 
+            `${API_URL}/login`,{ email, senha, contacto }, 
             {
                 withCredentials: true, 
                 headers: {

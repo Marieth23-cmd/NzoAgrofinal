@@ -19,7 +19,7 @@ body {
   background: var(--background);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
-
+/* 
 .backgroundimage {
   background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
   background-size: cover;
@@ -29,7 +29,22 @@ body {
   padding: 4rem 1rem;
   width: 115.8%;
   
+} */
+
+
+
+.backgroundimage {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  transition: background-image 1.5s ease-in-out;
+  color: white;
+  text-align: center;
+  padding: 4rem 1rem;
+  width: 115.8%;
 }
+
+
 @media (max-width: 768px) {
   .backgroundimage {
     padding-top: 25vh;

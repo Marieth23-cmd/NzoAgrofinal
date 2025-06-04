@@ -36,6 +36,48 @@ export default function Home() {
     
   }
 
+
+  
+const imagens = [
+  "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+  "https://img.freepik.com/fotos-premium/paisagem-prado-ensolarado_817518-252.jpg",
+  "https://img.freepik.com/fotos-gratis/campo-verde-sob-o-ceu-azul-com-nuvens_188544-14565.jpg"
+];
+
+
+const Hero = () => {
+  const refBackground = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    let index = 0;
+    
+    // Aplicar transição CSS
+    if (refBackground.current) {
+      refBackground.current.style.transition = 'background-image 0.5s ease-in-out';
+    }
+    
+    const trocarImagem = () => {
+      if (refBackground.current) {
+        refBackground.current.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('${imagens[index]}')`;
+        index = (index + 1) % imagens.length;
+      }
+    };
+
+    trocarImagem(); // Imagem inicial
+    const intervalo = setInterval(trocarImagem, 5000); // 5 segundos
+
+    return () => {
+      clearInterval(intervalo);
+      // Limpar a transição no cleanup
+      if (refBackground.current) {
+        refBackground.current.style.transition = '';
+      }
+    };
+  }, []);
+
+
+
+
   useEffect(() => {
     async function fetchProdutosDestaque() {
       try {
@@ -119,7 +161,9 @@ export default function Home() {
       
             <div>
       {/* Imagem de fundo com centralização corrigida */}
-      <div className="backgroundimage w-full flex justify-center items-center mt-[20%] sm:mt-[5%] md:mt-[10%] lg:mt-[15%]">
+      <div 
+      ref={refBackground}
+       className="backgroundimage w-full flex justify-center items-center mt-[20%] sm:mt-[5%] md:mt-[10%] lg:mt-[15%]">
           {/* Container interno com largura controlada e centralizado */}
           <div className="w-full max-w-3xl px-4 flex flex-col items-center">
             <h1 className="-ml-[82.8px] lg:-ml-[130px] text-[1.4rem] lg:text-[2rem] font-bold text-center w-full">
@@ -251,4 +295,5 @@ export default function Home() {
       <Footer />
     </div>
   );
+}
 }

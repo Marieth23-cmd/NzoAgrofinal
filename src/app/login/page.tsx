@@ -9,7 +9,7 @@ import 'react-toastify/dist/ReactToastify.css';
 
 export default function Login() {
     const router = useRouter();
-    const [email, setEmail] = useState("");
+    const [emailOuContacto, setEmailOuContacto] = useState("");
     const [senha, setSenha] = useState("");
     const [senhaVisivel, setSenhaVisivel] = useState(false);
     const [erro, setErro] = useState("");
@@ -23,15 +23,15 @@ export default function Login() {
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!email || !senha) {
+        if (!emailOuContacto || !senha) {
+            // Verifica se email ou contacto estão preenchidos e se a senha está preenchida
             setErro("Preencha todos os campos.");
             return;
         }
-
+        
         try {
-            const response = await login(email, senha);
-            console.log("Usuário logado:", response);
-            
+            const response = await login(emailOuContacto, emailOuContacto, senha);
+            console.log("Resposta do login:", response);
             // Verificar se o usuário está na resposta
             const usuario = response.usuario || {};
             console.log("Usuário completo:", usuario);
@@ -86,16 +86,16 @@ export default function Login() {
 
                 <form onSubmit={handleLogin}>
                     <div className="mb-6">
-                        <label htmlFor="email" className="font-medium mb-2 block text-profile">
-                            E-mail
+                        <label htmlFor="emailoucontacto" className="font-medium mb-2 block text-profile">
+                            E-mail ou Contacto
                             <input
-                                type="email"
-                                id="email"
-                                name="email"
+                                type="text"
+                                id="emailoucontacto"
+                                name="emailoucontacto"
                                 className="w-full p-3 rounded border border-gray-300"
                                 required
-                                value={email}
-                                onChange={handleInputChange(setEmail)}
+                                value={emailOuContacto}
+                                onChange={handleInputChange(setEmailOuContacto)}
                             />
                         </label>
                     </div>

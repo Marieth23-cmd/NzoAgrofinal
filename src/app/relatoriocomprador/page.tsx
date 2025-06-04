@@ -490,7 +490,7 @@ const podeVerVendas = () => {
         
         {/* Cabeçalho e filtros */}
         <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-centers mb-6 md:mb-8">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-4 sm:mb-0">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 mb-4 sm:mb-0">
             <h1 className="text-marieth text-xl md:text-[2rem] font-bold">
               Relatório de {tipoRelatorio === 'compras' ? 'Compras' : 'Vendas'}
             </h1>

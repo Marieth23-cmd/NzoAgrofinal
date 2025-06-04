@@ -17,11 +17,12 @@ type ProdutoInfo = {
 const PromoPage = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const params = useParams(); // Para pegar parâmetros da rota dinâmica
+  const params = useParams();
   
   const [produtoId, setProdutoId] = useState<number | null>(null);
   const [produtoInfo, setProdutoInfo] = useState<ProdutoInfo | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const [loadingPacote, setLoadingPacote] = useState<number | null>(null); // Para controlar qual pacote está carregando
   const [error, setError] = useState<string | null>(null);
   const [debugInfo, setDebugInfo] = useState<any>({});
   
@@ -230,14 +231,21 @@ const PromoPage = () => {
     }
   };
 
-  // Selecionar pacote
+  // Selecionar pacote - FUNÇÃO CORRIGIDA
   const selectPackage = async (dias: number) => {
     if (!produtoId) {
       setError('Selecione um produto antes de escolher um pacote');
       return;
     }
 
+    // Verificar se já está processando algum pacote
+    if (loadingPacote !== null) {
+      console.log('Já está processando um pacote, ignorando clique');
+      return;
+    }
+
     setLoading(true);
+    setLoadingPacote(dias); // Marcar qual pacote está sendo processado
     setError(null);
     console.log(`Iniciando processo de destaque para produto ID: ${produtoId} por ${dias} dias`);
 
@@ -258,6 +266,7 @@ const PromoPage = () => {
       setError(error?.mensagem || 'Erro ao processar solicitação de destaque');
     } finally {
       setLoading(false);
+      setLoadingPacote(null); // Limpar o estado de loading do pacote
     }
   };
 
@@ -281,6 +290,7 @@ const PromoPage = () => {
     setError(null);
     setProdutoId(null);
     setProdutoInfo(null);
+    setLoadingPacote(null); // Limpar estado de loading
     processarIdProduto();
   };
 
@@ -293,7 +303,7 @@ const PromoPage = () => {
     }, 100);
 
     return () => clearTimeout(timer);
-  }, [searchParams, params]); // Incluir params nas dependências
+  }, [searchParams, params]);
 
   return (
     <div>
@@ -379,62 +389,89 @@ const PromoPage = () => {
             </div>
           )}
 
-          {/* Cards dos pacotes */}
+          {/* Cards dos pacotes - ESTRUTURA CORRIGIDA */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {pacotes.map((pacote, index) => (
-              <div key={index} className={`bg-white rounded-xl p-6 text-center shadow hover:-translate-y-1 transition transform duration-300 flex flex-col h-full ${index === 2 ? 'relative' : ''}`}>
+              <div key={index} className={`bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-gray-100 ${index === 2 ? 'relative border-green-300' : ''}`}>
                 {index === 2 && (
-                  <span className="absolute top-4 -right-12 transform rotate-45 bg-yellow-400 text-sm font-bold text-gray-800 py-1 px-12 shadow z-10">
+                  <span className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-yellow-400 to-yellow-500 text-sm font-bold text-gray-800 py-1 px-4 rounded-full shadow-md">
                     Mais Popular
                   </span>
                 )}
-                <div className="flex-grow">
-                  <div className="text-xl font-bold text-gray-800 mb-2">{pacote.dias} Dias</div>
-                  <div className={`text-3xl font-extrabold mb-4 ${index === 2 ? 'text-green-600' : 'text-marieth'}`}>
+                
+                {/* Header do card */}
+                <div className="text-center mb-6">
+                  <div className={`text-2xl font-bold mb-2 ${index === 2 ? 'text-green-600' : 'text-gray-800'}`}>
+                    {pacote.dias} Dias
+                  </div>
+                  <div className={`text-3xl font-extrabold ${index === 2 ? 'text-green-600' : 'text-marieth'}`}>
                     {formatarValor(pacote.valor)}
                   </div>
-                  <ul className="text-gray-600 text-sm mb-6 space-y-2 text-left">
-                    <li className="flex items-center">
-                      <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
-                      Destaque na página principal
-                    </li>
-                    <li className="flex items-center">
-                      <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
-                      {pacote.dias >= 30 ? 'Prioridade máxima nas buscas' : 'Prioridade nas buscas'}
-                    </li>
-                    <li className="flex items-center">
-                      <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
-                      Badge especial no produto
-                    </li>
-                    {pacote.dias >= 5 && (
-                      <li className="flex items-center">
-                        <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
-                        Notificações push
-                      </li>
-                    )}
-                    {pacote.dias >= 7 && (
-                      <li className="flex items-center">
-                        <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
-                        Relatório de desempenho
-                      </li>
-                    )}
-                    {pacote.dias >= 30 && (
-                      <li className="flex items-center">
-                        <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
-                        Suporte prioritário
-                      </li>
-                    )}
-                  </ul>
                 </div>
+
+                {/* Lista de benefícios */}
+                <ul className="text-gray-600 text-sm mb-8 space-y-3">
+                  <li className="flex items-center">
+                    <span className="w-2 h-2 bg-green-500 rounded-full mr-3 flex-shrink-0"></span>
+                    <span>Destaque na página principal</span>
+                  </li>
+                  <li className="flex items-center">
+                    <span className="w-2 h-2 bg-green-500 rounded-full mr-3 flex-shrink-0"></span>
+                    <span>{pacote.dias >= 30 ? 'Prioridade máxima nas buscas' : 'Prioridade nas buscas'}</span>
+                  </li>
+                  <li className="flex items-center">
+                    <span className="w-2 h-2 bg-green-500 rounded-full mr-3 flex-shrink-0"></span>
+                    <span>Badge especial no produto</span>
+                  </li>
+                  {pacote.dias >= 5 && (
+                    <li className="flex items-center">
+                      <span className="w-2 h-2 bg-green-500 rounded-full mr-3 flex-shrink-0"></span>
+                      <span>Notificações push</span>
+                    </li>
+                  )}
+                  {pacote.dias >= 7 && (
+                    <li className="flex items-center">
+                      <span className="w-2 h-2 bg-green-500 rounded-full mr-3 flex-shrink-0"></span>
+                      <span>Relatório de desempenho</span>
+                    </li>
+                  )}
+                  {pacote.dias >= 30 && (
+                    <li className="flex items-center">
+                      <span className="w-2 h-2 bg-green-500 rounded-full mr-3 flex-shrink-0"></span>
+                      <span>Suporte prioritário</span>
+                    </li>
+                  )}
+                </ul>
+
+                {/* Botão - CORRIGIDO */}
                 <button
                   onClick={() => selectPackage(pacote.dias)}
-                  disabled={loading || !produtoId}
-                  className={`${index === 2 ? 'bg-green-600 hover:bg-green-700' : 'bg-marieth hover:bg-verdeaceso'} text-white font-semibold py-3 px-4 w-full rounded transition mt-auto ${
-                    loading || !produtoId ? 'opacity-50 cursor-not-allowed' : ''
+                  disabled={loading || !produtoId || loadingPacote !== null}
+                  className={`w-full py-3 px-4 rounded-lg font-semibold text-white transition-all duration-300 ${
+                    index === 2 
+                      ? 'bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 shadow-lg' 
+                      : 'bg-gradient-to-r from-marieth to-verdeaceso hover:shadow-lg'
+                  } ${
+                    loading || !produtoId || loadingPacote !== null
+                      ? 'opacity-50 cursor-not-allowed' 
+                      : 'hover:scale-105 active:scale-95'
                   }`}
                   title={!produtoId ? 'Carregue um produto válido primeiro' : ''}
                 >
-                  {loading ? '⏳ Processando...' : '✨ Selecionar Pacote'}
+                  {loadingPacote === pacote.dias ? (
+                    <div className="flex items-center justify-center">
+                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Processando...
+                    </div>
+                  ) : (
+                    <>
+                      <span className="mr-2">✨</span>
+                      Selecionar Pacote
+                    </>
+                  )}
                 </button>
               </div>
             ))}

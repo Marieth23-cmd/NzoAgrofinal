@@ -1,8 +1,8 @@
 'use client'
-import { useState, FormEvent } from 'react'
-import Footer from '../Components/Footer'
-import Navbar from '../Components/Navbar'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, FormEvent, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import Footer from '../../Components/Footer'
+import Navbar from '../../Components/Navbar'
 
 type MetodoPagamento = 'unitel_money' | 'afrimoney' | 'multicaixa'
 type StatusPagamento = 'gerando' | 'aguardando' | 'pago' | 'expirado'
@@ -13,6 +13,14 @@ type MetodoInfo = {
   instrucoes: string[]
   icon: React.ReactNode
   cor: string
+}
+
+type PacoteInfo = {
+  dias: number
+  valor: number
+  descricao: string
+  produtoId?: number
+  produtoNome?: string
 }
 
 const metodos: Record<MetodoPagamento, MetodoInfo> = {
@@ -76,23 +84,91 @@ const metodos: Record<MetodoPagamento, MetodoInfo> = {
   }
 }
 
-export default function PagamentoPage() {
+// Componente interno para usar useSearchParams
+function PagamentoContent() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  
   const [metodo, setMetodo] = useState<MetodoPagamento>('unitel_money')
   const [status, setStatus] = useState<StatusPagamento>('gerando')
   const [referenciaPagamento, setReferenciaPagamento] = useState('')
   const [transacaoId, setTransacaoId] = useState('')
   const [copiado, setCopiado] = useState(false)
   const [mostrarModal, setMostrarModal] = useState(false)
-  const router = useRouter()
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const valorSubtotal = 2500
-  const valorFrete = 50
-  const valorBruto = valorSubtotal + valorFrete
+  // Estado para dados do pacote
+  const [pacoteInfo, setPacoteInfo] = useState<PacoteInfo>({
+    dias: 3,
+    valor: 6000,
+    descricao: "Pacote básico - 3 dias de destaque"
+  })
+
+  // Formatação de valor para moeda local (Kwanzas)
+  const formatarValor = (valor: number) => {
+    return new Intl.NumberFormat('pt-AO', {
+      style: 'currency',
+      currency: 'AOA',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(valor).replace('AOA', 'Kz')
+  }
+
+  // Função para extrair dados dos parâmetros da URL
+  useEffect(() => {
+    const extrairDadosPacote = () => {
+      try {
+        console.log('=== Extraindo dados do pacote ===')
+        
+        // Extrair dados dos search params
+        const dias = searchParams.get('dias')
+        const valor = searchParams.get('valor') 
+        const descricao = searchParams.get('descricao')
+        const produtoId = searchParams.get('produtoId')
+        const produtoNome = searchParams.get('produtoNome')
+        const pagamentoId = searchParams.get('pagamentoId')
+
+        console.log('Parâmetros recebidos:', {
+          dias, valor, descricao, produtoId, produtoNome, pagamentoId
+        })
+
+        // Validar se os dados obrigatórios estão presentes
+        if (!dias || !valor) {
+          console.log('Dados insuficientes, usando valores padrão')
+          setError('Dados do pacote não encontrados. Usando valores padrão.')
+        } else {
+          const dadosPacote: PacoteInfo = {
+            dias: parseInt(dias, 10),
+            valor: parseFloat(valor),
+            descricao: decodeURIComponent(descricao || `Pacote de ${dias} dias`),
+            produtoId: produtoId ? parseInt(produtoId, 10) : undefined,
+            produtoNome: produtoNome ? decodeURIComponent(produtoNome) : undefined
+          }
+
+          console.log('Dados do pacote processados:', dadosPacote)
+          setPacoteInfo(dadosPacote)
+        }
+
+        setLoading(false)
+      } catch (error) {
+        console.error('Erro ao extrair dados do pacote:', error)
+        setError('Erro ao processar dados do pacote')
+        setLoading(false)
+      }
+    }
+
+    extrairDadosPacote()
+  }, [searchParams])
+
+  // Cálculos de pagamento
+  const valorFrete = 0 // Para pacotes de destaque, não há frete
+  const valorBruto = pacoteInfo.valor + valorFrete
   const valorTaxa = valorBruto * metodos[metodo].taxa
   const valorLiquido = valorBruto - valorTaxa
 
   const gerarReferencia = () => {
-    const novaReferencia = `REF_${Date.now()}`
+    const novaReferencia = `DEST_${Date.now()}`
     const novoTransacaoId = `TXN_${Math.random().toString(36).substr(2, 8).toUpperCase()}`
     
     setReferenciaPagamento(novaReferencia)
@@ -102,9 +178,13 @@ export default function PagamentoPage() {
   }
 
   const copiarReferencia = async () => {
-    await navigator.clipboard.writeText(referenciaPagamento)
-    setCopiado(true)
-    setTimeout(() => setCopiado(false), 2000)
+    try {
+      await navigator.clipboard.writeText(referenciaPagamento)
+      setCopiado(true)
+      setTimeout(() => setCopiado(false), 2000)
+    } catch (error) {
+      console.error('Erro ao copiar referência:', error)
+    }
   }
 
   const simularPagamento = () => {
@@ -114,7 +194,19 @@ export default function PagamentoPage() {
 
   const finalizarCompra = () => {
     setMostrarModal(false)
-    router.push('/confirmacao-pedido')
+    // Redirecionar para página de confirmação com dados do pacote
+    const params = new URLSearchParams({
+      tipo: 'destaque',
+      dias: pacoteInfo.dias.toString(),
+      valor: pacoteInfo.valor.toString(),
+      transacaoId: transacaoId
+    })
+    
+    if (pacoteInfo.produtoId) {
+      params.append('produtoId', pacoteInfo.produtoId.toString())
+    }
+    
+    router.push(`/confirmacao-destaque?${params.toString()}`)
   }
 
   const fecharModal = () => {
@@ -135,7 +227,7 @@ export default function PagamentoPage() {
           {/* Header do Modal */}
           <div className="sticky top-0 bg-white border-b p-4 rounded-t-2xl">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold text-green-600">
+              <h2 className="text-xl font-bold text-marieth">
                 {status === 'aguardando' ? 'Aguardando Pagamento' : 'Pagamento Confirmado!'}
               </h2>
               <button
@@ -168,7 +260,7 @@ export default function PagamentoPage() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
-                  <p className="text-marieth text-sm font-semibold">Seu pedido está sendo processado</p>
+                  <p className="text-marieth text-sm font-semibold">Seu produto será destacado em breve</p>
                 </div>
               )}
             </div>
@@ -178,21 +270,20 @@ export default function PagamentoPage() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <div className="mr-3">
-                    
                     {metodos[metodo].icon}
                   </div>
                   <span className="font-semibold">{metodos[metodo].nome}</span>
                 </div>
                 <div className="text-right">
-                  <div className="text-lg font-bold">{valorBruto.toLocaleString()} Kz</div>
-                  <div className="text-sm opacity-90">Taxa: {valorTaxa.toFixed(0)} Kz</div>
+                  <div className="text-lg font-bold">{formatarValor(valorBruto)}</div>
+                  <div className="text-sm opacity-90">Taxa: {formatarValor(valorTaxa)}</div>
                 </div>
               </div>
             </div>
 
             {/* Referência de Pagamento */}
             <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4 mb-6">
-              <h3 className="font-semibold text-marieth mb-2 flex items-center">
+              <h3 className="font-semibold text-green-600 mb-2 flex items-center">
                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
@@ -220,7 +311,7 @@ export default function PagamentoPage() {
 
             {/* Instruções */}
             <div className="mb-6">
-              <h4 className="font-semibold mb-3 flex items-center text-marieth">
+              <h4 className="font-semibold mb-3 flex items-center text-green-600">
                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
                 </svg>
@@ -236,7 +327,7 @@ export default function PagamentoPage() {
             {/* Timer */}
             {status === 'aguardando' && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
-                <p className="text-sm text-vermelho flex items-center">
+                <p className="text-sm text-red-600 flex items-center">
                   <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
@@ -250,7 +341,7 @@ export default function PagamentoPage() {
               {status === 'aguardando' && (
                 <button
                   onClick={simularPagamento}
-                  className="w-full bg-marieth hover:bg-green-700 text-white py-3 rounded-lg font-semibold transition flex items-center justify-center space-x-2"
+                  className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-semibold transition flex items-center justify-center space-x-2"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -262,7 +353,7 @@ export default function PagamentoPage() {
               {status === 'pago' && (
                 <button
                   onClick={finalizarCompra}
-                  className="w-full bg-marieth hover:bg-green-700 text-white py-3 rounded-lg font-semibold transition flex items-center justify-center space-x-2"
+                  className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-semibold transition flex items-center justify-center space-x-2"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
@@ -291,6 +382,22 @@ export default function PagamentoPage() {
     )
   }
 
+  // Loading state
+  if (loading) {
+    return (
+      <main className="flex flex-col min-h-screen">
+        <Navbar />
+        <div className="flex-grow flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-marieth mx-auto mb-4"></div>
+            <p className="text-gray-600">Carregando dados do pagamento...</p>
+          </div>
+        </div>
+        <Footer />
+      </main>
+    )
+  }
+
   // TELA PRINCIPAL DE SELEÇÃO
   return (
     <main className="flex flex-col min-h-screen">
@@ -301,28 +408,63 @@ export default function PagamentoPage() {
             
             {/* Header */}
             <div className="text-center mb-6">
-              <h1 className="text-xl sm:text-2xl font-bold text-marieth">Pagamento Digital</h1>
-              <p className="text-sm sm:text-base text-gray-600">Escolha seu método de pagamento</p>
+              <div className="w-12 h-12 mx-auto mb-4 flex items-center justify-center bg-green-100 rounded-full">
+                <svg className="h-6 w-6 text-marieth" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                </svg>
+              </div>
+              <h1 className="text-xl sm:text-2xl font-bold text-green-600">Pagamento - Destaque de Produto</h1>
+              <p className="text-sm sm:text-base text-gray-600">Confirme os dados e escolha seu método de pagamento</p>
+            </div>
+
+            {/* Error display */}
+            {error && (
+              <div className="mb-6 bg-yellow-50 border border-yellow-200 text-yellow-800 p-4 rounded-lg">
+                <p className="text-sm">{error}</p>
+              </div>
+            )}
+
+            {/* Informações do Pacote */}
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4 sm:p-6 mb-6">
+              <h3 className="text-base sm:text-lg font-semibold mb-3 text-marieth flex items-center">
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                </svg>
+                Pacote Selecionado
+              </h3>
+              
+              <div className="space-y-2 mb-4">
+                <div className="flex justify-between items-center">
+                  <span className="font-semibold text-green-700">Duração:</span>
+                  <span className="text-marieth">{pacoteInfo.dias} dias</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="font-semibold text-green-700">Descrição:</span>
+                  <span className="text-marieth text-sm">{pacoteInfo.descricao}</span>
+                </div>
+                {pacoteInfo.produtoNome && (
+                  <div className="flex justify-between items-center">
+                    <span className="font-semibold text-green-700">Produto:</span>
+                    <span className="text-marieth text-sm">{pacoteInfo.produtoNome}</span>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Resumo da Compra */}
             <div className="bg-gray-100 rounded-lg p-4 sm:p-6 mb-6">
-              <h3 className="text-base sm:text-lg font-semibold mb-3 text-green-600">Resumo da Compra</h3>
+              <h3 className="text-base sm:text-lg font-semibold mb-3 text-marieth">Resumo do Pagamento</h3>
               <div className="flex justify-between mb-2">
-                <span className="text-sm sm:text-base">Subtotal:</span>
-                <span className="text-sm sm:text-base">kzs {valorSubtotal.toLocaleString()},00</span>
-              </div>
-              <div className="flex justify-between mb-2">
-                <span className="text-sm sm:text-base">Frete:</span>
-                <span className="text-sm sm:text-base">kzs {valorFrete.toLocaleString()},00</span>
+                <span className="text-sm sm:text-base">Pacote ({pacoteInfo.dias} dias):</span>
+                <span className="text-sm sm:text-base">{formatarValor(pacoteInfo.valor)}</span>
               </div>
               <div className="flex justify-between mb-2 text-vermelho">
                 <span className="text-sm sm:text-base">Taxa {metodos[metodo].nome} ({(metodos[metodo].taxa * 100).toFixed(1)}%):</span>
-                <span className="text-sm sm:text-base">-kzs {valorTaxa.toFixed(0)},00</span>
+                <span className="text-sm sm:text-base">-{formatarValor(valorTaxa)}</span>
               </div>
               <div className="flex justify-between border-t pt-3 mt-3 text-marieth font-bold text-base sm:text-lg">
                 <span>Total a Pagar:</span>
-                <span>kzs {valorBruto.toLocaleString()},00</span>
+                <span>{formatarValor(valorBruto)}</span>
               </div>
             </div>
 
@@ -368,7 +510,7 @@ export default function PagamentoPage() {
             {/* Botão Gerar Referência */}
             <button
               onClick={gerarReferencia}
-              className="w-full bg-marieth hover:bg-green-700 text-white py-2 sm:py-3 rounded-lg font-semibold transition flex items-center justify-center space-x-2"
+              className="w-full bg-marieth hover:bg-marieth text-white py-2 sm:py-3 rounded-lg font-semibold transition flex items-center justify-center space-x-2"
             >
               <span className="text-sm sm:text-base">Gerar Referência de Pagamento</span>
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -379,8 +521,8 @@ export default function PagamentoPage() {
             {/* Info */}
             <div className="mt-4 p-3 bg-green-50 rounded-lg">
               <p className="text-sm text-marieth">
-                <strong>Como funciona:</strong> Você receberá uma referência única para pagar no seu app bancário. 
-                É como pagar uma conta de luz - simples e seguro!
+                <strong>Como funciona:</strong> Após o pagamento, seu produto será destacado automaticamente 
+                na nossa plataforma por {pacoteInfo.dias} dias, aumentando sua visibilidade e vendas!
               </p>
             </div>
           </div>
@@ -392,5 +534,25 @@ export default function PagamentoPage() {
       
       <Footer />
     </main>
+  )
+}
+
+// Componente principal com Suspense
+export default function PagamentoPage() {
+  return (
+    <Suspense fallback={
+      <main className="flex flex-col min-h-screen">
+        <Navbar />
+        <div className="flex-grow flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-marieth mx-auto mb-4"></div>
+            <p className="text-gray-600">Carregando...</p>
+          </div>
+        </div>
+        <Footer />
+      </main>
+    }>
+      <PagamentoContent />
+    </Suspense>
   )
 }

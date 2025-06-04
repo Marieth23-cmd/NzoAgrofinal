@@ -32,7 +32,7 @@ type TabType =
   | 'Controle de Pedidos'
   | 'Configurações'
   | 'Notificações'
-  | 'Cadastro de Transportadora'
+  | 'Cadastrar Transportadora'
   | 'Gerenciamento de Usuarios'
   | 'Logout';
 type TabTypeWithActions = TabType | 'Logout' | 'Cadastro de Transportadora' | 'Gerenciamento de Usuarios';
@@ -364,21 +364,27 @@ const [formData, setFormData] = useState<CadastroTransportadora>({
         <div className="mb-6 flex items-center justify-center">
           <h1 className="text-marieth text-2xl font-bold">NzoAgro</h1>
         </div>
+        <div className="mb-4">
+          <input
+            type="text"
+            placeholder="Pesquisar..."
+            className="w-full p-2 border border-gray-300 rounded"
+          />
+        </div>
         <nav className="space-y-2">
-          <a href="#" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'Dashboard' ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-emerald-600'}`} onClick={e => { e.preventDefault(); handleTabChange('Dashboard'); }}><MdDashboard className="mr-3" size={20} />Dashboard</a>
-          <a href="#" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'Usuários' ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-emerald-600'}`} onClick={e => { e.preventDefault(); handleTabChange('Usuários'); }}><MdGroup className="mr-3" size={20} />Usuários</a>
-          <a href="#" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'Produtos' ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-emerald-600'}`} onClick={e => { e.preventDefault(); handleTabChange('Produtos'); }}><MdInventory className="mr-3" size={20} />Produtos</a>
-          <a href="#" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'Pedidos' ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-emerald-600'}`} onClick={e => { e.preventDefault(); handleTabChange('Pedidos'); }}><MdShoppingCart className="mr-3" size={20} />Pedidos</a>
-          <a href="#" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'Transportadoras' ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-emerald-600'}`} onClick={e => { e.preventDefault(); handleTabChange('Transportadoras'); }}><MdDeliveryDining className="mr-3" size={20} />Transportadoras</a>
-          <a href="#" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'Relatórios' ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-emerald-600'}`} onClick={e => { e.preventDefault(); handleTabChange('Relatórios'); }}><MdBarChart className="mr-3" size={20} />Relatórios</a>
-          <a href="#" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'Logística' ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-emerald-600'}`} onClick={e => { e.preventDefault(); handleTabChange('Logística'); }}><MdLocalShipping className="mr-3" size={20} />Logística</a>
-          <a href="#" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'Suporte' ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-emerald-600'}`} onClick={e => { e.preventDefault(); handleTabChange('Suporte'); }}><MdHeadset className="mr-3" size={20} />Suporte</a>
-          <a href="#" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'Controle de Pedidos' ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-emerald-600'}`} onClick={e => { e.preventDefault(); handleTabChange('Controle de Pedidos'); }}><MdAssignment className="mr-3" size={20} />Controle de Pedidos</a>
-          <a href="#" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'Configurações' ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-emerald-600'}`} onClick={e => { e.preventDefault(); handleTabChange('Configurações'); }}><MdSettings className="mr-3" size={20} />Configurações</a>
-          <a href="#" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'Notificações' ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-emerald-600'}`} onClick={e => { e.preventDefault(); handleTabChange('Notificações'); }}><MdNotifications className="mr-3" size={20} />Notificações</a>
-          <a href="#" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'Logout' ? 'bg-red-600 text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-red-600'}`} onClick={e => { e.preventDefault(); setShowLogoutModal(true); }}><MdPerson className="mr-3" size={20} />Logout</a>
-          <a href="#" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'Cadastro de Transportadora' ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-emerald-600'}`} onClick={e => { e.preventDefault(); handleTabChange('Cadastro de Transportadora'); }}><MdAdd className="mr-3" size={20} />Cadastro de Transportadora</a>
-          <a href="#" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'Gerenciamento de Usuarios' ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-emerald-600'}`} onClick={e => { e.preventDefault(); handleTabChange('Gerenciamento de Usuarios'); }}><MdEdit className="mr-3" size={20} />Gerenciamento de Usuarios</a>
+          <a href="#" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'Dashboard' ? 'bg-marieth text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-marieth'}`} onClick={e => { e.preventDefault(); handleTabChange('Dashboard'); }}><MdDashboard className="mr-3" size={20} />Dashboard</a>
+          <a href="#" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'Usuários' ? 'bg-marieth text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-marieth'}`} onClick={e => { e.preventDefault(); handleTabChange('Usuários'); }}><MdGroup className="mr-3" size={20} />Usuários</a>
+          <a href="#" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'Produtos' ? 'bg-marieth text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-marieth'}`} onClick={e => { e.preventDefault(); handleTabChange('Produtos'); }}><MdInventory className="mr-3" size={20} />Produtos</a>
+          <a href="#" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'Pedidos' ? 'bg-marieth text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-marieth'}`} onClick={e => { e.preventDefault(); handleTabChange('Pedidos'); }}><MdShoppingCart className="mr-3" size={20} />Pedidos</a>
+          <a href="#" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'Transportadoras' ? 'bg-marieth text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-marieth'}`} onClick={e => { e.preventDefault(); handleTabChange('Transportadoras'); }}><MdDeliveryDining className="mr-3" size={20} />Transportadoras</a>
+          <a href="#" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'Relatórios' ? 'bg-marieth text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-marieth'}`} onClick={e => { e.preventDefault(); handleTabChange('Relatórios'); }}><MdBarChart className="mr-3" size={20} />Relatórios</a>
+          <a href="#" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'Logística' ? 'bg-marieth text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-marieth'}`} onClick={e => { e.preventDefault(); handleTabChange('Logística'); }}><MdLocalShipping className="mr-3" size={20} />Logística</a>
+          <a href="#" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'Suporte' ? 'bg-marieth text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-marieth'}`} onClick={e => { e.preventDefault(); handleTabChange('Suporte'); }}><MdHeadset className="mr-3" size={20} />Suporte</a>
+          <a href="#" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'Controle de Pedidos' ? 'bg-marieth text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-marieth'}`} onClick={e => { e.preventDefault(); handleTabChange('Controle de Pedidos'); }}><MdAssignment className="mr-3" size={20} />Controle de Pedidos</a>
+          <a href="#" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'Configurações' ? 'bg-marieth text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-marieth'}`} onClick={e => { e.preventDefault(); handleTabChange('Configurações'); }}><MdSettings className="mr-3" size={20} />Configurações</a>
+          <a href="#" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'Notificações' ? 'bg-marieth text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-marieth'}`} onClick={e => { e.preventDefault(); handleTabChange('Notificações'); }}><MdNotifications className="mr-3" size={20} />Notificações</a>
+          <a href="#" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'Cadastrar Transportadora' ? 'bg-marieth text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-marieth'}`} onClick={e => { e.preventDefault(); handleTabChange('Cadastrar Transportadora'); }}><MdAdd className="mr-3" size={20} />Cadastrar Transportadora</a>
+          <a href="#" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'Gerenciamento de Usuarios' ? 'bg-marieth text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-marieth'}`} onClick={e => { e.preventDefault(); handleTabChange('Gerenciamento de Usuarios'); }}><MdEdit className="mr-3" size={20} />Gerenciamento de Usuarios</a>
         </nav>
       </aside>
 
@@ -493,15 +499,16 @@ const [formData, setFormData] = useState<CadastroTransportadora>({
       'Controle de Pedidos',
       'Configurações',
       'Notificações',
-      'Logout',
-      'Cadastro de Transportadora',
-      'Gerenciamento de Usuarios'
+      'Cadastrar Transportadora',
+      'Gerenciamento de Usuarios',
+      'Logout'
+      
     ] as TabType[]).map((tab) => (
       <button
         key={tab}
         className={`px-6 py-3 rounded-lg whitespace-nowrap transition-colors flex-shrink-0 ${
-          activeTab === tab 
-            ? 'bg-marieth text-white' 
+          activeTab === tab
+            ? 'bg-marieth text-white'
             : 'bg-white text-gray-600 hover:bg-gray-100'
         }`}
         onClick={() => handleTabChange(tab)}
@@ -703,7 +710,7 @@ const [formData, setFormData] = useState<CadastroTransportadora>({
         )}
 
           {/* Transportadoras Tab */}
-          {activeTab === 'Transportadoras' && (
+          {activeTab === 'Cadastrar Transportadora' && (
             <div className="bg-white rounded-lg shadow-sm mb-6">
               <div className="p-6 border-b border-gray-200 flex justify-between items-center">
                 <h2 className="text-xl font-semibold text-gray-800">Cadastro de Transportadoras</h2>
