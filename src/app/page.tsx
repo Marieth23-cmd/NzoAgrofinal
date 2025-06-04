@@ -36,8 +36,8 @@ export default function Home() {
 
   const imagens = [
     "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
-    "https://img.freepik.com/fotos-gratis/paisagem-prado-ensolarado_877658.jpg",
-    "https://img.freepik.com/fotos-premium/365-vista-panoramica-da-plantacao-de-milho-jovem-com-fundo-do-nascer-do-sol_47972246.jpg"
+    "https://img.freepik.com/fotos-gratis/paisagem-prado-ensolarado_1112-134.jpg?semt=ais_hybrid&w=740",
+    "https://medias.revistaoeste.com/wp-content/uploads/2020/07/Agro.jpg"
   ];
 
   // useEffect para troca de imagens de fundo com transição slide
@@ -46,8 +46,10 @@ export default function Home() {
     
     // Pré-carregamento das imagens para evitar delay
     const preloadImages = () => {
-      imagens.forEach(src => {
+      imagens.forEach((src, index) => {
         const img = new window.Image();
+        img.onload = () => console.log(`Imagem ${index + 1} carregada:`, src);
+        img.onerror = () => console.error(`Erro ao carregar imagem ${index + 1}:`, src);
         img.src = src;
       });
     };
@@ -67,6 +69,7 @@ export default function Home() {
     const trocarImagem = () => {
       if (refBackground.current) {
         index = (index + 1) % imagens.length;
+        console.log(`Trocando para imagem ${index + 1}:`, imagens[index]);
         
         // Criar elemento temporário para a nova imagem
         const novaImagem = document.createElement('div');
