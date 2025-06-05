@@ -41,10 +41,9 @@ body {
   color: white;
   text-align: center;
   padding: 4rem 1rem;
-  
+  width: 115.8%;
 }
 
-/* width: 115.8%; */
 
 @media (max-width: 768px) {
   .backgroundimage {

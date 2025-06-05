@@ -195,10 +195,10 @@ export default function Home() {
           {/* Conteúdo fixo sobreposto */}
           <div className="relative z-10 w-full flex justify-center items-center py-20 lg:py-32">
             <div className="w-full max-w-3xl px-4 flex flex-col items-center text-white">
-              <h1 className="-ml-[82px] lg:-ml-[130px] text-[1rem] lg:text-[2rem] font-bold text-center w-full mb-4">
+              <h1 className="-ml-[82px] lg:-ml-[130px] text-[1rem] lg:text-[2rem] font-bold text-center  mb-4">
                 Conectando o Campo à sua Mesa
               </h1>
-              <p className="-ml-[82px] lg:-ml-[130px] text-center w-full hidden lg:block mb-6">
+              <p className="-ml-[82px] lg:-ml-[130px] text-center  hidden lg:block mb-6">
                 Encontre produtos frescos direto dos produtores locais
               </p>
               <button 
