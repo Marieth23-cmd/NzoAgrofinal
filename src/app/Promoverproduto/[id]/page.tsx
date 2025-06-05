@@ -443,7 +443,7 @@ const PromoPage = () => {
                   )}
                 </ul>
 
-                {/* Botão - CORRIGIDO */}
+                
                 <button
                   onClick={() => selectPackage(pacote.dias)}
                   disabled={loading || !produtoId || loadingPacote !== null}

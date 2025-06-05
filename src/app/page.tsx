@@ -184,24 +184,30 @@ export default function Home() {
       <Navbar />
       
       <div>
-        {/* Seção Hero com troca de imagens */}
-        <div 
-          ref={refBackground}
-          className="backgroundimage w-full flex justify-center items-center mt-[20%] sm:mt-[5%] md:mt-[10%] lg:mt-[15%]"
-        >
-          <div className="w-full max-w-3xl px-4 flex flex-col items-center">
-            <h1 className="-ml-[82.4px] lg:-ml-[130px] text-[1.4rem] lg:text-[2rem] font-bold text-center w-full">
-              Conectando o Campo à sua Mesa
-            </h1>
-            <p className="-ml-[82.4px] lg:-ml-[130px] text-center w-full hidden lg:block">
-              Encontre produtos frescos direto dos produtores locais
-            </p>
-            <button 
-              onClick={redirecionamento} 
-              className="-ml-[82.4px] lg:-ml-[130px] mt-1 bg-marieth text-white py-2 px-4 lg:mt-2 lg:py-4 lg:px-8 text-[1.1rem] border-none rounded-[5px] cursor-pointers hover:bg-verdeaceso transition-colors duration-150"
-            >
-              Começar a Comprar
-            </button>
+        {/* Seção Hero com imagem de fundo e conteúdo fixo */}
+        <div className="relative w-full mt-[20%] sm:mt-[5%] md:mt-[10%] lg:mt-[15%]">
+          {/* Container das imagens de fundo */}
+          <div 
+            ref={refBackground}
+            className="backgroundimage w-full h-full absolute inset-0"
+          />
+          
+          {/* Conteúdo fixo sobreposto */}
+          <div className="relative z-10 w-full flex justify-center items-center py-20 lg:py-32">
+            <div className="w-full max-w-3xl px-4 flex flex-col items-center text-white">
+              <h1 className="-ml-[82px] lg:-ml-[130px] text-[1rem] lg:text-[2rem] font-bold text-center w-full mb-4">
+                Conectando o Campo à sua Mesa
+              </h1>
+              <p className="-ml-[82px] lg:-ml-[130px] text-center w-full hidden lg:block mb-6">
+                Encontre produtos frescos direto dos produtores locais
+              </p>
+              <button 
+                onClick={redirecionamento} 
+                className="-ml-[82px] lg:-ml-[130px] bg-marieth text-white py-2 px-4 lg:py-4 lg:px-8 text-[1.1rem] border-none rounded-[5px] cursor-pointer hover:bg-verdeaceso transition-colors duration-150 font-medium"
+              >
+                Começar a Comprar
+              </button>
+            </div>
           </div>
         </div>
         
