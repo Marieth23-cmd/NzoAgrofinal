@@ -638,3 +638,5 @@ function PagamentoContent() {
                 </main>
               )
             }
+
+            export default PagamentoContent
