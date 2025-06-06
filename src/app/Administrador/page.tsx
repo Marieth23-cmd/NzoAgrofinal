@@ -16,6 +16,8 @@ import { getPedidos } from '../Services/pedidos';
 import {cadastrarTransportadora} from '../Services/transportadora';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { FaSearch, FaSpinner } from 'react-icons/fa';
+import {listarNotificacoes} from '../Services/notificacoes';
 
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, ArcElement);
@@ -249,6 +251,85 @@ const [formData, setFormData] = useState<CadastroTransportadora>({
 
 
 
+interface ItemPedido {
+  id_produto: number;
+  quantidade_comprada: number;
+  preco: number;
+  subtotal: number;
+}
+
+interface Pedido {
+  id_pedido: number;
+  estado: string;
+  valor_total: number;
+  data_pedido: string;
+  nome_usuario: string;
+  itens: ItemPedido[];
+}
+
+// Adicione este componente dentro do seu componente principal
+const GestãoPedidos: React.FC = () => {
+  const [pedidos, setPedidos] = useState<Pedido[]>([]);
+  const [carregandoPedidos, setCarregandoPedidos] = useState(true);
+  const [erro, setErro] = useState<string>('');
+  const [termoBusca, setTermoBusca] = useState('');
+
+  // Função para carregar pedidos
+  const carregarPedidos = async () => {
+    try {
+      setCarregandoPedidos(true);
+      setErro('');
+      const dadosPedidos = await getPedidos();
+      setPedidos(dadosPedidos || []);
+    } catch (error: any) {
+      console.error('Erro ao carregar pedidos:', error);
+      setErro(error?.mensagem || 'Erro ao carregar pedidos');
+    } finally {
+      setCarregandoPedidos(false);
+    }
+  };
+
+  // Carregar pedidos ao montar o componente
+  useEffect(() => {
+    carregarPedidos();
+  }, []);
+
+  // Função para formatar data
+  const formatarData = (data: string) => {
+    return new Date(data).toLocaleDateString('pt-BR');
+  };
+
+  // Função para formatar valor
+  const formatarValor = (valor: number) => {
+    return `AOA ${Number(valor).toLocaleString()}`;
+  };
+
+  // Função para definir cor do status
+  const getStatusColor = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case 'pendente':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'processando':
+      case 'em trânsito':
+        return 'bg-blue-100 text-blue-800';
+      case 'entregue':
+        return 'bg-green-100 text-green-800';
+      case 'cancelado':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  // Filtrar pedidos por termo de busca
+  const pedidosFiltrados = pedidos.filter(pedido =>
+    pedido.id_pedido.toString().includes(termoBusca) ||
+    pedido.nome_usuario?.toLowerCase().includes(termoBusca.toLowerCase()) ||
+    pedido.estado?.toLowerCase().includes(termoBusca.toLowerCase())
+  );
+
+
+
 
 
   const getNotificationIcon = (type: NotificationType) => {
@@ -348,6 +429,12 @@ const [formData, setFormData] = useState<CadastroTransportadora>({
     },
   };
 
+
+
+
+
+  
+
   return (
     <div className="min-h-screen bg-gray-50">
       <ToastContainer position="top-right" autoClose={4000} />
@@ -400,6 +487,8 @@ const [formData, setFormData] = useState<CadastroTransportadora>({
             />
           </div>
         </div>
+
+        
         <div className="flex items-center space-x-4 relative">
           <div className="relative">
             <MdNotifications className="text-gray-600 cursor-pointer" size={24} onClick={() => setNotificationsOpen(!notificationsOpen)} />
@@ -762,92 +851,158 @@ const [formData, setFormData] = useState<CadastroTransportadora>({
           )}
 
 
-
-  
-          {/* Pedidos Tab */}
           {activeTab === 'Pedidos' && (
-            <div className="bg-white rounded-lg shadow-sm mb-6">
-              <div className="p-6 border-b border-gray-200 flex justify-between items-center">
-                <h2 className="text-xl font-semibold text-gray-800">Gestão de Pedidos</h2>
-                <div className="relative">
-                  <input 
-                    type="search" 
-                    placeholder="Buscar pedidos..." 
-                    className="px-4 py-2 border border-gray-300 rounded-md w-80 focus:outline-none focus:ring-2 focus:ring-marieth focus:border-transparent" 
-                  />
-                </div>
-              </div>
-              
-              <div className="p-6">
+  <div className="bg-white rounded-lg shadow-sm mb-6">
+    <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+      <h2 className="text-xl font-semibold text-gray-800">Gestão de Pedidos</h2>
+      <div className="relative">
+        <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+        <input 
+          type="search" 
+          placeholder="Buscar pedidos..." 
+          value={termoBusca}
+          onChange={(e) => setTermoBusca(e.target.value)}
+          className="pl-10 pr-4 py-2 border border-gray-300 rounded-md w-80 focus:outline-none focus:ring-2 focus:ring-marieth focus:border-transparent" 
+        />
+      </div>
+    </div>
+    
+    <div className="p-6">
+      {carregandoPedidos ? (
+        <div className="text-center py-12">
+          <FaSpinner className="animate-spin mx-auto h-8 w-8 text-marieth mb-4" />
+          <p className="text-gray-600">Carregando pedidos...</p>
+        </div>
+      ) : erro ? (
+        <div className="text-center py-12">
+          <FaBox className="mx-auto h-16 w-16 text-red-400 mb-4" />
+          <p className="text-red-600 mb-4">{erro}</p>
+          <button
+            onClick={carregarPedidos}
+            className="px-4 py-2 bg-marieth text-white rounded-md hover:bg-green-700 transition-colors"
+          >
+            Tentar novamente
+          </button>
+        </div>
+      ) : pedidos.length === 0 ? (
+        <div className="text-center py-12">
+          <FaBox className="mx-auto h-16 w-16 text-gray-400 mb-4" />
+          <h3 className="text-lg font-semibold text-gray-700 mb-2">Nenhum pedido encontrado</h3>
+          <p className="text-gray-600 mb-4">
+            Ainda não há pedidos na plataforma ou nenhum pedido corresponde à sua busca.
+          </p>
+          <button
+            onClick={carregarPedidos}
+            className="px-4 py-2 bg-marieth text-white rounded-md hover:bg-green-700 transition-colors"
+          >
+            Atualizar lista
+          </button>
+        </div>
+      ) : (
+        <>
+          {/* Estatísticas rápidas */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <h4 className="text-sm font-medium text-blue-600">Total de Pedidos</h4>
+              <p className="text-2xl font-bold text-blue-900">{pedidos.length}</p>
+            </div>
+            <div className="bg-yellow-50 p-4 rounded-lg">
+              <h4 className="text-sm font-medium text-yellow-600">Pendentes</h4>
+              <p className="text-2xl font-bold text-yellow-900">
+                {pedidos.filter(p => p.estado?.toLowerCase() === 'pendente').length}
+              </p>
+            </div>
+            <div className="bg-green-50 p-4 rounded-lg">
+              <h4 className="text-sm font-medium text-green-600">Entregues</h4>
+              <p className="text-2xl font-bold text-green-900">
+                {pedidos.filter(p => p.estado?.toLowerCase() === 'entregue').length}
+              </p>
+            </div>
+            <div className="bg-red-50 p-4 rounded-lg">
+              <h4 className="text-sm font-medium text-red-600">Cancelados</h4>
+              <p className="text-2xl font-bold text-red-900">
+                {pedidos.filter(p => p.estado?.toLowerCase() === 'cancelado').length}
+              </p>
+            </div>
+          </div>
 
-                <div className="overflow-x-auto">
-                  <table className="w-full border-collapse">
-                    <thead>
-                      <tr>
-                        <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">ID</th>
-                        <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Cliente</th>
-                        <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Data</th>
-                        <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Valor</th>
-                        <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Status</th>
-                        <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Ações</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td className="p-4 border-b border-gray-200">#12345</td>
-                        <td className="p-4 border-b border-gray-200">Ana Maria</td>
-                        <td className="p-4 border-b border-gray-200">2023-08-17</td>
-                        <td className="p-4 border-b border-gray-200">AOA 5,400</td>
-                        <td className="p-4 border-b border-gray-200">
-                          <span className="inline-block px-4 py-2 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
-                            Pendente
-                          </span>
-                        </td>
-                        <td className="p-4 border-b border-gray-200">
-                          <button className="px-4 py-2 bg-marieth text-white rounded-md hover:bg-green-700 transition-colors font-medium">
-                            Detalhes
-                          </button>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td className="p-4 border-b border-gray-200">#12344</td>
-                        <td className="p-4 border-b border-gray-200">Roberto Carlos</td>
-                        <td className="p-4 border-b border-gray-200">2023-08-17</td>
-                        <td className="p-4 border-b border-gray-200">AOA 2,850</td>
-                        <td className="p-4 border-b border-gray-200">
-                          <span className="inline-block px-4 py-2 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                            Processando
-                          </span>
-                        </td>
-                        <td className="p-4 border-b border-gray-200">
-                          <button className="px-4 py-2 bg-marieth text-white rounded-md hover:bg-green-700 transition-colors font-medium">
-                            Detalhes
-                          </button>
-                        </td>
-                      </tr>
-                      
-                      <tr>
-                        <td className="p-4 border-b border-gray-200">#12342</td>
-                        <td className="p-4 border-b border-gray-200">Fernando Mendes</td>
-                        <td className="p-4 border-b border-gray-200">2023-08-16</td>
-                        <td className="p-4 border-b border-gray-200">AOA 3,100</td>
-                        <td className="p-4 border-b border-gray-200">
-                          <span className="inline-block px-4 py-2 rounded-full text-sm font-medium bg-red-100 text-red-800">
-                            Cancelado
-                          </span>
-                        </td>
-                        <td className="p-4 border-b border-gray-200">
-                          <button className="px-4 py-2 bg-marieth text-white rounded-md hover:bg-green-700 transition-colors font-medium">
-                            Detalhes
-                          </button>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+          {/* Resultados da busca */}
+          {termoBusca && (
+            <div className="mb-4">
+              <p className="text-sm text-gray-600">
+                {pedidosFiltrados.length} pedido(s) encontrado(s) para "{termoBusca}"
+                {pedidosFiltrados.length === 0 && (
+                  <span className="block mt-1 text-gray-500">
+                    Tente buscar por ID do pedido, nome do cliente ou status
+                  </span>
+                )}
+              </p>
             </div>
           )}
+
+          {/* Tabela de pedidos */}
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr>
+                  <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">ID</th>
+                  <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Cliente</th>
+                  <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Data</th>
+                  <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Valor</th>
+                  <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Status</th>
+                  <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pedidosFiltrados.map((pedido) => (
+                  <tr key={pedido.id_pedido} className="hover:bg-gray-50">
+                    <td className="p-4 border-b border-gray-200">#{pedido.id_pedido}</td>
+                    <td className="p-4 border-b border-gray-200">
+                      <div>
+                        <p className="font-medium text-gray-900">
+                          {pedido.nome_usuario || 'Nome não disponível'}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          {pedido.itens.length} item(s) no pedido
+                        </p>
+                      </div>
+                    </td>
+                    <td className="p-4 border-b border-gray-200">
+                      {formatarData(pedido.data_pedido)}
+                    </td>
+                    <td className="p-4 border-b border-gray-200 font-medium">
+                      {formatarValor(pedido.valor_total)}
+                    </td>
+                    <td className="p-4 border-b border-gray-200">
+                      <span className={`inline-block px-4 py-2 rounded-full text-sm font-medium ${getStatusColor(pedido.estado)}`}>
+                        {pedido.estado || 'Status não definido'}
+                      </span>
+                    </td>
+                    <td className="p-4 border-b border-gray-200">
+                      <button 
+                        className="px-4 py-2 bg-marieth text-white rounded-md hover:bg-green-700 transition-colors font-medium mr-2"
+                        onClick={() => {
+                          console.log('Ver detalhes do pedido:', pedido);
+                        }}
+                      >
+                        Detalhes
+                      </button>
+                      <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
+                        {pedido.itens.length} itens
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
+    </div>
+  </div>
+)}
+
+  
 
           {/* Relatórios Tab (Exemplo) */}
           {activeTab === 'Relatórios' && (
@@ -984,6 +1139,9 @@ const [formData, setFormData] = useState<CadastroTransportadora>({
               </div>
             </div>
           )}
+
+
+          
 
           {/* Suporte Tab */}
           {activeTab === 'Suporte' && (
@@ -1382,4 +1540,5 @@ const [formData, setFormData] = useState<CadastroTransportadora>({
       </main>
     </div>
   );
+}
 }

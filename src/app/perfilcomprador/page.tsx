@@ -15,7 +15,12 @@ import { atualizarUsuario } from "../Services/user";
 import Image from "next/image";
 import { getUsuarioById } from "../Services/user";
 import { verificarAuth , logout} from "../Services/auth";
-import { getPedidosUsuario } from "../Services/pedidos"; // Importe a função para buscar pedidos
+import { getPedidosUsuario } from "../Services/pedidos"; 
+ import { FaCheck, FaBox } from 'react-icons/fa';
+ import {confirmarEntrega} from "../Services/pagamentos";
+import { toast ,ToastContainer } from "react-toastify";
+import 'react-toastify/dist/ReactToastify.css';
+ 
 
 export default function PerfilComprador() {
   const boxref = useRef<HTMLDivElement>(null);
@@ -123,10 +128,10 @@ export default function PerfilComprador() {
 
       try {
         await atualizarUsuario(formData);
-        alert("Foto atualizada com sucesso");
+        toast.success("Foto atualizada com sucesso");
       } catch (error) {
         console.log("Erro ao atualizar imagem", error);
-        alert("Erro ao atualizar foto. Tente de novo mais tarde.");
+        toast.error("Erro ao atualizar foto. Tente de novo mais tarde.");
       }
     }
   };
@@ -138,10 +143,11 @@ export default function PerfilComprador() {
 
     try {
       await atualizarUsuario(formData);
-      alert("Imagem removida com sucesso!");
+      toast.success("Imagem removida com sucesso!");
       setIsOpen(false);
     } catch (error) {
       console.log("Erro ao remover imagem", error);
+      toast.error("Erro ao remover imagem. Tente novamente mais tarde.");
     }
   };
 
@@ -186,6 +192,44 @@ export default function PerfilComprador() {
       }
     };
     
+
+type Pedido = {
+  id_pedido: number;
+  transacao_id?: number;
+  estado?: string;
+  entrega_confirmada?: boolean;
+  valor_total?: number;
+  data_pedido?: string;
+};
+
+const confirmarEntregaPedido = async (pedido: Pedido) => {
+  try {
+    // Chama sua função de API existente
+    await confirmarEntrega(
+      String(pedido.transacao_id || pedido.id_pedido), // convert to string
+      usuario.id, 
+      'manual'
+    );
+    
+    // Atualiza o estado local após sucesso da API
+    setPedidos(prevPedidos => 
+      prevPedidos.map(p => 
+        p.id_pedido === pedido.id_pedido 
+          ? { ...p, estado: 'Entregue', entrega_confirmada: true }
+          : p
+      )
+    );
+
+    toast.success('Entrega confirmada com sucesso!');
+  } catch (error: any) {
+    console.error('Erro ao confirmar entrega:', error);
+    toast.error(error?.message || 'Erro ao confirmar entrega. Tente novamente.');
+  }
+};
+
+
+
+
   
   return (
     <div>
@@ -193,6 +237,7 @@ export default function PerfilComprador() {
         <title>Perfil Comprador</title>
       </Head>
       <Navbar />
+      <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} closeOnClick pauseOnHover draggable pauseOnFocusLoss />
       <div className="shadow-custom flex flex-col mb-20 gap-2 mt-[36%] lg:mt-[15%] max-w-[1200px] justify-center items-center">
         <main className="my-8 max-w-[80rem] w-full flex flex-col gap-8">
           <div className="lg:flex shadow-custom border-[0.7px] rounded-[10px] p-8 bg-white gap-8">
@@ -288,53 +333,82 @@ export default function PerfilComprador() {
             </div>
           </div>
 
-          <div className="w-full max-w-[72rem] mt-4 p-4 md:p-8 bg-white">
-            <h2 className="mb-4 md:mb-6 text-profile font-semibold text-xl md:text-2xl">Histórico de Compras</h2>
+
+                    <div>
+  <h2 className="text-2xl font-bold mb-6 text-center">Histórico de Compras</h2>
+  {carregandoPedidos ? (
+    <div className="text-center py-8">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-marieth mx-auto mb-4"></div>
+      Carregando histórico de pedidos...
+    </div>
+  ) : pedidos.length === 0 ? (
+    <div className="text-center py-8">
+      <FaBox className="mx-auto h-16 w-16 text-gray-400 mb-4" />
+      <p className="text-gray-600 mb-4">Você ainda não realizou nenhuma compra.</p>
+      <button
+        onClick={() => router.push('/TodosProdutos')}
+        className="mt-4 bg-marieth text-white py-2 px-4 rounded-md hover:bg-verdeaceso transition-colors"
+      >
+        Explorar produtos
+      </button>
+    </div>
+  ) : (
+    <div className="space-y-4">
+      {pedidos.map((pedido) => (
+        <div key={pedido.id_pedido} className="bg-white rounded-lg shadow-md p-6 border">
+          <div className="flex justify-between items-start mb-4">
+            <div>
+              <p className="text-sm text-gray-500 mb-1">
+                {formatarData(pedido.data_pedido)}
+              </p>
+              <h3 className="text-lg font-semibold mb-2">
+                Pedido #{pedido.id_pedido}
+              </h3>
+            </div>
             
-            {carregandoPedidos ? (
-              <div className="text-center p-4">Carregando histórico de pedidos...</div>
-            ) : pedidos.length === 0 ? (
-              <div className="text-center p-8 bg-list rounded-[0.625rem]">
-                <p className="text-lg text-gray-600">Você ainda não realizou nenhuma compra.</p>
-                <button 
-                  onClick={() => router.push('/TodosProdutos')} 
-                  className="mt-4 bg-marieth text-white py-2 px-4 rounded-md hover:bg-verdeaceso transition-colors"
+            {/* Área de confirmação de entrega */}
+            <div className="flex items-center gap-3">
+              <div className="text-right">
+                <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
+                  pedido.estado === 'Entregue' || pedido.entrega_confirmada
+                    ? 'bg-green-100 text-green-800'
+                    : pedido.estado === 'Em trânsito'
+                    ? 'bg-yellow-100 text-yellow-800'
+                    : 'bg-blue-100 text-blue-800'
+                }`}>
+                  {pedido.entrega_confirmada ? 'Entrega Confirmada' : pedido.estado}
+                </span>
+                <p className="text-lg font-bold text-gray-900 mt-1">
+                  kzs {Number(pedido.valor_total).toLocaleString()}
+                </p>
+              </div>
+              
+              {/* Botão de confirmação de entrega */}
+              {pedido.estado === 'Em trânsito' && !pedido.entrega_confirmada && (
+                <button
+                  onClick={() => confirmarEntregaPedido(pedido)}
+                  className="flex items-center justify-center w-10 h-10 bg-green-500 hover:bg-green-600 text-white rounded-full transition-colors duration-200 shadow-lg hover:shadow-xl"
+                  title="Confirmar entrega"
                 >
-                  Explorar produtos
+                  <FaCheck size={20} />
                 </button>
-              </div>
-            ) : (
-              <div className="grid gap-4">
-                {pedidos.map((pedido) => (
-                  <div key={pedido.id_pedido} className="rounded-[0.625rem] p-4 md:p-6 bg-list">
-                    <div className="flex flex-col md:flex-row md:gap-8">
-                      <div className="font-medium text-cortime mb-2 md:mb-0 md:flex-[0_0_100px]">
-                        {formatarData(pedido.data_pedido)}
-                      </div>
-                      
-                      <div className="flex-1">
-                        <h3 className="text-lg md:text-[1.17rem] m-0 mb-2">Pedido #{pedido.id_pedido}</h3>
-                        
-                        <div className="flex flex-wrap items-center justify-between">
-                          <div className={`text-white ${
-                            pedido.estado === "Entregue" ? "bg-marieth" : 
-                            pedido.estado === "Pendente" ? "bg-yellow-500" : 
-                            pedido.estado === "Cancelado" ? "bg-red-500" : 
-                            "bg-gray-500"
-                          } text-center font-medium rounded-[5px] p-1 w-24 text-sm`}>
-                            {pedido.estado}
-                          </div>
-                          <div className="font-semibold text-profile text-base md:text-lg mt-2 md:mt-0">
-                            kzs {Number(pedido.valor_total).toLocaleString()}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+              )}
+              
+              {/* Ícone de confirmado */}
+              {(pedido.estado === 'Entregue' || pedido.entrega_confirmada) && (
+                <div className="flex items-center justify-center w-10 h-10 bg-green-500 text-white rounded-full shadow-lg">
+                  <FaCheck size={20} />
+                </div>
+              )}
+            </div>
           </div>
+        </div>
+      ))}
+    </div>
+  )}
+</div>
+
+
         </main>
       </div>
       <Footer />
