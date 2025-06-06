@@ -181,7 +181,9 @@ export default function Home() {
 
   return (
     <div className="flex flex-col min-h-screen overflow-x-hidden">
-      <Navbar />
+      <div className="sticky top-0 z-[100]">
+        <Navbar />
+      </div>
       
       <div>
         {/* Seção Hero com troca de imagens */}
@@ -189,7 +191,7 @@ export default function Home() {
           {/* Container só para as imagens de fundo */}
           <div 
             ref={refBackground}
-            className="backgroundimage w-full h-[400px] sm:h-[500px] lg:h-[600px] flex justify-center items-center"
+            className="backgroundimage w-full  h-[280px] sm:h-[320px] lg:h-[380px] flex justify-center items-center"
           />
           
           {/* Conteúdo fixo sobreposto - posição absoluta para não ser afetado pelas transições */}
