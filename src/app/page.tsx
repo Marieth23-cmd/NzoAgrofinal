@@ -181,9 +181,9 @@ export default function Home() {
 
   return (
     <div className="flex flex-col min-h-screen overflow-x-hidden">
-      <div className="sticky top-0 z-[100]">
+      
         <Navbar />
-      </div>
+      
       
       <div>
         {/* Seção Hero com troca de imagens */}
