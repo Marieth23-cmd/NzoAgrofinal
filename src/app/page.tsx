@@ -186,25 +186,25 @@ export default function Home() {
       <div>
         {/* Seção Hero com troca de imagens */}
         <div className="relative w-full mt-[20%] sm:mt-[5%] md:mt-[10%] lg:mt-[15%]">
-          
+          {/* Container só para as imagens de fundo */}
           <div 
             ref={refBackground}
-            className="backgroundimage w-full flex justify-center items-center"
+            className="backgroundimage w-full h-[400px] sm:h-[500px] lg:h-[600px] flex justify-center items-center"
           />
           
           {/* Conteúdo fixo sobreposto - posição absoluta para não ser afetado pelas transições */}
           <div className="absolute inset-0 w-full flex justify-center items-center z-10">
-            <div className="w-full max-w-3xl px-4 flex flex-col items-center">
-              <h1 className="-ml-[82px] lg:-ml-[130px] text-[1.4rem] lg:text-[2rem] font-bold text-center w-full">
+            <div className="w-full max-w-3xl px-4 flex flex-col items-center text-white">
+              <h1 className="  text-[1.4rem] lg:text-[2rem] font-bold text-center w-full">
                 Conectando o Campo à sua Mesa
               </h1>
-              <p className="-ml-[82px] lg:-ml-[130px] text-center w-full hidden lg:block">
+              <p className=" text-center w-full hidden lg:block">
                 Encontre produtos frescos direto dos produtores locais
               </p>
               <button 
                 onClick={redirecionamento} 
-                className="-ml-[82x] lg:-ml-[130px] mt-1 bg-marieth text-white py-2 px-4 lg:mt-2 lg:py-4 lg:px-8 text-[1.1rem] border-none rounded-[5px] cursor-pointers hover:bg-verdeaceso transition-colors duration-150"
-              >
+                className="mt-1 bg-marieth text-white py-2 px-4 lg:mt-2 lg:py-4 lg:px-8 text-[1.1rem] border-none rounded-[5px] cursor-pointers hover:bg-verdeaceso transition-colors duration-150"
+              >sss
                 Começar a Comprar
               </button>
             </div>
