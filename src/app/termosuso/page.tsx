@@ -76,7 +76,7 @@ export default function Politica(){
            
                 <h3 className=" text-[1.5rem] mb-4  font-bold text-marieth">8. Contato</h3>
                 <p className="text-profile mb-4"> Para dúvidas, suporte ou denúncias, entre em contato pelo e-mail 
-                 <span className="text-blue-500"> [nzoagroorg@gmail.com]</span>
+          <a className="text-white cursor-pointer "  href="mailto:nzoagro@gmail.com"><span className="text-marieth">nzoagro@gmail.com</span></a>
                 </p>
                 
 

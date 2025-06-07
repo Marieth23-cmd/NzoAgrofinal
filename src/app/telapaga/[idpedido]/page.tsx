@@ -192,6 +192,7 @@ export default function PagamentoPage() {
     setStatus('referencia_gerada')
   }
 
+  //copiar referencia
   const copiarReferencia = async () => {
     await navigator.clipboard.writeText(referenciaPagamento)
     setCopiado(true)
@@ -204,6 +205,7 @@ export default function PagamentoPage() {
     setMensagemErro('')
   }
 
+  
   const processarPagamento = (e: FormEvent) => {
     e.preventDefault()
     setStatus('processando')

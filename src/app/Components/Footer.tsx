@@ -28,8 +28,8 @@ import Link from "next/link"
       <div >
         <h3 className="mb-4 text-verdeaceso text-[1.17rem] font-bold">Contato</h3>
         <ul>
-          <li> <a className="text-white cursor-pointer "  href="mailto:nzoagro@gmail.com">Email:<span className="text-blue-500"> [nzoagroorg@gmail.com]</span> </a></li>
-          <li> <a href="https://wa.me/937-828-846">Whatsapp :(244)937-828-846 </a></li>
+          <li> <a className="text-white cursor-pointer "  href="mailto:nzoagro@gmail.com">Email:<span className="text-marieth"> nzoagro@gmail.com</span> </a></li>
+          <li> <a href="https://wa.me/937-828-846"><span className="text-marieth"> Whatsapp :(244)937-828-846 </span></a></li>
           <li>Endereço: Luanda, Talatona , Bairro Sapú</li>
         </ul>
        
