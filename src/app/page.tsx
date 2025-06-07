@@ -191,7 +191,7 @@ export default function Home() {
           {/* Container só para as imagens de fundo */}
           <div 
             ref={refBackground}
-            className="backgroundimage w-full  h-[310px] sm:h-[320px] lg:h-[380px] flex justify-center items-center"
+            className="backgroundimage w-full  h-[310px] sm:h-[320px] lg:h-[360px] flex justify-center items-center"
           />
           
           {/* Conteúdo fixo sobreposto - posição absoluta para não ser afetado pelas transições */}
