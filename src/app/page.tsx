@@ -191,7 +191,7 @@ export default function Home() {
           {/* Container só para as imagens de fundo */}
           <div 
             ref={refBackground}
-            className="backgroundimage w-full  h-[320px] sm:h-[320px] lg:h-[380px] flex justify-center items-center"
+            className="backgroundimage w-full  h-[310px] sm:h-[320px] lg:h-[380px] flex justify-center items-center"
           />
           
           {/* Conteúdo fixo sobreposto - posição absoluta para não ser afetado pelas transições */}
@@ -206,7 +206,7 @@ export default function Home() {
               <button 
                 onClick={redirecionamento} 
                 className="mt-1 bg-marieth text-white py-2 px-4 lg:mt-2 lg:py-4 lg:px-8 text-[1.1rem] border-none rounded-[5px] cursor-pointers hover:bg-verdeaceso transition-colors duration-150"
-              >sss
+              >
                 Começar a Comprar
               </button>
             </div>

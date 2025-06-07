@@ -440,7 +440,7 @@ export default function CadastroFornecedor() {
                                             id="bairro" 
                                             name="bairro"
                                             className={`p-3 border-solid border-[1px] ${erros.bairro ? 'border-red-500' : 'hover:border-marieth border-tab'} w-[100%] text-base rounded-[5px]`}
-                                            required 
+                                            
                                             value={formData.bairro}
                                             placeholder="Ex.:Calemba2" 
                                             onChange={handleInputChange}

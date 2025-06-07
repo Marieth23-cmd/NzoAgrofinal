@@ -348,8 +348,7 @@ export default function CadastroFornecedor() {
                                         <label htmlFor="descricao" className="mb-2 font-medium block text-profile">Descreve as Principais culturas</label>
                                         <textarea 
                                             id="descricao" 
-                                            name="descricao"
-                                            required
+                                            name="descrica"
                                             value={formData.descricao}
                                             maxLength={255}
                                             className={`p-3 border-solid border-[1px] resize-y ${erros.descricao ? 'border-red-500' : 'hover:border-marieth border-tab'} min-h-[80px] w-[100%] text-base rounded-[5px]`}

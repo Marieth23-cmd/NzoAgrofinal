@@ -299,7 +299,6 @@ export default function CadastroComprador() {
                                 <textarea 
                                     id="descricao" 
                                     name="descricao"
-                                    required
                                     value={formData.descricao}
                                     maxLength={255}
                                     className={`p-3 border-solid border-[1px] resize-y ${erros.descricao ? 'border-red-500' : 'hover:border-marieth border-tab'} min-h-[80px] w-[100%] text-base rounded-[5px]`}
