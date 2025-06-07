@@ -187,11 +187,11 @@ export default function Home() {
       
       <div>
         {/* Seção Hero com troca de imagens */}
-        <div className="relative w-full mt-[20%] sm:mt-[5%] md:mt-[10%] lg:mt-[15%]">
+        <div className="relative w-full mt-[30%] sm:mt-[5%] md:mt-[15%] lg:mt-[15%]">
           {/* Container só para as imagens de fundo */}
           <div 
             ref={refBackground}
-            className="backgroundimage w-full  h-[280px] sm:h-[320px] lg:h-[380px] flex justify-center items-center"
+            className="backgroundimage w-full  h-[320px] sm:h-[320px] lg:h-[380px] flex justify-center items-center"
           />
           
           {/* Conteúdo fixo sobreposto - posição absoluta para não ser afetado pelas transições */}
@@ -226,7 +226,7 @@ export default function Home() {
                   </Link>
                 </h3>
               </div>
-              <div className="flex items-center justify-center bg-white p-4 sm:p-6 rounded-[10px] lg:hover:shadow-xl text-center cursor-pointer shadow-custom lg:hover:translate-y-2">
+              <div className="flex items-center justify-center bg-white p-4 sm:p-6 rounded-[10px] lg:hover:shadow-xl text-center cursor-pointer shadow-custom transition-transform  lg:hover-scale-150 duration-300">
                 <h3 className="font-medium text-[1rem] sm:text-[18.72px] mb-[0.5rem]">
                   <Link href="./categoriaverdura">
                     <GiCabbage className="mb-4 ml-2 sm:ml-4 text-marieth text-[2rem] sm:text-[2.5rem]" />
@@ -234,7 +234,7 @@ export default function Home() {
                   </Link>
                 </h3>
               </div>
-              <div className="flex justify-center items-center bg-white p-4 sm:p-6 rounded-[10px] lg:hover:shadow-xl text-center cursor-pointer shadow-custom lg:hover:translate-y-2">
+              <div className="flex justify-center items-center bg-white p-4 sm:p-6 rounded-[10px] lg:hover:shadow-xl text-center cursor-pointer shadow-custom transition-transform  lg:hover-scale-150 duration-300">
                 <h3 className="font-medium text-[1rem] sm:text-[18.72px] mb-[0.5rem]">
                   <Link href="./categoriainsumo">
                     <FaSeedling className="mb-4 ml-4 sm:ml-11 text-marieth text-[2rem] sm:text-[2.5rem]" /> 
@@ -242,7 +242,7 @@ export default function Home() {
                   </Link>
                 </h3>
               </div>
-              <div className="flex items-center justify-center bg-white p-4 sm:p-6 rounded-[10px] lg:hover:shadow-xl text-center cursor-pointer shadow-custom lg:hover:translate-y-2">
+              <div className="flex items-center justify-center bg-white p-4 sm:p-6 rounded-[10px] lg:hover:shadow-xl text-center cursor-pointer shadow-custom transition-transform  lg:hover-scale-150 duration-300">
                 <h3 className="font-medium text-[1rem] sm:text-[18.72px] mb-[0.5rem]">
                   <Link href="./categoriagrao">
                     <LuWheat className="mb-4 ml-2 sm:ml-4 text-marieth text-[2rem] sm:text-[2.5rem]" /> 
@@ -250,7 +250,7 @@ export default function Home() {
                   </Link>
                 </h3>
               </div>
-              <div className="flex items-center justify-center bg-white p-4 sm:p-6 rounded-[10px] lg:hover:shadow-xl text-center cursor-pointer shadow-custom lg:hover:translate-y-2">
+              <div className="flex items-center justify-center bg-white p-4 sm:p-6 rounded-[10px] lg:hover:shadow-xl text-center cursor-pointer shadow-custom transition-transform  lg:hover-scale-150 duration-300">
                 <h3 className="font-medium text-[1rem] sm:text-[18.72px] mb-[0.5rem]">
                   <Link href="./categoriatuberraiz">
                     <FaCarrot className="text-marieth mb-4 text-[2rem] sm:text-[2.5rem] ml-4 sm:ml-10" /> 

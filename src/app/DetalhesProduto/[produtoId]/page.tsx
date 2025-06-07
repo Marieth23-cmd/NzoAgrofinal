@@ -13,7 +13,7 @@ import Navbar from "../../Components/Navbar";
 import { getProdutoById } from "../../Services/produtos";
 import { verificarAuth } from "../../Services/auth";
 import { buscarMediaEstrelas, enviarAvaliacao } from "../../Services/avaliacoes";
-import { adicionarProdutoAoCarrinho } from '@/app/Services/cart';
+import { adicionarProdutoAoCarrinho , listarProdutosDoCarrinho } from '@/app/Services/cart';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -25,7 +25,7 @@ export default function DetalhesProduto(){
   const [showcaixa, setshowcaixa] = useState(false);
   const [autenticado, setAutenticado] = useState(false);
   const [mensagemSucesso, setMensagemSucesso] = useState<string | null>(null);
-  const [quantidadeSelecionada, setQuantidadeSelecionada] = useState<number>(1); // Inicializa com 1, mas será atualizado!
+  const [quantidadeSelecionada, setQuantidadeSelecionada] = useState<number>(1);
   const [unidadeSelecionada, setUnidadeSelecionada] = useState<string>("");
 
   // Avaliações
@@ -41,6 +41,10 @@ export default function DetalhesProduto(){
   const [carregandoAvaliacoes, setCarregandoAvaliacoes] = useState<boolean>(true);
   const [erro, setErro] = useState<string | null>(null);
 
+  // Estados do carrinho
+  const [produtosNoCarrinho, setProdutosNoCarrinho] = useState<number[]>([]);
+  const [carregandoCarrinho, setCarregandoCarrinho] = useState(false);
+
   type Produto = {
     id_produtos: number;
     nome: string;
@@ -53,8 +57,63 @@ export default function DetalhesProduto(){
     idUsuario: number;
   };
 
+  const [produto, setProduto] = useState<Produto | null>(null);
+  const [avaliacoes, setAvaliacoes] = useState<{ [key: number]: number | null }>({});
+  const [precoTotal, setPrecoTotal] = useState(0);
+  const [usuario, setUsuario] = useState<{id_usuario: number, nome: string, tipo_usuario?: string} | null>(null);
 
+  // Carregar produtos do carrinho do usuário
+  const carregarProdutosNoCarrinho = async () => {
+    if (!autenticado) {
+      setProdutosNoCarrinho([]);
+      return;
+    }
+    setCarregandoCarrinho(true);
+    try {
+      const dados = await listarProdutosDoCarrinho();
+      let ids: number[] = [];
+      if (dados) {
+        if (Array.isArray(dados.produtos)) {
+          ids = dados.produtos.map((p: any) => Number(p.id_produtos || p.id));
+        } else if (Array.isArray(dados.itens)) {
+          ids = dados.itens.map((p: any) => Number(p.id_produtos || p.id));
+        }
+      }
+      setProdutosNoCarrinho(ids);
+    } catch (err) {
+      setProdutosNoCarrinho([]);
+    } finally {
+      setCarregandoCarrinho(false);
+    }
+  };
 
+  // Verificar se produto já está no carrinho
+  const jaNoCarrinho = produtoId ? produtosNoCarrinho.includes(Number(produtoId)) : false;
+
+  useEffect(() => {
+    const verificarLogin = async () => {
+      try {
+        const user = await verificarAuth();
+        setAutenticado(!!user);
+        setUsuario(user ? {
+          id_usuario: Number(user.id_usuario) || 0,
+          nome: user.nome || '',
+          tipo_usuario: user.tipo_usuario || ''
+        } : null);
+      } catch {
+        setAutenticado(false);
+        setUsuario(null);
+      }
+    };
+    verificarLogin();
+  }, []);
+
+  // Carregar produtos do carrinho quando usuário estiver autenticado
+  useEffect(() => {
+    if (autenticado) {
+      carregarProdutosNoCarrinho();
+    }
+  }, [autenticado]);
 
   // Buscar avaliações do produto
   useEffect(() => {
@@ -103,31 +162,6 @@ export default function DetalhesProduto(){
     }
   };
 
-  
-
-  const [produto, setProduto] = useState<Produto | null>(null);
-  const [avaliacoes, setAvaliacoes] = useState<{ [key: number]: number | null }>({});
-  const [precoTotal, setPrecoTotal] = useState(0);
-  const [usuario, setUsuario] = useState<{id_usuario: number, nome: string, tipo_usuario?: string} | null>(null);
-
-  useEffect(() => {
-    const verificarLogin = async () => {
-      try {
-        const user = await verificarAuth();
-        setAutenticado(!!user);
-        setUsuario(user ? {
-          id_usuario: Number(user.id_usuario) || 0,
-          nome: user.nome || '',
-          tipo_usuario: user.tipo_usuario || ''
-        } : null);
-      } catch {
-        setAutenticado(false);
-        setUsuario(null);
-      }
-    };
-    verificarLogin();
-  }, []);
-
   // Buscar dados do produto
   useEffect(() => {
     if (!produtoId) return;
@@ -139,7 +173,6 @@ export default function DetalhesProduto(){
           ...data,
           idUsuario: Number(data.idUsuario) || 0
         });
-        // **AQUI: Ajusta quantidade selecionada para o valor padrão do produto**
         setQuantidadeSelecionada(data.quantidade ?? 1);
         setUnidadeSelecionada(data.Unidade ?? "");
       } catch {
@@ -163,6 +196,10 @@ export default function DetalhesProduto(){
       router.push("/login");
       return;
     }
+    if (jaNoCarrinho) {
+      toast.info("Este produto já está no seu carrinho.");
+      return;
+    }
     setshowcaixa(true);
   };
 
@@ -172,13 +209,18 @@ export default function DetalhesProduto(){
       toast.error("Produto não encontrado.");
       return;
     }
+
+    if (jaNoCarrinho) {
+      toast.info("Este produto já está no seu carrinho.");
+      return;
+    }
+
     const idProdutoNumerico = Number(produtoId);
     if (isNaN(idProdutoNumerico)) {
       toast.error("ID do produto inválido.");
       return;
     }
 
-    // **AQUI: Envia sempre a quantidade selecionada, que por padrão é igual à quantidade original**
     const quantidadeParaEnviar = quantidadeSelecionada;
     const unidadeParaEnviar = unidadeSelecionada || produto.Unidade;
 
@@ -202,6 +244,9 @@ export default function DetalhesProduto(){
       toast.success("Produto adicionado ao carrinho com sucesso!");
       setMensagemSucesso(`Produto adicionado ao carrinho: ${quantidadeParaEnviar} ${unidadeParaEnviar} de ${produto.nome} - Total: ${Number(produto.preco * quantidadeParaEnviar).toFixed(2)} AOA`);
       setTimeout(() => setMensagemSucesso(null), 5000);
+      
+      // Atualizar lista do carrinho após adicionar
+      await carregarProdutosNoCarrinho();
     } catch (error: any) {
       toast.error(error?.message || error?.mensagem || "Erro ao adicionar produto ao carrinho. Tente novamente.");
     }
@@ -287,10 +332,13 @@ export default function DetalhesProduto(){
                     ) : (
                       <>
                         <button 
-                          className="hover:bg-verdeaceso bg-marieth rounded-[5px] cursor-pointer text-white p-2 text-[0.9rem] border-none bottom-4 mb-4"
+                          className={`hover:bg-verdeaceso rounded-[5px] cursor-pointer text-white p-2 text-[0.9rem] border-none bottom-4 mb-4 ${
+                            jaNoCarrinho ? 'bg-gray-400 cursor-not-allowed' : 'bg-marieth'
+                          }`}
                           onClick={handleBotaoMaisMenos}
+                          disabled={jaNoCarrinho || carregandoCarrinho}
                         >
-                          Alterar Quantidade
+                          {jaNoCarrinho ? "Já no Carrinho" : "Alterar Quantidade"}
                         </button>
                       </>
                     )
@@ -318,11 +366,6 @@ export default function DetalhesProduto(){
                   </>
                 )}
 
-
-                  
-
-
-                 
                   {showcaixa && (
                     <div className="flex items-center justify-center fixed inset-0 bg-black bg-opacity-50 z-50">
                       <div className="bg-white shadow-custom rounded-[10px] p-4 lg:p-8 w-[90%] max-w-[400px] m-auto">
@@ -393,12 +436,17 @@ export default function DetalhesProduto(){
                   {autenticado && !userIsOwner && (
                     <button
                       onClick={handleAdicionarAoCarrinho}
-                      className="bg-marieth w-full py-2 px-1 border-none mt-4 rounded-[5px] text-white text-[1.2rem] lg:text-[1.5rem] cursor-pointer transition-colors duration-300 hover:bg-verdeaceso mb-2"
+                      className={`w-full py-2 px-4 border-none mt-4 rounded-[5px] text-white text-sm md:text-base lg:text-lg cursor-pointer transition-colors duration-300 mb-2 flex items-center justify-center gap-2 h-10 md:h-12 ${
+                        jaNoCarrinho
+                          ? 'bg-gray-400 cursor-not-allowed'
+                          : 'bg-marieth hover:bg-verdeaceso'
+                      }`}
+                      disabled={jaNoCarrinho || carregandoCarrinho}
                     >
-                      <div className="flex items-center justify-center gap-2">
-                        <CgShoppingCart className="text-[1.5rem] lg:text-[1.8rem]" />
-                        Adicionar ao Carrinho
-                      </div>
+                      <CgShoppingCart className="text-lg md:text-xl" />
+                      <span>
+                        {jaNoCarrinho ? "Já está no Carrinho" : "Adicionar ao Carrinho"}
+                      </span>
                     </button>
                   )}
                   {mensagemSucesso && (
@@ -410,7 +458,6 @@ export default function DetalhesProduto(){
               </div>
             </div>
           </div>
-
 
           {/* AVALIAÇÕES */}
           <div className="mt-8 pt-8 border-t-[1px] border-solid border-tab">
@@ -457,8 +504,6 @@ export default function DetalhesProduto(){
               )}
             </div>
           </div>
-
-
 
         </main>
       </div>
