@@ -1,8 +1,8 @@
 'use client'
-import { useState, FormEvent } from 'react'
-import Footer from '../Components/Footer'
-import Navbar from '../Components/Navbar'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
+import Footer from '../../Components/Footer'
+import Navbar from '../../Components/Navbar'
+import { useState, useEffect, FormEvent } from 'react'
 
 type MetodoPagamento = 'unitel_money' | 'afrimoney' | 'multicaixa'
 type StatusPagamento = 'inicial' | 'referencia_gerada' | 'processando' | 'sucesso' | 'erro'
@@ -15,10 +15,40 @@ type MetodoInfo = {
   cor: string
 }
 
+export interface PedidoPagamentoData {
+  id_pedido: number
+  valor_total: number
+  estado: string
+  data_pedido: string
+  rua?: string
+  bairro?: string
+  pais?: string
+  municipio?: string
+  referencia?: string
+  provincia?: string
+  numero?: string
+  itens: Array<{
+    id_produto: number
+    quantidade_comprada: number
+    preco: number
+    subtotal: number
+    nome_produto: string
+    peso_kg: number
+  }>
+  resumo: {
+    subtotal: number
+    frete: number
+    comissao: number
+    total: number
+    peso_total: number
+    quantidade_itens: number
+  }
+}
+
 const metodos: Record<MetodoPagamento, MetodoInfo> = {
   unitel_money: {
     nome: 'Unitel Money',
-    taxa: 0.02, // 2%
+    taxa: 0, // Taxa zerada conforme solicitado
     instrucoes: [
       'Abra o app Unitel Money no seu telemóvel',
       'Vá em "Pagar Serviços" ou "Transferir"',
@@ -37,7 +67,7 @@ const metodos: Record<MetodoPagamento, MetodoInfo> = {
   },
   afrimoney: {
     nome: 'Afrimoney',
-    taxa: 0.015, // 1.5%
+    taxa: 0,
     instrucoes: [
       'Abra o app Afrimoney',
       'Selecione "Pagamentos"',
@@ -55,7 +85,7 @@ const metodos: Record<MetodoPagamento, MetodoInfo> = {
   },
   multicaixa: {
     nome: 'Multicaixa Express',
-    taxa: 0.025, // 2.5%
+    taxa: 0,
     instrucoes: [
       'Acesse o app Multicaixa Express',
       'Vá em "Pagar Conta"',
@@ -76,7 +106,47 @@ const metodos: Record<MetodoPagamento, MetodoInfo> = {
   }
 }
 
+// Função simulada - substitua pela sua função real
+const buscarPedidoPagamento = async (id_pedido: number): Promise<PedidoPagamentoData> => {
+  // Simular delay de API
+  await new Promise(resolve => setTimeout(resolve, 1000))
+  
+  // Dados simulados - substitua pela sua implementação real
+  return {
+    id_pedido,
+    valor_total: 2550,
+    estado: 'pendente',
+    data_pedido: new Date().toISOString(),
+    rua: 'Rua das Flores, 123',
+    bairro: 'Maianga',
+    municipio: 'Luanda',
+    provincia: 'Luanda',
+    pais: 'Angola',
+    itens: [
+      {
+        id_produto: 1,
+        quantidade_comprada: 2,
+        preco: 1250,
+        subtotal: 2500,
+        nome_produto: 'Produto Exemplo',
+        peso_kg: 1.5
+      }
+    ],
+    resumo: {
+      subtotal: 2500,
+      frete: 150,
+      comissao: 100,
+      total: 2550,
+      peso_total: 3.0,
+      quantidade_itens: 2
+    }
+  }
+}
+
 export default function PagamentoPage() {
+  const [pedido, setPedido] = useState<PedidoPagamentoData | null>(null)
+  const [carregando, setCarregando] = useState(true)
+  const [erro, setErro] = useState('')
   const [metodo, setMetodo] = useState<MetodoPagamento>('unitel_money')
   const [status, setStatus] = useState<StatusPagamento>('inicial')
   const [referenciaPagamento, setReferenciaPagamento] = useState('')
@@ -85,16 +155,36 @@ export default function PagamentoPage() {
   const [copiado, setCopiado] = useState(false)
   const [mostrarModal, setMostrarModal] = useState(false)
   const [mensagemErro, setMensagemErro] = useState('')
+  
   const router = useRouter()
+  const searchParams = useSearchParams()
 
-  const valorSubtotal = 2500
-  const valorFrete = 50
-  const valorBruto = valorSubtotal + valorFrete
-  const valorTaxa = valorBruto * metodos[metodo].taxa
-  const valorLiquido = valorBruto - valorTaxa
+  // Buscar dados do pedido ao montar o componente
+  useEffect(() => {
+    const carregarPedido = async () => {
+      try {
+        const id_pedido = searchParams.get('id_pedido')
+        if (!id_pedido) {
+          setErro('ID do pedido não fornecido')
+          return
+        }
+
+        const dadosPedido = await buscarPedidoPagamento(Number(id_pedido))
+        setPedido(dadosPedido)
+      } catch (error: any) {
+        setErro(error.mensagem || 'Erro ao carregar dados do pedido')
+      } finally {
+        setCarregando(false)
+      }
+    }
+
+    carregarPedido()
+  }, [searchParams])
 
   const gerarReferencia = () => {
-    const novaReferencia = `REF_${Date.now()}`
+    if (!pedido) return
+    
+    const novaReferencia = `REF_${pedido.id_pedido}_${Date.now()}`
     const novoTransacaoId = `TXN_${Math.random().toString(36).substr(2, 8).toUpperCase()}`
     
     setReferenciaPagamento(novaReferencia)
@@ -119,7 +209,6 @@ export default function PagamentoPage() {
     setStatus('processando')
     setMensagemErro('')
 
-    // Simular processamento
     setTimeout(() => {
       if (referenciaInput.trim() === referenciaPagamento) {
         setStatus('sucesso')
@@ -150,15 +239,54 @@ export default function PagamentoPage() {
     setMensagemErro('')
   }
 
-  // MODAL DE PAGAMENTO
+  // Loading state
+  if (carregando) {
+    return (
+      <main className="flex flex-col min-h-screen">
+        <Navbar />
+        <div className="flex-grow flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-12 h-12 border-4 border-green-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-600">Carregando dados do pedido...</p>
+          </div>
+        </div>
+        <Footer />
+      </main>
+    )
+  }
+
+  // Error state
+  if (erro || !pedido) {
+    return (
+      <main className="flex flex-col min-h-screen">
+        <Navbar />
+        <div className="flex-grow flex items-center justify-center">
+          <div className="text-center text-red-600">
+            <svg className="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <h2 className="text-xl font-bold mb-2">Erro ao carregar pedido</h2>
+            <p>{erro}</p>
+            <button 
+              onClick={() => router.back()} 
+              className="mt-4 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
+            >
+              Voltar
+            </button>
+          </div>
+        </div>
+        <Footer />
+      </main>
+    )
+  }
+
+  // MODAL DE PAGAMENTO (mantido igual)
   const ModalPagamento = () => {
     if (!mostrarModal) return null
 
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
         <div className="bg-white rounded-2xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-          
-          {/* Header do Modal */}
           <div className="sticky top-0 bg-white border-b p-4 rounded-t-2xl">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-bold text-green-600">
@@ -166,27 +294,23 @@ export default function PagamentoPage() {
                  status === 'sucesso' ? 'Pagamento Confirmado!' : 
                  status === 'erro' ? 'Erro no Pagamento' : 'Inserir Referência'}
               </h2>
-              <button
-                onClick={fecharModal}
-                className="text-gray-400 hover:text-gray-600 transition sr-only"
-              >jh
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <button onClick={fecharModal} className="text-gray-400 hover:text-gray-600">
+                <svg className="w-6 h-6 sr-only" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
+                fecharModal
               </button>
             </div>
           </div>
 
           <div className="p-6">
-            {/* Status Icon - Só aparece APÓS tentar pagar */}
+            {/* Status Icons */}
             {(status === 'processando' || status === 'sucesso' || status === 'erro') && (
               <div className="text-center mb-6">
                 {status === 'processando' && (
                   <div className="flex flex-col items-center">
                     <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mb-3">
-                      <svg className="w-8 h-8 text-yellow-600 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
+                      <div className="w-8 h-8 border-4 border-yellow-600 border-t-transparent rounded-full animate-spin"></div>
                     </div>
                     <p className="text-gray-600 text-sm">Verificando pagamento...</p>
                   </div>
@@ -220,19 +344,16 @@ export default function PagamentoPage() {
             <div className="rounded-lg p-4 mb-6" style={{ backgroundColor: metodos[metodo].cor, color: 'white' }}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
-                  <div className="mr-3">
-                    {metodos[metodo].icon}
-                  </div>
+                  <div className="mr-3">{metodos[metodo].icon}</div>
                   <span className="font-semibold">{metodos[metodo].nome}</span>
                 </div>
                 <div className="text-right">
-                  <div className="text-lg font-bold">{valorBruto.toLocaleString()} Kz</div>
-                  <div className="text-sm opacity-90">Taxa: {valorTaxa.toFixed(0)} Kz</div>
+                  <div className="text-lg font-bold">{pedido.resumo.total.toLocaleString()} Kz</div>
                 </div>
               </div>
             </div>
 
-            {/* Formulário de Pagamento */}
+            {/* Formulário e botões (mantidos iguais) */}
             {(status === 'inicial' || status === 'referencia_gerada') && (
               <form onSubmit={processarPagamento} className="mb-6">
                 <label className="block font-semibold text-green-600 mb-2">
@@ -247,12 +368,7 @@ export default function PagamentoPage() {
                   required
                 />
                 {mensagemErro && (
-                  <p className="text-red-600 text-sm mt-2 flex items-center">
-                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    {mensagemErro}
-                  </p>
+                  <p className="text-red-600 text-sm mt-2">{mensagemErro}</p>
                 )}
               </form>
             )}
@@ -260,12 +376,7 @@ export default function PagamentoPage() {
             {/* Instruções */}
             {(status === 'inicial' || status === 'referencia_gerada') && (
               <div className="mb-6">
-                <h4 className="font-semibold mb-3 flex items-center text-green-600">
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                  </svg>
-                  Como pagar:
-                </h4>
+                <h4 className="font-semibold mb-3 text-green-600">Como pagar:</h4>
                 <ol className="list-decimal list-inside space-y-2 text-sm text-gray-700">
                   {metodos[metodo].instrucoes.map((instrucao, index) => (
                     <li key={index}>{instrucao}</li>
@@ -274,47 +385,38 @@ export default function PagamentoPage() {
               </div>
             )}
 
-            {/* Ações */}
+            {/* Botões de ação */}
             <div className="space-y-3">
               {(status === 'inicial' || status === 'referencia_gerada') && (
                 <button
                   type="submit"
                   onClick={processarPagamento}
                   disabled={!referenciaInput.trim()}
-                  className={`w-full py-3 rounded-lg font-semibold transition flex items-center justify-center space-x-2 ${
+                  className={`w-full py-3 rounded-lg font-semibold transition ${
                     !referenciaInput.trim() 
                       ? 'bg-gray-300 cursor-not-allowed text-gray-500' 
                       : 'bg-green-600 hover:bg-green-700 text-white'
                   }`}
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-                  </svg>
-                  <span>{!referenciaInput.trim() ? 'Digite a Referência' : 'Processar Pagamento'}</span>
+                  {!referenciaInput.trim() ? 'Digite a Referência' : 'Processar Pagamento'}
                 </button>
               )}
               
               {status === 'sucesso' && (
                 <button
                   onClick={finalizarCompra}
-                  className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-semibold transition flex items-center justify-center space-x-2"
+                  className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-semibold transition"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span>Finalizar Compra</span>
+                  Finalizar Compra
                 </button>
               )}
 
               {status === 'erro' && (
                 <button
                   onClick={() => {setStatus('referencia_gerada'); setMensagemErro(''); setReferenciaInput('')}}
-                  className="w-full bg-yellow-600 hover:bg-yellow-700 text-white py-3 rounded-lg font-semibold transition flex items-center justify-center space-x-2"
+                  className="w-full bg-yellow-600 hover:bg-yellow-700 text-white py-3 rounded-lg font-semibold transition"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                  </svg>
-                  <span>Tentar Novamente</span>
+                  Tentar Novamente
                 </button>
               )}
 
@@ -326,7 +428,6 @@ export default function PagamentoPage() {
               </button>
             </div>
 
-            {/* Info Transação */}
             {transacaoId && (
               <div className="mt-6 pt-4 border-t text-center">
                 <p className="text-xs text-gray-500">
@@ -340,7 +441,7 @@ export default function PagamentoPage() {
     )
   }
 
-  // TELA PRINCIPAL DE SELEÇÃO
+  // TELA PRINCIPAL
   return (
     <main className="flex flex-col min-h-screen">
       <Navbar />
@@ -351,28 +452,67 @@ export default function PagamentoPage() {
             {/* Header */}
             <div className="text-center mb-6">
               <h1 className="text-xl sm:text-2xl font-bold text-green-600">Pagamento Digital</h1>
-              <p className="text-sm sm:text-base text-gray-600">Escolha seu método de pagamento</p>
+              <p className="text-sm sm:text-base text-gray-600">Pedido #{pedido.id_pedido}</p>
             </div>
 
-            {/* Resumo da Compra */}
+            {/* Resumo do Pedido */}
             <div className="bg-gray-100 rounded-lg p-4 sm:p-6 mb-6">
-              <h3 className="text-base sm:text-lg font-semibold mb-3 text-green-600">Resumo da Compra</h3>
-              <div className="flex justify-between mb-2">
-                <span className="text-sm sm:text-base">Subtotal:</span>
-                <span className="text-sm sm:text-base">kzs {valorSubtotal.toLocaleString()},00</span>
+              <h3 className="text-base sm:text-lg font-semibold mb-4 text-green-600 flex items-center">
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Resumo do Pedido
+              </h3>
+              
+              {/* Itens do pedido */}
+              <div className="mb-4">
+                <h4 className="font-medium text-gray-700 mb-2">Itens ({pedido.resumo.quantidade_itens}):</h4>
+                {pedido.itens.map((item, index) => (
+                  <div key={index} className="flex justify-between items-center py-2 border-b border-gray-200 last:border-b-0">
+                    <div>
+                      <p className="font-medium text-sm">{item.nome_produto}</p>
+                      <p className="text-xs text-gray-500">Qty: {item.quantidade_comprada} × {item.preco.toLocaleString()} Kz</p>
+                    </div>
+                    <span className="font-medium text-sm">{item.subtotal.toLocaleString()} Kz</span>
+                  </div>
+                ))}
               </div>
-              <div className="flex justify-between mb-2">
-                <span className="text-sm sm:text-base">Frete:</span>
-                <span className="text-sm sm:text-base">kzs {valorFrete.toLocaleString()},00</span>
+
+              {/* Cálculos */}
+              <div className="space-y-2 border-t pt-3">
+                <div className="flex justify-between text-sm">
+                  <span>Subtotal:</span>
+                  <span>{pedido.resumo.subtotal.toLocaleString()} Kz</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span>Frete ({pedido.resumo.peso_total}kg):</span>
+                  <span>{pedido.resumo.frete.toLocaleString()} Kz</span>
+                </div>
+                {pedido.resumo.comissao > 0 && (
+                  <div className="flex justify-between text-sm text-orange-600">
+                    <span>Comissão:</span>
+                    <span>{pedido.resumo.comissao.toLocaleString()} Kz</span>
+                  </div>
+                )}
+                <div className="flex justify-between border-t pt-2 font-bold text-green-600 text-lg">
+                  <span>Total a Pagar:</span>
+                  <span>{pedido.resumo.total.toLocaleString()} Kz</span>
+                </div>
               </div>
-              <div className="flex justify-between mb-2 text-red-600">
-                <span className="text-sm sm:text-base">Taxa {metodos[metodo].nome} ({(metodos[metodo].taxa * 100).toFixed(1)}%):</span>
-                <span className="text-sm sm:text-base">-kzs {valorTaxa.toFixed(0)},00</span>
-              </div>
-              <div className="flex justify-between border-t pt-3 mt-3 text-green-600 font-bold text-base sm:text-lg">
-                <span>Total a Pagar:</span>
-                <span>kzs {valorBruto.toLocaleString()},00</span>
-              </div>
+            </div>
+
+            {/* Endereço de entrega */}
+            <div className="bg-blue-50 rounded-lg p-4 mb-6">
+              <h3 className="font-semibold text-blue-700 mb-2 flex items-center">
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                Endereço de Entrega
+              </h3>
+              <p className="text-sm text-gray-700">
+                {[pedido.rua, pedido.bairro, pedido.municipio, pedido.provincia].filter(Boolean).join(', ')}
+              </p>
             </div>
 
             {/* Métodos de Pagamento */}
@@ -387,19 +527,15 @@ export default function PagamentoPage() {
                       key={key}
                       onClick={() => setMetodo(metodoKey)}
                       className={`border-2 rounded-lg p-4 cursor-pointer transition ${
-                        isSelected 
-                          ? 'border-green-600 bg-green-50' 
-                          : 'border-gray-200 hover:border-gray-300'
+                        isSelected ? 'border-green-600 bg-green-50' : 'border-gray-200 hover:border-gray-300'
                       }`}
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center">
-                          <div className="mr-3">
-                            {info.icon}
-                          </div>
+                          <div className="mr-3">{info.icon}</div>
                           <div>
                             <div className="font-semibold text-sm sm:text-base">{info.nome}</div>
-                            <div className="text-xs sm:text-sm text-gray-500">Taxa: {(info.taxa * 100).toFixed(1)}%</div>
+                            <div className="text-xs sm:text-sm text-gray-500">Sem taxa adicional</div>
                           </div>
                         </div>
                         {isSelected && (

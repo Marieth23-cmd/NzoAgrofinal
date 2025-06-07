@@ -1,7 +1,7 @@
 "use client"
 import Head from "next/head"
 import Footer from "../Components/Footer"
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { useRouter } from "next/navigation";
 import { criarUsuario } from "../Services/user"
 import { FiEye, FiEyeOff } from "react-icons/fi";
@@ -26,27 +26,103 @@ export default function CadastroFornecedor() {
     const [sucesso, setSucesso] = useState(false);
      
     interface Erros {
+        nome?: string;
+        email?: string;
+        senha?: string;
         contacto?: string;
         confirmarSenha?: string;
+        descricao?: string;
+        provincia?: string;
+        municipio?: string;
+        bairro?: string;
+        rua?: string;
         geral?: string;
     }
 
     const [erros, setErros] = useState<Erros>({});
     const router = useRouter();
     const [etapa, setEtapa] = useState(1);
+
+    // Validação em tempo real
+    useEffect(() => {
+        validateForm();
+    }, [formData]);
+
+    const validateForm = () => {
+        const newErros: Erros = {};
+
+        // Validação do nome
+        if (formData.nome && formData.nome.trim().length < 2) {
+            newErros.nome = "O nome deve ter pelo menos 2 caracteres";
+        }
+
+        // Validação do email
+        if (formData.email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(formData.email)) {
+                newErros.email = "Email inválido";
+            }
+        }
+
+        // Validação da senha
+        if (formData.senha) {
+            if (formData.senha.length < 6 || formData.senha.length > 12) {
+                newErros.senha = "A senha deve ter entre 6 e 12 caracteres";
+            }
+        }
+
+        // Validação de confirmar senha
+        if (formData.confirmarSenha && formData.senha !== formData.confirmarSenha) {
+            newErros.confirmarSenha = "As senhas não coincidem";
+        }
+
+        // Validação do contacto
+        if (formData.contacto) {
+            const contactoLimpo = formData.contacto.replace("244|", "");
+            const numeroAngola = /^9\d{8}$/;
+            if (contactoLimpo && !numeroAngola.test(contactoLimpo)) {
+                newErros.contacto = "O contacto deve ter 9 dígitos e começar com 9";
+            }
+        }
+
+        // Validação da descrição
+        if (formData.descricao && formData.descricao.trim().length < 10) {
+            newErros.descricao = "A descrição deve ter pelo menos 10 caracteres";
+        }
+
+        // Validações da etapa 2 (endereço)
+        if (etapa === 2) {
+            if (formData.provincia && formData.provincia.trim().length < 1) {
+                newErros.provincia = "Selecione uma província";
+            }
+
+            if (formData.municipio && formData.municipio.trim().length < 2) {
+                newErros.municipio = "O município deve ter pelo menos 2 caracteres";
+            }
+
+            if (formData.bairro && formData.bairro.trim().length < 2) {
+                newErros.bairro = "O bairro deve ter pelo menos 2 caracteres";
+            }
+
+            if (formData.rua && formData.rua.trim().length < 3) {
+                newErros.rua = "A rua deve ter pelo menos 3 caracteres";
+            }
+        }
+
+        setErros(newErros);
+    };
    
-    const handleInputChange = (e :React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         
-        if (name ==="contacto") {
-            let somenteNumeros = value.replace(/\D/g, ""); // Remove tudo que não for número
+        if (name === "contacto") {
+            let somenteNumeros = value.replace(/\D/g, "");
             
-            // Se o valor digitado for apenas "244", evita remover o prefixo acidentalmente
             if (somenteNumeros.startsWith("244")) {
-                somenteNumeros = somenteNumeros.slice(3); // Remove o prefixo para evitar duplicação
+                somenteNumeros = somenteNumeros.slice(3);
             }
     
-            const numeroFormatado = `244|${somenteNumeros.slice(0, 9)}`; // Garante no máximo 9 dígitos após o código do país
+            const numeroFormatado = `244|${somenteNumeros.slice(0, 9)}`;
             setFormData((prev) => ({ ...prev, contacto: numeroFormatado }));
         } else {
             setFormData({ ...formData, [name]: value });
@@ -54,27 +130,40 @@ export default function CadastroFornecedor() {
     };
     
     const handleNext = () => {
-        if(!formData.nome.trim() || !formData.email.trim() || !formData.contacto.trim()
-        || !formData.senha.trim() || !formData.confirmarSenha.trim()){
-            alert("Por favor, insira todos os dados")
-            return
+        // Verificar se há erros de validação na etapa 1
+        const hasValidationErrors = ['nome', 'email', 'senha', 'confirmarSenha', 'contacto', 'descricao'].some(field => 
+            erros[field as keyof Erros]
+        );
+        
+        // Verificar campos obrigatórios da etapa 1
+        if (hasValidationErrors || !formData.nome.trim() || !formData.email.trim() || !formData.contacto.trim() ||
+            !formData.senha.trim() || !formData.confirmarSenha.trim() || !formData.descricao.trim()) {
+            setErros(prev => ({ ...prev, geral: "Por favor, corrija os erros antes de continuar." }));
+            return;
         }
-        setEtapa(2)
+
+        setErros({});
+        setEtapa(2);
     }
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        
+        // Forçar validação completa
+        validateForm();
+        
+        // Verificar se há erros de validação
+        const hasValidationErrors = Object.keys(erros).some(key => key !== 'geral' && erros[key as keyof Erros]);
+        
+        // Verificar campos obrigatórios da etapa 2
+        if (hasValidationErrors || !formData.provincia || !formData.municipio || !formData.bairro || !formData.rua) {
+            setErros(prev => ({ ...prev, geral: "Por favor, corrija os erros antes de continuar." }));
+            return;
+        }
+
         setErros({});
         setLoading(true);
     
-        // Validação do formulário
-        if (formData.senha !== formData.confirmarSenha) {
-            setErros({ confirmarSenha: "As senhas não coincidem." });
-            setLoading(false);
-            return;
-        }
-    
-        // Remover o prefixo do número de telefone
         const contactoLimpo = formData.contacto.replace("244|", "");
     
         try {
@@ -99,8 +188,7 @@ export default function CadastroFornecedor() {
         } catch (error: any) {
             console.log("Erro ao criar conta:", error);
             
-            // Tratamento de erro específico para cada campo
-             if (error.status === 409) {
+            if (error.status === 409) {
                 setErros({ geral: error.message || "Este email já está em uso." });
             } else {
                 setErros({ geral: error.message || "Erro ao criar conta. Por favor, tente novamente." });
@@ -110,7 +198,6 @@ export default function CadastroFornecedor() {
         }
     };
     
-    // Se o sucesso for true e não houver redirecionamento automático, forçar o redirecionamento
     React.useEffect(() => {
         if (sucesso) {
             const timer = setTimeout(() => {
@@ -153,12 +240,13 @@ export default function CadastroFornecedor() {
                                             type="text" 
                                             id="nome" 
                                             name="nome"
-                                            className="p-3 border-solid border-[1px] hover:border-marieth border-tab w-[100%] text-base rounded-[5px]" 
+                                            className={`p-3 border-solid border-[1px] ${erros.nome ? 'border-red-500' : 'hover:border-marieth border-tab'} w-[100%] text-base rounded-[5px]`}
                                             required 
                                             value={formData.nome}
                                             placeholder="Ex.: Marieth Pascoal" 
                                             onChange={handleInputChange}
                                         />
+                                        {erros.nome && <p className="text-red-500 text-sm mt-1">{erros.nome}</p>}
                                     </div>
 
                                     <div className="mb-4">
@@ -168,11 +256,12 @@ export default function CadastroFornecedor() {
                                             id="email" 
                                             name="email"
                                             value={formData.email}
-                                            className="p-3 border-solid border-[1px] hover:border-marieth border-tab w-[100%] text-base rounded-[5px]" 
+                                            className={`p-3 border-solid border-[1px] ${erros.email ? 'border-red-500' : 'hover:border-marieth border-tab'} w-[100%] text-base rounded-[5px]`}
                                             required 
                                             placeholder="Ex.: marieth@example.com"
                                             onChange={handleInputChange}
                                         />
+                                        {erros.email && <p className="text-red-500 text-sm mt-1">{erros.email}</p>}
                                     </div>
                                        
                                     <div className="mb-4">
@@ -182,13 +271,13 @@ export default function CadastroFornecedor() {
                                             id="contacto" 
                                             name="contacto"
                                             value={formData.contacto}
-                                            className="p-3 border-solid border-[1px] hover:border-marieth border-tab w-[100%] text-base rounded-[5px]" 
+                                            className={`p-3 border-solid border-[1px] ${erros.contacto ? 'border-red-500' : 'hover:border-marieth border-tab'} w-[100%] text-base rounded-[5px]`}
                                             required 
                                             max={13}
                                             onChange={handleInputChange}
                                             placeholder="9xxxxxxxx"
                                         />
-                                        {erros.contacto && <p className="text-vermelho text-sm">{erros.contacto}</p>}
+                                        {erros.contacto && <p className="text-red-500 text-sm mt-1">{erros.contacto}</p>}
                                     </div>
 
                                     <div className="mb-4">
@@ -202,11 +291,11 @@ export default function CadastroFornecedor() {
                                                 id="senha" 
                                                 name="senha"
                                                 value={formData.senha}
-                                                className="p-3 pr-10 border border-tab hover:border-marieth w-full text-base rounded-[5px]"  
+                                                className={`p-3 pr-10 border ${erros.senha ? 'border-red-500' : 'border-tab hover:border-marieth'} w-full text-base rounded-[5px]`}
                                                 required
                                                 maxLength={12}
                                                 onChange={handleInputChange}
-                                                placeholder="xxxxxxxx"
+                                                placeholder="xxxxxxxxxxxx"
                                             />
                             
                                             <span 
@@ -220,6 +309,7 @@ export default function CadastroFornecedor() {
                                                 )}
                                             </span>
                                         </div>
+                                        {erros.senha && <p className="text-red-500 text-sm mt-1">{erros.senha}</p>}
                                     </div>
                             
                                     <div className="mb-4">
@@ -233,11 +323,11 @@ export default function CadastroFornecedor() {
                                                 id="confirmarSenha" 
                                                 name="confirmarSenha"
                                                 value={formData.confirmarSenha}
-                                                className="p-3 pr-10 border border-tab hover:border-marieth w-full text-base rounded-[5px]"  
+                                                className={`p-3 pr-10 border ${erros.confirmarSenha ? 'border-red-500' : 'border-tab hover:border-marieth'} w-full text-base rounded-[5px]`}
                                                 required
                                                 maxLength={12}
                                                 onChange={handleInputChange}
-                                                placeholder="xxxxxxxx"
+                                                placeholder="xxxxxxxxxxxx"
                                             />
                             
                                             <span 
@@ -251,7 +341,7 @@ export default function CadastroFornecedor() {
                                                 )}
                                             </span>
                                         </div>
-                                        {erros.confirmarSenha && <p className="text-vermelho text-sm">{erros.confirmarSenha}</p>}
+                                        {erros.confirmarSenha && <p className="text-red-500 text-sm mt-1">{erros.confirmarSenha}</p>}
                                     </div>
                             
                                     <div className="mb-4">
@@ -262,11 +352,14 @@ export default function CadastroFornecedor() {
                                             required
                                             value={formData.descricao}
                                             maxLength={255}
-                                            className="p-3 border-solid border-[1px] resize-y hover:border-marieth min-h-[80px] border-tab w-[100%] text-base rounded-[5px]"  
+                                            className={`p-3 border-solid border-[1px] resize-y ${erros.descricao ? 'border-red-500' : 'hover:border-marieth border-tab'} min-h-[80px] w-[100%] text-base rounded-[5px]`}
                                             onChange={handleInputChange}
                                             placeholder="Eu sou X e cultivo Milho, Soja, Café, Banana etc.."
                                         ></textarea>
+                                        {erros.descricao && <p className="text-red-500 text-sm mt-1">{erros.descricao}</p>}
                                     </div>
+
+                                    {erros.geral && <p className="text-red-500 text-sm mb-4">{erros.geral}</p>}
 
                                     <div className="flex justify-between mt-6">
                                         <button 
@@ -291,14 +384,15 @@ export default function CadastroFornecedor() {
                             {etapa === 2 && (
                                 <>
                                     <h1 className="text-xl text-marieth mb-4">Endereço da Propriedade</h1>
-                                    <label htmlFor="provincia" className="sr-only">Provincia</label>
+                                    
                                     <div className="mb-4"> 
+                                        <label htmlFor="provincia" className="mb-2 font-medium block text-profile">Província</label>
                                         <select 
                                             name="provincia" 
                                             onChange={handleInputChange} 
                                             value={formData.provincia} 
                                             id="provincia" 
-                                            className="p-3 border-solid border-[1px] hover:border-marieth border-tab w-[100%] text-base rounded-[5px]"
+                                            className={`p-3 border-solid border-[1px] ${erros.provincia ? 'border-red-500' : 'hover:border-marieth border-tab'} w-[100%] text-base rounded-[5px]`}
                                             required
                                         >
                                             <option value="" disabled hidden>Escolha sua Província</option>
@@ -321,6 +415,7 @@ export default function CadastroFornecedor() {
                                             <option value="Uige">Uíge</option>
                                             <option value="Zaire">Zaíre</option>
                                         </select>
+                                        {erros.provincia && <p className="text-red-500 text-sm mt-1">{erros.provincia}</p>}
                                     </div>
                                
                                     <div className="mb-4 gap-2">
@@ -329,38 +424,43 @@ export default function CadastroFornecedor() {
                                             type="text" 
                                             id="municipio" 
                                             name="municipio"
-                                            className="p-3 border-solid border-[1px] hover:border-marieth border-tab w-[100%] text-base rounded-[5px]" 
+                                            className={`p-3 border-solid border-[1px] ${erros.municipio ? 'border-red-500' : 'hover:border-marieth border-tab'} w-[100%] text-base rounded-[5px]`}
                                             required 
                                             value={formData.municipio} 
                                             onChange={handleInputChange}
                                             placeholder="Ex.: Cazenga, Viana, Lubango, etc."
                                         />
+                                        {erros.municipio && <p className="text-red-500 text-sm mt-1">{erros.municipio}</p>}
                                     </div>
+                                    
                                     <div className="mb-4 gap-2">
                                         <label htmlFor="bairro" className="mb-2 font-medium block text-profile">Bairro</label>
                                         <input 
                                             type="text" 
                                             id="bairro" 
                                             name="bairro"
-                                            className="p-3 border-solid border-[1px] hover:border-marieth border-tab w-[100%] text-base rounded-[5px]" 
+                                            className={`p-3 border-solid border-[1px] ${erros.bairro ? 'border-red-500' : 'hover:border-marieth border-tab'} w-[100%] text-base rounded-[5px]`}
                                             required 
                                             value={formData.bairro}
                                             placeholder="Ex.:Calemba2" 
                                             onChange={handleInputChange}
                                         />
+                                        {erros.bairro && <p className="text-red-500 text-sm mt-1">{erros.bairro}</p>}
                                     </div>
+                                    
                                     <div className="mb-4 gap-2">
                                         <label htmlFor="rua" className="mb-2 font-medium block text-profile">Rua</label>
                                         <input 
                                             type="text" 
                                             id="rua" 
                                             name="rua"
-                                            className="p-3 border-solid border-[1px] border-tab w-[100%] hover:border-marieth text-base rounded-[5px]" 
+                                            className={`p-3 border-solid border-[1px] ${erros.rua ? 'border-red-500' : 'border-tab hover:border-marieth'} w-[100%] text-base rounded-[5px]`}
                                             required 
                                             value={formData.rua}
                                             placeholder="Ex.: Rua da Gabela" 
                                             onChange={handleInputChange}
                                         />
+                                        {erros.rua && <p className="text-red-500 text-sm mt-1">{erros.rua}</p>}
                                     </div>
 
                                     {erros.geral && <p className="text-red-500 text-sm mb-4">{erros.geral}</p>}

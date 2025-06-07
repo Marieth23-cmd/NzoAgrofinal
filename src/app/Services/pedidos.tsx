@@ -104,3 +104,69 @@ export interface PedidoData {
     id_produto: number;
   }>;
 }
+
+
+export interface PedidoPagamentoData {
+  id_pedido: number;
+  valor_total: number;
+  estado: string;
+  data_pedido: string;
+  rua?: string;
+  bairro?: string;
+  pais?: string;
+  municipio?: string;
+  referencia?: string;
+  provincia?: string;
+  numero?: string;
+  itens: Array<{
+    id_produto: number;
+    quantidade_comprada: number;
+    preco: number;
+    subtotal: number;
+    nome_produto: string;
+    peso_kg: number;
+  }>;
+  resumo: {
+    subtotal: number;
+    frete: number;
+    comissao: number;
+    total: number;
+    peso_total: number;
+    quantidade_itens: number;
+  };
+}
+
+
+
+
+export const buscarPedidoPagamento = async (id_pedido: number): Promise<PedidoPagamentoData> => {
+  try {
+    const response = await axios.get(`${API_URL}/pedidos/pagamento/${id_pedido}`, {
+      headers: { "Content-Type": "application/json" },
+      withCredentials: true
+    });
+    return response.data;
+  } catch (error: any) {
+    console.log(error.response?.data || error.message);
+    throw { mensagem: error.response?.data?.message || "Erro ao buscar dados do pedido" };
+  }
+};
+
+// Confirmar pagamento do pedido
+export const confirmarPagamento = async (dadosPagamento: {
+  id_pedido: number;
+  metodo_pagamento: string;
+  referencia_pagamento: string;
+  valor_pago: number;
+}): Promise<any> => {
+  try {
+    const response = await axios.post(`${API_URL}/pedidos/confirmar-pagamento`, dadosPagamento, {
+      headers: { "Content-Type": "application/json" },
+      withCredentials: true
+    });
+    return response.data;
+  } catch (error: any) {
+    console.log(error.response?.data || error.message);
+    throw { mensagem: error.response?.data?.message || "Erro ao confirmar pagamento" };
+  }
+};

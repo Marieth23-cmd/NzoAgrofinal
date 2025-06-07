@@ -1,7 +1,7 @@
 "use client"
 import Head from "next/head"
 import Footer from "../Components/Footer"
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { useRouter } from "next/navigation";
 import { criarUsuario } from "../Services/user"
 import { FiEye, FiEyeOff } from "react-icons/fi";
@@ -22,50 +22,105 @@ export default function CadastroComprador() {
     const [sucesso, setSucesso] = useState(false);
 
     interface Erros {
+        nome?: string;
+        email?: string;
+        senha?: string;
         contacto?: string;
         confirmarSenha?: string;
+        descricao?: string;
         geral?: string;
     }
 
     const [erros, setErros] = useState<Erros>({});
     const router = useRouter();
-    
+
+    // Validação em tempo real
+    useEffect(() => {
+        validateForm();
+    }, [formData]);
+
+    const validateForm = () => {
+        const newErros: Erros = {};
+
+        // Validação do nome
+        if (formData.nome && formData.nome.trim().length < 2) {
+            newErros.nome = "O nome deve ter pelo menos 2 caracteres";
+        }
+
+        // Validação do email
+        if (formData.email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(formData.email)) {
+                newErros.email = "Email inválido";
+            }
+        }
+
+        // Validação da senha
+        if (formData.senha) {
+            if (formData.senha.length < 6 || formData.senha.length > 12) {
+                newErros.senha = "A senha deve ter entre 6 e 12 caracteres";
+            }
+        }
+
+        // Validação de confirmar senha
+        if (formData.confirmarSenha && formData.senha !== formData.confirmarSenha) {
+            newErros.confirmarSenha = "As senhas não coincidem";
+        }
+
+        // Validação do contacto
+        if (formData.contacto) {
+            const contactoLimpo = formData.contacto.replace("244|", "");
+            const numeroAngola = /^9\d{8}$/;
+            if (contactoLimpo && !numeroAngola.test(contactoLimpo)) {
+                newErros.contacto = "O contacto deve ter 9 dígitos e começar com 9";
+            }
+        }
+
+        // Validação da descrição
+        if (formData.descricao && formData.descricao.trim().length < 10) {
+            newErros.descricao = "A descrição deve ter pelo menos 10 caracteres";
+        }
+
+        setErros(newErros);
+    };
    
-    const handleInputChange = (e :React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         
-        if (name ==="contacto") {
-            let somenteNumeros = value.replace(/\D/g, ""); // Remove tudo que não for número
+        if (name === "contacto") {
+            let somenteNumeros = value.replace(/\D/g, "");
             
-            // Se o valor digitado for apenas "244", evita remover o prefixo acidentalmente
             if (somenteNumeros.startsWith("244")) {
-                somenteNumeros = somenteNumeros.slice(3); // Remove o prefixo para evitar duplicação
+                somenteNumeros = somenteNumeros.slice(3);
             }
     
-            const numeroFormatado = `244|${somenteNumeros.slice(0, 9)}`; // Garante no máximo 9 dígitos após o código do país
+            const numeroFormatado = `244|${somenteNumeros.slice(0, 9)}`;
             setFormData((prev) => ({ ...prev, contacto: numeroFormatado }));
         } else {
             setFormData({ ...formData, [name]: value });
         }
     };
-    
-    
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        setErros({});
-        setLoading(true);
-    
-        // Validação do formulário
-        if (formData.senha !== formData.confirmarSenha) {
-            setErros({ confirmarSenha: "As senhas não coincidem." });
-            setLoading(false);
+        
+        // Forçar validação completa
+        validateForm();
+        
+        // Verificar se há erros de validação
+        const hasValidationErrors = Object.keys(erros).some(key => key !== 'geral' && erros[key as keyof Erros]);
+        
+        // Verificar campos obrigatórios
+        if (hasValidationErrors || !formData.nome || !formData.email || !formData.senha || !formData.confirmarSenha || !formData.descricao) {
+            setErros(prev => ({ ...prev, geral: "Por favor, corrija os erros antes de continuar." }));
             return;
         }
-    
-        // Remover o prefixo do número de telefone
+
+        setErros({});
+        setLoading(true);
+
         const contactoLimpo = formData.contacto.replace("244|", "");
-    
+
         try {
             const resposta = await criarUsuario({
                 nome: formData.nome.trim(),
@@ -74,22 +129,18 @@ export default function CadastroComprador() {
                 descricao: formData.descricao,
                 contacto: contactoLimpo, 
                 tipo_usuario: tipoUsuario
-                
             });
-    
+
             console.log("Usuário criado com sucesso:", resposta);
             setSucesso(true);
             
-            
-            // Usar um timeout mais longo para garantir que o alerta seja visto
             setTimeout(() => {
                 router.push("/");
             }, 1000);
         } catch (error: any) {
             console.log("Erro ao criar conta:", error);
             
-            // Tratamento de erro específico para cada campo
-             if (error.status === 409) {
+            if (error.status === 409) {
                 setErros({ geral: error.message || "Este email já está em uso." });
             } else {
                 setErros({ geral: error.message || "Erro ao criar conta. Por favor, tente novamente." });
@@ -99,7 +150,6 @@ export default function CadastroComprador() {
         }
     };
     
-    // Se o sucesso for true e não houver redirecionamento automático, forçar o redirecionamento
     React.useEffect(() => {
         if (sucesso) {
             const timer = setTimeout(() => {
@@ -134,152 +184,150 @@ export default function CadastroComprador() {
                         </div>
                     ) : (
                         <form onSubmit={handleSubmit}>
+                            <div className="mb-4 gap-2">
+                                <label htmlFor="nome" className="mb-2 font-medium block text-profile">Nome Completo</label>
+                                <input 
+                                    type="text" 
+                                    id="nome" 
+                                    name="nome"
+                                    className={`p-3 border-solid border-[1px] ${erros.nome ? 'border-red-500' : 'hover:border-marieth border-tab'} w-[100%] text-base rounded-[5px]`}
+                                    required 
+                                    value={formData.nome}
+                                    placeholder="Ex.: Marieth Pascoal" 
+                                    onChange={handleInputChange}
+                                />
+                                {erros.nome && <p className="text-red-500 text-sm mt-1">{erros.nome}</p>}
+                            </div>
+
+                            <div className="mb-4">
+                                <label htmlFor="email" className="mb-2 font-medium block text-profile">Email</label>
+                                <input 
+                                    type="email" 
+                                    id="email" 
+                                    name="email"
+                                    value={formData.email}
+                                    className={`p-3 border-solid border-[1px] ${erros.email ? 'border-red-500' : 'hover:border-marieth border-tab'} w-[100%] text-base rounded-[5px]`}
+                                    required 
+                                    placeholder="Ex.: marieth@example.com"
+                                    onChange={handleInputChange}
+                                />
+                                {erros.email && <p className="text-red-500 text-sm mt-1">{erros.email}</p>}
+                            </div>
+
+                            <div className="mb-4">
+                                <label htmlFor="contacto" className="mb-2 font-medium block text-profile">Telefone</label>
+                                <input 
+                                    type="tel" 
+                                    id="contacto" 
+                                    name="contacto"
+                                    value={formData.contacto}
+                                    className={`p-3 border-solid border-[1px] ${erros.contacto ? 'border-red-500' : 'hover:border-marieth border-tab'} w-[100%] text-base rounded-[5px]`}
+                                    required 
+                                    max={13}
+                                    placeholder="9xxxxxxxx"
+                                    onChange={handleInputChange}
+                                />
+                                {erros.contacto && <p className="text-red-500 text-sm mt-1">{erros.contacto}</p>}
+                            </div>
+
+                            <div className="mb-4">
+                                <label htmlFor="senha" className="mb-2 font-medium block text-profile">
+                                    Senha
+                                </label>
                     
-                                <>
-                                    <div className="mb-4 gap-2">
-                                        <label htmlFor="nome" className="mb-2 font-medium block text-profile">Nome Completo</label>
-                                        <input 
-                                            type="text" 
-                                            id="nome" 
-                                            name="nome"
-                                            className="p-3 border-solid border-[1px] hover:border-marieth border-tab w-[100%] text-base rounded-[5px]" 
-                                            required 
-                                            value={formData.nome}
-                                            placeholder="Ex.: Marieth Pascoal" 
-                                            onChange={handleInputChange}
-                                        />
-                                    </div>
+                                <div className="relative">
+                                    <input 
+                                        type={senhaVisivel ? "text" : "password" } 
+                                        id="senha" 
+                                        name="senha"
+                                        value={formData.senha}
+                                        className={`p-3 pr-10 border ${erros.senha ? 'border-red-500' : 'border-tab hover:border-marieth'} w-full text-base rounded-[5px]`}
+                                        required
+                                        maxLength={12}
+                                        placeholder="xxxxxxxxxxxx"
+                                        onChange={handleInputChange}
+                                    />
+                    
+                                    <span 
+                                        className="absolute inset-y-0 right-3 flex items-center cursor-pointer text-gray-500"
+                                        onClick={() => setSenhaVisivel(!senhaVisivel)}
+                                    >
+                                        {senhaVisivel ? (
+                                            <FiEyeOff className="w-5 h-5" />
+                                        ) : (
+                                            <FiEye className="w-5 h-5" />
+                                        )}
+                                    </span>
+                                </div>
+                                {erros.senha && <p className="text-red-500 text-sm mt-1">{erros.senha}</p>}
+                            </div>
+                    
+                            <div className="mb-4">
+                                <label htmlFor="confirmarSenha" className="mb-2 font-medium block text-profile">
+                                    Confirmar Senha
+                                </label>
+                    
+                                <div className="relative">
+                                    <input 
+                                        type={confirmarSenhaVisivel ? "text" : "password"} 
+                                        id="confirmarSenha" 
+                                        name="confirmarSenha"
+                                        value={formData.confirmarSenha}
+                                        className={`p-3 pr-10 border ${erros.confirmarSenha ? 'border-red-500' : 'border-tab hover:border-marieth'} w-full text-base rounded-[5px]`}
+                                        required
+                                        maxLength={12}
+                                        placeholder="xxxxxxxxxxxx"
+                                        onChange={handleInputChange}
+                                    />
+                    
+                                    <span 
+                                        className="absolute inset-y-0 right-3 flex items-center cursor-pointer text-gray-500"
+                                        onClick={() => setConfirmarSenhaVisivel(!confirmarSenhaVisivel)}
+                                    >
+                                        {confirmarSenhaVisivel ? (
+                                            <FiEyeOff className="w-5 h-5" />
+                                        ) : (
+                                            <FiEye className="w-5 h-5" />
+                                        )}
+                                    </span>
+                                </div>
+                                {erros.confirmarSenha && <p className="text-red-500 text-sm mt-1">{erros.confirmarSenha}</p>}
+                            </div>
+                    
+                            <div className="mb-4">
+                                <label htmlFor="descricao" className="mb-2 font-medium block text-profile">Descreve as Principais culturas</label>
+                                <textarea 
+                                    id="descricao" 
+                                    name="descricao"
+                                    required
+                                    value={formData.descricao}
+                                    maxLength={255}
+                                    className={`p-3 border-solid border-[1px] resize-y ${erros.descricao ? 'border-red-500' : 'hover:border-marieth border-tab'} min-h-[80px] w-[100%] text-base rounded-[5px]`}
+                                    onChange={handleInputChange}
+                                    placeholder="Eu sou X e cultivo Milho, Soja, Café, Banana etc.."
+                                ></textarea>
+                                {erros.descricao && <p className="text-red-500 text-sm mt-1">{erros.descricao}</p>}
+                            </div>
 
-                                    <div className="mb-4">
-                                        <label htmlFor="email" className="mb-2 font-medium block text-profile">Email</label>
-                                        <input 
-                                            type="email" 
-                                            id="email" 
-                                            name="email"
-                                            value={formData.email}
-                                            className="p-3 border-solid border-[1px] hover:border-marieth border-tab w-[100%] text-base rounded-[5px]" 
-                                            required 
-                                            placeholder="Ex.: marieth@example.com"
-                                            onChange={handleInputChange}
-                                        />
-                                        
-                                    </div>
-                                    
+                            {erros.geral && <p className="text-red-500 text-sm mb-4">{erros.geral}</p>}
 
-                                    <div className="mb-4">
-                                        <label htmlFor="contacto" className="mb-2 font-medium block text-profile">Telefone</label>
-                                        <input 
-                                            type="tel" 
-                                            id="contacto" 
-                                            name="contacto"
-                                            value={formData.contacto}
-                                            className="p-3 border-solid border-[1px] hover:border-marieth border-tab w-[100%] text-base rounded-[5px]" 
-                                            required 
-                                            max={13}
-                                            placeholder="9xxxxxxxx"
-                                            onChange={handleInputChange}
-                                        />
-                                        {erros.contacto && <p className="text-vermelho text-sm">{erros.contacto}</p>}
-                                    </div>
+                            <div className="flex justify-between">
+                                <button 
+                                    type="button" 
+                                    onClick={() => router.back()}
+                                    className="border-marieth border-[1px] bg-transparent py-[0.8rem] font-medium cursor-pointer rounded-[5px] text-base transition-all duration- ease-in-out px-8 text-marieth"
+                                >
+                                    Voltar
+                                </button>
 
-                                    <div className="mb-4">
-                                        <label htmlFor="senha" className="mb-2 font-medium block text-profile">
-                                            Senha
-                                        </label>
-                            
-                                        <div className="relative">
-                                            <input 
-                                                type={senhaVisivel ? "text" : "password" } 
-                                                id="senha" 
-                                                name="senha"
-                                                value={formData.senha}
-                                                className="p-3 pr-10 border border-tab hover:border-marieth w-full text-base rounded-[5px]"  
-                                                required
-                                                maxLength={12}
-                                                placeholder="xxxxxxxxxxxx"
-                                                onChange={handleInputChange}
-                                            />
-                            
-                                            <span 
-                                                className="absolute inset-y-0 right-3 flex items-center cursor-pointer text-gray-500"
-                                                onClick={() => setSenhaVisivel(!senhaVisivel)}
-                                            >
-                                                {senhaVisivel ? (
-                                                    <FiEyeOff className="w-5 h-5" />
-                                                ) : (
-                                                    <FiEye className="w-5 h-5" />
-                                                )}
-                                            </span>
-                                        </div>
-                                    </div>
-                            
-                                    <div className="mb-4">
-                                        <label htmlFor="confirmarSenha" className="mb-2 font-medium block text-profile">
-                                            Confirmar Senha
-                                        </label>
-                            
-                                        <div className="relative">
-                                            <input 
-                                                type={confirmarSenhaVisivel ? "text" : "password"} 
-                                                id="confirmarSenha" 
-                                                name="confirmarSenha"
-                                                value={formData.confirmarSenha}
-                                                className="p-3 pr-10 border border-tab hover:border-marieth w-full text-base rounded-[5px]"  
-                                                required
-                                                maxLength={12}
-                                                placeholder="xxxxxxxxxxxx"
-                                                onChange={handleInputChange}
-                                            />
-                            
-                                            <span 
-                                                className="absolute inset-y-0 right-3 flex items-center cursor-pointer text-gray-500"
-                                                onClick={() => setConfirmarSenhaVisivel(!confirmarSenhaVisivel)}
-                                            >
-                                                {confirmarSenhaVisivel ? (
-                                                    <FiEyeOff className="w-5 h-5" />
-                                                ) : (
-                                                    <FiEye className="w-5 h-5" />
-                                                )}
-                                            </span>
-                                        </div>
-                                        {erros.confirmarSenha && <p className="text-vermelho text-sm">{erros.confirmarSenha}</p>}
-                                    </div>
-                            
-                                    <div className="mb-4">
-                                        <label htmlFor="descricao" className="mb-2 font-medium block text-profile">Descreve as Principais culturas</label>
-                                        <textarea 
-                                            id="descricao" 
-                                            name="descricao"
-                                            required
-                                            value={formData.descricao}
-                                            maxLength={255}
-                                            className="p-3 border-solid border-[1px] resize-y hover:border-marieth min-h-[80px] border-tab w-[100%] text-base rounded-[5px]"  
-                                            onChange={handleInputChange}
-                                            placeholder="Eu sou X e cultivo Milho, Soja, Café, Banana etc.."
-                                        ></textarea>
-                                    </div>
-
-                                    {erros.geral && <p className="text-red-500 text-sm mb-4">{erros.geral}</p>}
-
-                                    <div className="flex justify-between">
-                                        <button 
-                                            type="button" 
-                                            onClick={() => router.back()}
-                                            className="border-marieth border-[1px] bg-transparent py-[0.8rem] font-medium cursor-pointer rounded-[5px] text-base transition-all duration- ease-in-out px-8 text-marieth"
-                                        >
-                                            Voltar
-                                        </button>
-
-                                        <button 
-                                            type="submit"
-                                            disabled={loading}
-                                            className={`${loading ? 'bg-gray-400' : 'bg-marieth hover:bg-verdeaceso'} text-white py-[0.8rem] border-none font-medium cursor-pointer rounded-[5px] text-base transition-all duration- ease-in-out px-8`}
-                                        >
-                                            {loading ? 'Processando...' : 'Cadastrar'}
-                                        </button>
-                                    </div>
-                                </>
-                        
+                                <button 
+                                    type="submit"
+                                    disabled={loading}
+                                    className={`${loading ? 'bg-gray-400' : 'bg-marieth hover:bg-verdeaceso'} text-white py-[0.8rem] border-none font-medium cursor-pointer rounded-[5px] text-base transition-all duration- ease-in-out px-8`}
+                                >
+                                    {loading ? 'Processando...' : 'Cadastrar'}
+                                </button>
+                            </div>
                         </form>
                     )}
                 </div>
@@ -288,3 +336,4 @@ export default function CadastroComprador() {
         </main>
     );
 }
+

@@ -1,6 +1,6 @@
 "use client"
 import { useState, useEffect } from "react";
-import { criarPedido } from "../Services/pedidos"; // Ajuste o caminho conforme a estrutura do seu projeto
+import { criarPedido } from "../Services/pedidos"; 
 import { useRouter } from "next/navigation";
 import Head from "next/head";
 import Navbar from "../Components/Navbar";
@@ -26,6 +26,27 @@ export default function Localizacao() {
     numero: "",
     referencia: ""
   });
+
+
+  interface Pedido {
+  id_pedido?: number; // O id_pedido pode ser opcional se não for retornado imediatamente
+  estado: string;
+  valor_total: number;
+  rua: string;
+  bairro: string;
+  pais: string;
+  municipio: string;
+  referencia: string;
+  provincia: string;
+  numero: string;
+  itens: Array<{
+    quantidade_comprada: number;
+    preco: number;
+    subtotal: number;
+    id_produto: number;
+  }>;
+}
+
 
   const router = useRouter();
   const [formValid, setFormValid] = useState(false);
@@ -77,78 +98,103 @@ export default function Localizacao() {
       }));
     };
 
+
+
+const navegarParaPagamento = (idPedido?: number) => {
+  if (!idPedido || idPedido === 0) {
+    console.error('ID do pedido não fornecido ou inválido');
+    setSubmitError('Erro ao processar pedido. Tente novamente.');
+    return;
+  }
+  
+  try {
+    router.push(`/telapaga/${idPedido}`);
+  } catch (error) {
+    console.error('Erro ao navegar:', error);
+    setSubmitError('Erro ao redirecionar. Tente novamente.');
+  }
+};
+
+
+
+
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  e.preventDefault();
+  
+  if (!formValid) {
+    validateForm();
+    return;
+  }
+  
+  setSubmitError("");
+  setSubmitSuccess("");
+  setIsSubmitting(true);
+
+  try {
+    // Seus dados existentes...
+    const itens: any[] = []; 
+    const valor_total: number = 0; 
     
-    if (!formValid) {
-      // Força a validação em todos os campos ao tentar enviar
-      validateForm();
-      return;
+    const dadosParaEnviar = {
+      provincia: formData.provincia,
+      municipio: formData.municipio,
+      bairro: formData.bairro,
+      rua: formData.rua,
+      pais: formData.pais,
+      numero: formData.numero,
+      referencia: formData.referencia,
+      estado: "Pendente",
+      valor_total: valor_total,
+      itens: itens
+    };
+    
+    // Chamada à API - certifique-se que retorna o id_pedido
+    const response: Pedido = await criarPedido(dadosParaEnviar);
+    
+    // Verificar se a resposta contém o id_pedido
+    if (!response.id_pedido) {
+      throw new Error('ID do pedido não retornado pela API');
     }
     
-    // Limpar mensagens de erro/sucesso anteriores
-    setSubmitError("");
-    setSubmitSuccess("");
-    setIsSubmitting(true);
-
-    try {
-      // Aqui você precisaria obter os itens do carrinho e o valor total
-      // Essas informações provavelmente viriam de um contexto global ou localStorage
-      const itens: any[] = []; // Substitua por seus itens reais
-      const valor_total: number = 0; // Substitua pelo valor total real
-      
-      // Preparar dados para enviar no formato que a API espera
-      const dadosParaEnviar = {
+    setSubmitSuccess("Pedido criado com sucesso! Redirecionando...");
+    
+    // Salvar endereço padrão se necessário
+    if (formData.endereco_padrao) {
+      localStorage.setItem('endereco_padrao', JSON.stringify({
         provincia: formData.provincia,
         municipio: formData.municipio,
         bairro: formData.bairro,
         rua: formData.rua,
         pais: formData.pais,
         numero: formData.numero,
-        referencia: formData.referencia,
-        estado: "Pendente", // Estado inicial do pedido
-        valor_total: valor_total,
-        itens: itens
-      };
-      
-      // Chamada à API para criar o pedido
-      const response = await criarPedido(dadosParaEnviar);
-      
-      setSubmitSuccess("Pedido criado com sucesso! Redirecionando...");
-      
-      // Se o endereço foi marcado como padrão, você pode salvar isso no localStorage ou em outra API
-      if (formData.endereco_padrao) {
-        localStorage.setItem('endereco_padrao', JSON.stringify({
-          provincia: formData.provincia,
-          municipio: formData.municipio,
-          bairro: formData.bairro,
-          rua: formData.rua,
-          pais: formData.pais,
-          numero: formData.numero,
-          referencia: formData.referencia
-        }));
-      }
-      
-      // Redirecionar para a página de confirmação ou outra página após o sucesso
-      // window.location.href = `/pedido/confirmacao/${response.id_pedido}`;
-      
-      // Ou se estiver usando Next.js com router
-      // const router = useRouter();
-      // router.push(`/pedido/confirmacao/${response.id_pedido}`);
-      
-    } catch (error: unknown) {
-      console.error("Erro ao criar pedido:", error);
-      if (typeof error === "object" && error !== null && "mensagem" in error) {
-        setSubmitError((error as { mensagem: string }).mensagem);
-      } else {
-        setSubmitError("Ocorreu um erro ao processar seu pedido. Tente novamente.");
-      }
-    } finally {
-      setIsSubmitting(false);
+        referencia: formData.referencia
+      }));
     }
-  };
+    
+    // Aguardar um pouco antes de redirecionar (opcional)
+   setTimeout(() => {
+  if (response.id_pedido && response.id_pedido > 0) {
+    navegarParaPagamento(response.id_pedido);
+  } else {
+    setSubmitError('Erro: ID do pedido não foi retornado pela API');
+  }
+}, 1500);
+    
+  } catch (error: unknown) {
+    console.error("Erro ao criar pedido:", error);
+    if (typeof error === "object" && error !== null && "mensagem" in error) {
+      setSubmitError((error as { mensagem: string }).mensagem);
+    } else {
+      setSubmitError("Ocorreu um erro ao processar seu pedido. Tente novamente.");
+    }
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
-  // Carregar endereço padrão se existir (opcional)
+
+    // Carregar endereço padrão se existir (opcional)
   useEffect(() => {
     const enderecoPadrao = localStorage.getItem('endereco_padrao');
     if (enderecoPadrao) {
@@ -317,18 +363,18 @@ export default function Localizacao() {
 
         
 
-          <button
-          onClick={()=> router.push("/telapaga")}
-            type="submit"
-            className={`w-full ${
-              formValid && !isSubmitting 
-                ? 'bg-marieth hover:bg-verdeaceso' 
-                : 'bg-gray-400 cursor-not-allowed'
-            } text-white py-3 rounded font-semibold transition-colors`}
-            disabled={!formValid || isSubmitting}
-          >
-            {isSubmitting ? "Processando..." : "Confirmar Localização"}
-          </button>
+                <button
+          type="submit"
+          className={`w-full ${
+            formValid && !isSubmitting 
+              ? 'bg-marieth hover:bg-verdeaceso' 
+              : 'bg-gray-400 cursor-not-allowed'
+          } text-white py-3 rounded font-semibold transition-colors`}
+          disabled={!formValid || isSubmitting}
+        >
+          {isSubmitting ? "Processando..." : "Confirmar Localização"}
+        </button>
+
         </form>
       </div>
     </div> 
