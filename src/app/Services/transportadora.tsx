@@ -1,7 +1,7 @@
 import axios from "axios";
 
 console.log('API URL:', process.env.NEXT_PUBLIC_API_URL)
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://backend-nzoagro.onrender.com"
 console.log('API URL:', API_URL)
 
 // Interface para cadastro de transportadora
