@@ -781,7 +781,9 @@ const podeVerVendas = () => {
                             </td>
                             <td className="border border-gray-300 px-4 py-3 text-sm">
                               {item.Status_Pedido !== 'entregue' && item.Status_Pedido !== 'cancelado' && (
+                                <label htmlFor={`status-${item.Numero_Pedido}`} className="sr-only">Atualizar Status
                                 <select
+                                  id={`status-${item.Numero_Pedido}`}
                                   className="text-xs border rounded px-2 py-1"
                                   value={item.Status_Pedido}
                                   onChange={(e) => handleAtualizarStatus(item.Numero_Pedido, e.target.value)}
@@ -791,7 +793,9 @@ const podeVerVendas = () => {
                                   <option value="pronto">Pronto</option>
                                   <option value="entregue">Entregue</option>
                                   <option value="cancelado">Cancelado</option>
+
                                 </select>
+                                </label>
                               )}
                             </td>
                           </tr>
@@ -807,128 +811,7 @@ const podeVerVendas = () => {
 
 
 
-      {!primeiraConsulta ? (
-        <tr>
-          <td colSpan={tipoRelatorio === 'compras' ? 6 : 8} className="p-4 text-center border-b-[1px] border-b-solid border-b-tab text-xs md:text-sm text-gray-500">
-            Clique no botão "Filtrar" para visualizar os dados de {tipoRelatorio}
-          </td>
-        </tr>
-      ) : tipoRelatorio === 'compras' ? (
-        // Dados de compras (mantém o existente)
-        relatorioCompras.length > 0 ? (
-          relatorioCompras.map((item: RelatorioComprasItem, index: number) => (
-            <tr key={index} className="hover:bg-th">
-              <td className="p-2 md:p-4 text-left border-b-[1px] border-b-solid border-b-tab text-xs md:text-sm">
-                {formatarData(item.Data_Pedido)}
-              </td>
-              <td className="p-2 md:p-4 text-left border-b-[1px] border-b-solid border-b-tab text-xs md:text-sm">
-                {item.Nome_Produto}
-              </td>
-              <td className="p-2 md:p-4 text-left border-b-[1px] border-b-solid border-b-tab text-xs md:text-sm">
-                {item.Nome_Usuario || 'Não informado'}
-              </td>
-              <td className="p-2 md:p-4 text-left border-b-[1px] border-b-solid border-b-tab text-xs md:text-sm">
-                {item.Quantidade_Total} un
-              </td>
-              <td className="p-2 md:p-4 text-left border-b-[1px] border-b-solid border-b-tab text-xs md:text-sm">
-                {formatarMoeda(item.Valor_Total)}
-              </td>
-              <td className="p-2 md:p-4 text-left border-b-[1px] border-b-solid border-b-tab text-xs md:text-sm">
-                {item.Estado}
-              </td>
-            </tr>
-          ))
-        ) : (
-          <tr>
-            <td colSpan={6} className="p-4 text-center border-b-[1px] border-b-solid border-b-tab text-xs md:text-sm">
-              {isLoading ? "Carregando..." : "Nenhum dado de compra encontrado no período selecionado"}
-            </td>
-          </tr>
-        )
-      ) : (
-        // Dados de vendas
-        relatorioVendas.length > 0 ? (
-          relatorioVendas.map((item, index) => {
-            const statusInfo = getStatusComCor(item.Status_Pedido);
-            return (
-              <tr key={index} className="hover:bg-th">
-                <td className="p-2 md:p-4 text-left border-b-[1px] border-b-solid border-b-tab text-xs md:text-sm">
-                  {formatarData(item.Data_Pedido)}
-                </td>
-                <td className="p-2 md:p-4 text-left border-b-[1px] border-b-solid border-b-tab text-xs md:text-sm">
-                  {item.Nome_Produto}
-                </td>
-                <td className="p-2 md:p-4 text-left border-b-[1px] border-b-solid border-b-tab text-xs md:text-sm">
-                  {item.Nome_Comprador}
-                </td>
-                <td className="p-2 md:p-4 text-left border-b-[1px] border-b-solid border-b-tab text-xs md:text-sm">
-                  <div className="text-xs">
-                    <div>{item.Email_Comprador}</div>
-                    {item.Telefone_Comprador && (
-                      <div className="text-gray-500">{item.Telefone_Comprador}</div>
-                    )}
-                  </div>
-                </td>
-                <td className="p-2 md:p-4 text-left border-b-[1px] border-b-solid border-b-tab text-xs md:text-sm">
-                  {item.Quantidade_Total} un
-                </td>
-                <td className="p-2 md:p-4 text-left border-b-[1px] border-b-solid border-b-tab text-xs md:text-sm">
-                  {formatarMoeda(item.Valor_Total)}
-                </td>
-                <td className="p-2 md:p-4 text-left border-b-[1px] border-b-solid border-b-tab text-xs md:text-sm">
-                  <span className={`px-2 py-1 rounded-full text-xs ${statusInfo.cor}`}>
-                    {statusInfo.texto}
-                  </span>
-                </td>
-                <td className="p-2 md:p-4 text-left border-b-[1px] border-b-solid border-b-tab text-xs md:text-sm">
-                  <div className="flex flex-col gap-1">
-                    {item.Status_Pedido === 'pendente' && (
-                      <button
-                        onClick={() => handleAtualizarStatus(item.Numero_Pedido, 'aceito')}
-                        className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-xs"
-                      >
-                        Aceitar
-                      </button>
-                    )}
-                    {item.Status_Pedido === 'aceito' && (
-                      <button
-                        onClick={() => handleAtualizarStatus(item.Numero_Pedido, 'pronto')}
-                        className="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs"
-                      >
-                        Marcar Pronto
-                      </button>
-                    )}
-                    {item.Status_Pedido === 'pronto' && (
-                      <span className="text-xs text-green-600 font-medium">
-                        Aguardando Transportadora
-                      </span>
-                    )}
-                    {(item.Status_Pedido === 'pendente' || item.Status_Pedido === 'aceito') && (
-                      <button
-                        onClick={() => handleAtualizarStatus(item.Numero_Pedido, 'cancelado')}
-                        className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs"
-                      >
-                        Cancelar
-                      </button>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            );
-          })
-        ) : (
-          <tr>
-            <td colSpan={8} className="p-4 text-center border-b-[1px] border-b-solid border-b-tab text-xs md:text-sm">
-              {isLoading ? "Carregando..." : "Nenhum pedido de venda encontrado no período selecionado"}
-            </td>
-          </tr>
-        )
-      )}
-    </tbody>           
-  </table>
-</div>
 
-{/* ========== 5. SUBSTITUIR O BOTÃO DE EXPORTAÇÃO ========== */}
 <div className="relative mt-4 flex justify-center sm:justify-start">
   <button 
     className={`bg-marieth cursor-pointer rounded-[10px] border-none
@@ -939,6 +822,7 @@ const podeVerVendas = () => {
   >
     {exportLoading ? 'Exportando...' : `Exportar Relatório de ${tipoRelatorio === 'compras' ? 'Compras' : 'Vendas'}`}
   </button>
+  </div>
   
   {dropdownOpen && (
     <div className="absolute top-full left-0 sm:left-auto z-10 mt-2 w-full sm:w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
@@ -960,9 +844,6 @@ const podeVerVendas = () => {
       </div>
     </div>
   )}
-</div>
-</div>
-
       {/* Exibir mensagem de erro se houver */}
       {error && (
         <div className="bg-red-100 text-vermelho p-4 rounded-md mt-4">
@@ -970,8 +851,10 @@ const podeVerVendas = () => {
         </div>
       )}
       
-    
-<Footer/>
-</div>
+      <Footer/>
+    </div>
+    </div>
   );
 }
+
+
