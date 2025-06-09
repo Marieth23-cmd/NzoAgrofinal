@@ -1,5 +1,5 @@
 'use client'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import Footer from '../../Components/Footer'
 import Navbar from '../../Components/Navbar'
 import { useState, useEffect, FormEvent } from 'react'
@@ -48,7 +48,7 @@ export interface PedidoPagamentoData {
 const metodos: Record<MetodoPagamento, MetodoInfo> = {
   unitel_money: {
     nome: 'Unitel Money',
-    taxa: 0, // Taxa zerada conforme solicitado
+    taxa: 0,
     instrucoes: [
       'Abra o app Unitel Money no seu telemóvel',
       'Vá em "Pagar Serviços" ou "Transferir"',
@@ -106,6 +106,27 @@ const metodos: Record<MetodoPagamento, MetodoInfo> = {
   }
 }
 
+// Função para extrair ID do pedido da URL
+const extrairIdPedido = (pathname: string, searchParams: URLSearchParams): string | null => {
+  // Primeiro tenta pegar do query parameter ?id_pedido=X
+  const idFromQuery = searchParams.get('id_pedido')
+  if (idFromQuery) return idFromQuery
+
+  // Depois tenta extrair da rota dinâmica /telapaga/[id]
+  const segments = pathname.split('/')
+  const telapagarIndex = segments.findIndex(segment => segment === 'telapaga')
+  
+  if (telapagarIndex !== -1 && segments.length > telapagarIndex + 1) {
+    const potentialId = segments[telapagarIndex + 1]
+    // Verifica se é um número válido
+    if (/^\d+$/.test(potentialId)) {
+      return potentialId
+    }
+  }
+
+  return null
+}
+
 // Função simulada - substitua pela sua função real
 const buscarPedidoPagamento = async (id_pedido: number): Promise<PedidoPagamentoData> => {
   // Simular delay de API
@@ -158,20 +179,32 @@ export default function PagamentoPage() {
   
   const router = useRouter()
   const searchParams = useSearchParams()
+  const pathname = usePathname()
 
   // Buscar dados do pedido ao montar o componente
   useEffect(() => {
     const carregarPedido = async () => {
       try {
-        const id_pedido = searchParams.get('id_pedido')
-        if (!id_pedido) {
-          setErro('ID do pedido não fornecido')
+        const id_pedido_str = extrairIdPedido(pathname, searchParams)
+        
+        if (!id_pedido_str) {
+          setErro('ID do pedido não fornecido na URL')
           return
         }
 
-        const dadosPedido = await buscarPedidoPagamento(Number(id_pedido))
+        const id_pedido = Number(id_pedido_str)
+        
+        if (isNaN(id_pedido) || id_pedido <= 0) {
+          setErro('ID do pedido inválido')
+          return
+        }
+
+        console.log('Carregando pedido com ID:', id_pedido) // Para debug
+
+        const dadosPedido = await buscarPedidoPagamento(id_pedido)
         setPedido(dadosPedido)
       } catch (error: any) {
+        console.error('Erro ao carregar pedido:', error) // Para debug
         setErro(error.mensagem || 'Erro ao carregar dados do pedido')
       } finally {
         setCarregando(false)
@@ -179,7 +212,7 @@ export default function PagamentoPage() {
     }
 
     carregarPedido()
-  }, [searchParams])
+  }, [pathname, searchParams])
 
   const gerarReferencia = () => {
     if (!pedido) return
@@ -192,11 +225,14 @@ export default function PagamentoPage() {
     setStatus('referencia_gerada')
   }
 
-  //copiar referencia
   const copiarReferencia = async () => {
-    await navigator.clipboard.writeText(referenciaPagamento)
-    setCopiado(true)
-    setTimeout(() => setCopiado(false), 2000)
+    try {
+      await navigator.clipboard.writeText(referenciaPagamento)
+      setCopiado(true)
+      setTimeout(() => setCopiado(false), 2000)
+    } catch (error) {
+      console.error('Erro ao copiar referência:', error)
+    }
   }
 
   const abrirModalPagamento = () => {
@@ -205,7 +241,6 @@ export default function PagamentoPage() {
     setMensagemErro('')
   }
 
-  
   const processarPagamento = (e: FormEvent) => {
     e.preventDefault()
     setStatus('processando')
@@ -268,7 +303,10 @@ export default function PagamentoPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <h2 className="text-xl font-bold mb-2">Erro ao carregar pedido</h2>
-            <p>{erro}</p>
+            <p className="mb-2">{erro}</p>
+            <p className="text-sm text-gray-600 mb-4">
+              URL atual: {pathname}
+            </p>
             <button 
               onClick={() => router.back()} 
               className="mt-4 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
@@ -282,7 +320,7 @@ export default function PagamentoPage() {
     )
   }
 
-  // MODAL DE PAGAMENTO (mantido igual)
+  // MODAL DE PAGAMENTO
   const ModalPagamento = () => {
     if (!mostrarModal) return null
 
@@ -296,11 +334,11 @@ export default function PagamentoPage() {
                  status === 'sucesso' ? 'Pagamento Confirmado!' : 
                  status === 'erro' ? 'Erro no Pagamento' : 'Inserir Referência'}
               </h2>
-              <button onClick={fecharModal} className="text-gray-400 hover:text-gray-600">
-                <svg className="w-6 h-6 sr-only" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <button onClick={fecharModal} className="text-gray-400 hover:text-gray-600 sr-only">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
-                fecharModal
+                botao
               </button>
             </div>
           </div>
@@ -355,7 +393,7 @@ export default function PagamentoPage() {
               </div>
             </div>
 
-            {/* Formulário e botões (mantidos iguais) */}
+            {/* Formulário */}
             {(status === 'inicial' || status === 'referencia_gerada') && (
               <form onSubmit={processarPagamento} className="mb-6">
                 <label className="block font-semibold text-green-600 mb-2">
@@ -564,6 +602,9 @@ export default function PagamentoPage() {
                 </svg>
               </button>
             )}
+
+
+
 
             {/* Referência Gerada */}
             {status === 'referencia_gerada' && (

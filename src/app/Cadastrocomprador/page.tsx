@@ -294,22 +294,7 @@ export default function CadastroComprador() {
                                 {erros.confirmarSenha && <p className="text-red-500 text-sm mt-1">{erros.confirmarSenha}</p>}
                             </div>
                     
-                            <div className="mb-4">
-                                <label htmlFor="descricao" className="mb-2 font-medium block text-profile">Descreve as Principais culturas</label>
-                                <textarea 
-                                    id="descricao" 
-                                    name="descricao"
-                                    value={formData.descricao}
-                                    maxLength={255}
-                                    className={`p-3 border-solid border-[1px] resize-y ${erros.descricao ? 'border-red-500' : 'hover:border-marieth border-tab'} min-h-[80px] w-[100%] text-base rounded-[5px]`}
-                                    onChange={handleInputChange}
-                                    placeholder="Eu sou X e cultivo Milho, Soja, Café, Banana etc.."
-                                ></textarea>
-                                {erros.descricao && <p className="text-red-500 text-sm mt-1">{erros.descricao}</p>}
-                            </div>
-
-                            {erros.geral && <p className="text-red-500 text-sm mb-4">{erros.geral}</p>}
-
+                            
                             <div className="flex justify-between">
                                 <button 
                                     type="button" 

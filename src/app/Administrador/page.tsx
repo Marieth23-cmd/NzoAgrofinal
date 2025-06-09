@@ -280,7 +280,8 @@ const GestãoPedidos: React.FC = () => {
       setCarregandoPedidos(true);
       setErro('');
       const dadosPedidos = await getPedidos();
-      setPedidos(dadosPedidos || []);
+      setPedidos(Array.isArray(dadosPedidos) ? dadosPedidos : []);
+;
     } catch (error: any) {
       console.error('Erro ao carregar pedidos:', error);
       setErro(error?.mensagem || 'Erro ao carregar pedidos');

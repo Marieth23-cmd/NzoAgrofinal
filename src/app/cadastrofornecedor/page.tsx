@@ -345,7 +345,7 @@ export default function CadastroFornecedor() {
                                     </div>
                             
                                     <div className="mb-4">
-                                        <label htmlFor="descricao" className="mb-2 font-medium block text-profile">Descreve as Principais culturas</label>
+                                        <label htmlFor="descricao" className="mb-2 font-medium block text-profile">Descreve as Principais culturas(opcional)</label>
                                         <textarea 
                                             id="descricao" 
                                             name="descricao"

@@ -29,10 +29,14 @@ export default function Navbar() {
      const carregarNotificacoes = async () => {
        if (autenticado) {  
          try {
+          console.log("🔔 Fazendo chamada para API...");
            const resposta = await badgeNotificacoes();
-           setNotificacoesNaoLidas(resposta.total); 
+           setNotificacoesNaoLidas(resposta.total);
+           console.log("🔔 Estado atualizado para:", resposta.total);
+ 
            console.log("Notificações não lidas:", resposta.total);
          } catch (error) {
+          console.log("🔔 usuario não foi encontrado:", error);
            console.log("Erro ao carregar notificações não lidas:", error);
          }
        }
@@ -164,6 +168,14 @@ const handleClick = useCallback((event: MouseEvent) => {
       console.log("Erro ao terminar sessão:", error);
     }
   };
+
+  console.log("🔔 Estado final:", { 
+  autenticado, 
+  tipoUsuario, 
+  notificacoesNaoLidas,
+  mostraBadge: notificacoesNaoLidas > 0 
+});
+
   
 
     return (
@@ -191,7 +203,7 @@ const handleClick = useCallback((event: MouseEvent) => {
                      
                      </li>
                 
-          <li className="cursor-pointer hover:text-marieth relative" 
+          {/* <li className="cursor-pointer hover:text-marieth relative" 
          onClick={()=>redirecionar("./notificacoes")}> 
           <div className="relative">
             <IoMdNotificationsOutline className="gap-2 text-[1.6rem] ml-8" /> 
@@ -202,8 +214,21 @@ const handleClick = useCallback((event: MouseEvent) => {
             )}
           </div>
             
-        </li>
-                
+        </li> */}
+
+
+                  <li className="cursor-pointer hover:text-marieth relative" 
+              onClick={()=>redirecionar("./notificacoes")}> 
+            <div className="relative inline-block">
+              <IoMdNotificationsOutline className="gap-2 text-[1.6rem] ml-8" /> 
+              {notificacoesNaoLidas > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full min-w-[20px] h-5 flex items-center justify-center text-xs font-bold border-2 border-white">
+                  {notificacoesNaoLidas}
+                </span>
+              )}
+            </div>
+          </li>
+                          
                 
                 <li className=" cursor-pointer hover:text-marieth "
                 onClick={()=>redirecionar("./relatoriocomprador")}>

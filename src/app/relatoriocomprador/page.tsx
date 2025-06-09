@@ -38,12 +38,14 @@ interface RelatorioComprasItem {
   Numero_Pedido: number;
   Data_Pedido: string;
   Estado: string;
-  Nome_Usuario?: string;
-  status_pagamentos: string;
+  Status_Pagamento: string;  
   Nome_Produto: string;
-  Quantidade_Total: number;
-  Preco_Unitario: number;
-  Valor_Total: number;
+  Categoria_Produto: string;  
+  Quantidade_Comprada: number;  
+  Preco_Unitario: string;  
+  Valor_Total: string;  
+  Nome_Vendedor: string;  
+  Email_Vendedor: string;  
 }
 
 // Interface para estatísticas de vendas
@@ -611,6 +613,7 @@ const podeVerVendas = () => {
         </div>
 
         {/* Gráfico */}
+        {/* Gráfico */}
         <div 
           ref={chartContainerRef} 
           className="bg-white p-4 md:p-6 rounded-[10px] mb-6 md:mb-8 border-[1px] border-solid border-tab h-[300px] md:h-[400px]"
@@ -624,38 +627,186 @@ const podeVerVendas = () => {
           </div>
         </div>
 
-{/* ========== 4. SUBSTITUIR A TABELA COMPLETA ========== */}
-<div className="overflow-x-auto bg-white rounded-[10px] shadow-sm border border-gray-100">
-  <table className="w-full border-collapse">
-    <thead>
-      <tr>
-        {tipoRelatorio === 'compras' ? (
-          // Cabeçalho para compras (mantém o existente)
-          <>
-            <th className="p-2 md:p-4 text-left border-b-[1px] border-b-solid border-b-tab text-cortexto bg-th text-xs md:text-sm">Data</th>
-            <th className="p-2 md:p-4 text-left border-b-[1px] border-b-solid border-b-tab text-cortexto bg-th text-xs md:text-sm">Produto</th>
-            <th className="p-2 md:p-4 text-left border-b-[1px] border-b-solid border-b-tab text-cortexto bg-th text-xs md:text-sm">Fornecedor</th>
-            <th className="p-2 md:p-4 text-left border-b-[1px] border-b-solid border-b-tab text-cortexto bg-th text-xs md:text-sm">Qtd</th>
-            <th className="p-2 md:p-4 text-left border-b-[1px] border-b-solid border-b-tab text-cortexto bg-th text-xs md:text-sm">Valor Total</th>
-            <th className="p-2 md:p-4 text-left border-b-[1px] border-b-solid border-b-tab text-cortexto bg-th text-xs md:text-sm">Estado</th>
-          </>
-        ) : (
-          // Cabeçalho para vendas
-          <>
-            <th className="p-2 md:p-4 text-left border-b-[1px] border-b-solid border-b-tab text-cortexto bg-th text-xs md:text-sm">Data</th>
-            <th className="p-2 md:p-4 text-left border-b-[1px] border-b-solid border-b-tab text-cortexto bg-th text-xs md:text-sm">Produto</th>
-            <th className="p-2 md:p-4 text-left border-b-[1px] border-b-solid border-b-tab text-cortexto bg-th text-xs md:text-sm">Comprador</th>
-            <th className="p-2 md:p-4 text-left border-b-[1px] border-b-solid border-b-tab text-cortexto bg-th text-xs md:text-sm">Contato</th>
-            <th className="p-2 md:p-4 text-left border-b-[1px] border-b-solid border-b-tab text-cortexto bg-th text-xs md:text-sm">Qtd</th>
-            <th className="p-2 md:p-4 text-left border-b-[1px] border-b-solid border-b-tab text-cortexto bg-th text-xs md:text-sm">Valor</th>
-            <th className="p-2 md:p-4 text-left border-b-[1px] border-b-solid border-b-tab text-cortexto bg-th text-xs md:text-sm">Status</th>
-            <th className="p-2 md:p-4 text-left border-b-[1px] border-b-solid border-b-tab text-cortexto bg-th text-xs md:text-sm">Ações</th>
-          </>
-        )}
-      </tr>
-    </thead>    
+       
+        {primeiraConsulta && (
+          <div className="bg-white rounded-[10px] border-[1px] border-solid border-tab overflow-hidden">
+            {/* Cabeçalho da tabela com botões de exportação */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 md:p-6 bg-gray-50 border-b">
+              <h2 className="text-lg md:text-xl font-semibold text-marieth mb-4 sm:mb-0">
+                Detalhes do Relatório
+              </h2>
+              
+              {/* Botões de exportação */}
+              {(tipoRelatorio === 'compras' ? relatorioCompras : relatorioVendas).length > 0 && (
+                <div className="relative">
+                  <button
+                    className="bg-marieth text-white px-4 py-2 rounded-[5px] hover:bg-verdeaceso transition-colors"
+                    onClick={() => setDropdownOpen(!dropdownOpen)}
+                    disabled={exportLoading}
+                  >
+                    {exportLoading ? 'Exportando...' : 'Exportar ▼'}
+                  </button>
+                  
+                  {dropdownOpen && (
+                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 border">
+                      <button
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={handleExportarPDF}
+                      >
+                        Exportar PDF
+                      </button>
+                      <button
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={handleExportarCSV}
+                      >
+                        Exportar CSV
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
 
-    <tbody>
+            {/* Conteúdo da tabela */}
+            <div className="p-4 md:p-6">
+              {isLoading ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-600">Carregando dados...</p>
+                </div>
+              ) : error ? (
+                <div className="text-center py-8">
+                  <p className="text-red-600">{error}</p>
+                  <button 
+                    className="mt-4 bg-marieth text-white px-4 py-2 rounded-[5px] hover:bg-verdeaceso"
+                    onClick={aplicarFiltro}
+                  >
+                    Tentar Novamente
+                  </button>
+                </div>
+              ) : (tipoRelatorio === 'compras' ? relatorioCompras : relatorioVendas).length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-600">Nenhum dado encontrado para o período selecionado.</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  {tipoRelatorio === 'compras' ? (
+                    <table className="w-full border-collapse">
+                      <thead>
+                        <tr className="bg-gray-50">
+                          <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Nº Pedido</th>
+                          <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Data</th>
+                          <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Produto</th>
+                          <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Categoria</th>
+                          <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Vendedor</th>
+                          <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Qtd</th>
+                          <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Preço Unit.</th>
+                          <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Total</th>
+                          <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Pagamento</th>
+                          <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Estado</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {relatorioCompras.map((item, index) => (
+                          <tr key={index} className="hover:bg-gray-50">
+                            <td className="border border-gray-300 px-4 py-3 text-sm">{item.Numero_Pedido}</td>
+                            <td className="border border-gray-300 px-4 py-3 text-sm">{formatarData(item.Data_Pedido)}</td>
+                            <td className="border border-gray-300 px-4 py-3 text-sm">{item.Nome_Produto}</td>
+                            <td className="border border-gray-300 px-4 py-3 text-sm">{item.Categoria_Produto}</td>
+                            <td className="border border-gray-300 px-4 py-3 text-sm">
+                              <div>
+                                <div className="font-medium">{item.Nome_Vendedor}</div>
+                                <div className="text-gray-500 text-xs">{item.Email_Vendedor}</div>
+                              </div>
+                            </td>
+                            <td className="border border-gray-300 px-4 py-3 text-sm">{item.Quantidade_Comprada}</td>
+                            <td className="border border-gray-300 px-4 py-3 text-sm">{formatarMoeda(parseFloat(item.Preco_Unitario))}</td>
+                            <td className="border border-gray-300 px-4 py-3 text-sm font-semibold">{formatarMoeda(parseFloat(item.Valor_Total))}</td>
+                            <td className="border border-gray-300 px-4 py-3 text-sm">
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusComCor(item.Status_Pagamento).cor}`}>
+                                {getStatusComCor(item.Status_Pagamento).texto}
+                              </span>
+                            </td>
+                            <td className="border border-gray-300 px-4 py-3 text-sm">
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusComCor(item.Estado).cor}`}>
+                                {getStatusComCor(item.Estado).texto}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  ) : (
+                    <table className="w-full border-collapse">
+                      <thead>
+                        <tr className="bg-gray-50">
+                          <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Nº Pedido</th>
+                          <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Data</th>
+                          <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Comprador</th>
+                          <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Produto</th>
+                          <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Qtd</th>
+                          <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Preço Unit.</th>
+                          <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Total</th>
+                          <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Status</th>
+                          <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Pagamento</th>
+                          <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Ações</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {relatorioVendas.map((item, index) => (
+                          <tr key={index} className="hover:bg-gray-50">
+                            <td className="border border-gray-300 px-4 py-3 text-sm">{item.Numero_Pedido}</td>
+                            <td className="border border-gray-300 px-4 py-3 text-sm">{formatarData(item.Data_Pedido)}</td>
+                            <td className="border border-gray-300 px-4 py-3 text-sm">
+                              <div>
+                                <div className="font-medium">{item.Nome_Comprador}</div>
+                                <div className="text-gray-500 text-xs">{item.Email_Comprador}</div>
+                                {item.Telefone_Comprador && (
+                                  <div className="text-gray-500 text-xs">{item.Telefone_Comprador}</div>
+                                )}
+                              </div>
+                            </td>
+                            <td className="border border-gray-300 px-4 py-3 text-sm">{item.Nome_Produto}</td>
+                            <td className="border border-gray-300 px-4 py-3 text-sm">{item.Quantidade_Total}</td>
+                            <td className="border border-gray-300 px-4 py-3 text-sm">{formatarMoeda(item.Preco_Unitario)}</td>
+                            <td className="border border-gray-300 px-4 py-3 text-sm font-semibold">{formatarMoeda(item.Valor_Total)}</td>
+                            <td className="border border-gray-300 px-4 py-3 text-sm">
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusComCor(item.Status_Pedido).cor}`}>
+                                {getStatusComCor(item.Status_Pedido).texto}
+                              </span>
+                            </td>
+                            <td className="border border-gray-300 px-4 py-3 text-sm">
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusComCor(item.status_pagamentos).cor}`}>
+                                {getStatusComCor(item.status_pagamentos).texto}
+                              </span>
+                            </td>
+                            <td className="border border-gray-300 px-4 py-3 text-sm">
+                              {item.Status_Pedido !== 'entregue' && item.Status_Pedido !== 'cancelado' && (
+                                <select
+                                  className="text-xs border rounded px-2 py-1"
+                                  value={item.Status_Pedido}
+                                  onChange={(e) => handleAtualizarStatus(item.Numero_Pedido, e.target.value)}
+                                >
+                                  <option value="pendente">Pendente</option>
+                                  <option value="aceito">Aceito</option>
+                                  <option value="pronto">Pronto</option>
+                                  <option value="entregue">Entregue</option>
+                                  <option value="cancelado">Cancelado</option>
+                                </select>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+
+
       {!primeiraConsulta ? (
         <tr>
           <td colSpan={tipoRelatorio === 'compras' ? 6 : 8} className="p-4 text-center border-b-[1px] border-b-solid border-b-tab text-xs md:text-sm text-gray-500">
