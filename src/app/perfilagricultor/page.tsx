@@ -394,7 +394,7 @@ export default function PerfilAgricultor() {
                       </button>
                       
                        <button onClick={handleLogout} className="flex items-center gap-2 w-full cursor-pointer border-none py-2 px-4 bg-none transition-colors duration-100 text-vermelho hover:bg-light text-left">
-                        <MdOutlinePersonOff  size={24}/> Terminar Sessão
+                        <MdOutlinePersonOff  size={28}/> Terminar Sessão
                       </button>
                     </div>
                   )}

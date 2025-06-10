@@ -8,6 +8,7 @@ import { FaStar } from "react-icons/fa";
 import { useState, useEffect } from "react";
 import { getProdutos } from "../Services/produtos";
 import { buscarMediaEstrelas } from "../Services/avaliacoes";
+import { getUsuarioById } from "../Services/user";
 import { adicionarProdutoAoCarrinho, listarProdutosDoCarrinho } from "../Services/cart";
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -16,6 +17,17 @@ import { CgShoppingCart } from "react-icons/cg";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 
 export default function Vitrine() {
+
+interface usuario{
+  id_usuario:number;
+  nome:string ;
+  tipo_usuario?:string;
+  email?:string;
+}
+
+
+
+
   interface Produto {
     id_produtos: number;
     nome: string;
@@ -31,7 +43,7 @@ export default function Vitrine() {
   const [visibleCount, setVisibleCount] = useState(12);
   const [avaliacoes, setAvaliacoes] = useState<{ [key: number]: number | null }>({});
   const [verMaisClicado, setVerMaisClicado] = useState(false);
-  const [usuario, setUsuario] = useState<{ id_usuario: number, nome: string } | null>(null);
+  const [usuario, setUsuario] = useState<usuario | null>(null);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState("");
   const [carregandoAvaliacoes, setCarregandoAvaliacoes] = useState(true);
@@ -110,10 +122,7 @@ export default function Vitrine() {
           return;
         }
         setAutenticado(true);
-        setUsuario({
-          id_usuario: Number(user.id_usuario) || 0,
-          nome: user.nome || ''
-        });
+       
       } catch (error: any) {
         setAutenticado(false);
         setUsuario(null);
@@ -172,12 +181,73 @@ export default function Vitrine() {
     };
   }
 
-  // Função para verificar se o usuário é o dono de um produto
-  const isOwner = (produto: Produto) => {
-    const userID = Number(usuario?.id_usuario) || 0;
-    const produtoOwnerID = Number(produto.idUsuario) || 0;
-    return userID > 0 && produtoOwnerID > 0 && userID === produtoOwnerID;
+
+  useEffect(() => {
+      const verificarECarregarUsuario = async () => {
+        try {
+          // Primeiro verifica se está autenticado
+          const authUser = await verificarAuth();
+          
+          if (authUser) {
+            setAutenticado(true);
+            
+            // Então busca os dados completos do usuário
+            try {
+              const dadosCompletos = await getUsuarioById();
+              setUsuario({
+                id_usuario: Number(dadosCompletos.id_usuario) || Number(authUser.id_usuario) || 0,
+                nome: dadosCompletos.nome || authUser.nome || '',
+                tipo_usuario: dadosCompletos.tipo_usuario || authUser.tipo_usuario || '',
+                email: dadosCompletos.email || authUser.email || ''
+              });
+              console.log("Usuário carregado:", dadosCompletos);
+            } catch (errorUsuario) {
+              console.warn("Erro ao carregar dados completos, usando dados da auth:", errorUsuario);
+              // Fallback para dados da autenticação
+              setUsuario({
+                id_usuario: Number(authUser.id_usuario) || 0,
+                nome: authUser.nome || '',
+                tipo_usuario: authUser.tipo_usuario || ''
+              });
+            }
+          } else {
+            setAutenticado(false);
+            setUsuario(null);
+          }
+        } catch (error) {
+          console.error("Erro na verificação de autenticação:", error);
+          setAutenticado(false);
+          setUsuario(null);
+        }
+      };
+  
+      verificarECarregarUsuario();
+    }, []);
+  
+
+  // Verifica se o usuário está autenticado e carrega os dados do usuário
+
+  //  Verificar se o usuário é dono do produto
+  const isOwner = (produto: Produto): boolean => {
+    if (!usuario || !produto) {
+      console.log("Verificação de proprietário: usuário ou produto não carregado");
+      return false;
+    }
+    
+    const userID = Number(usuario.id_usuario);
+    const ownerID = Number(produto.idUsuario);
+    
+    console.log("Verificação de proprietário:", {
+      userID,
+      ownerID,
+      isOwner: userID > 0 && ownerID > 0 && userID === ownerID
+    });
+    
+    return userID > 0 && ownerID > 0 && userID === ownerID;
   };
+
+
+
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -265,28 +335,29 @@ export default function Vitrine() {
                         >
                           Ver detalhes
                         </Link>
-                        {autenticado ? (
-                          isOwner(produto) ? (
-                            <div className="mt-4 text-vermelho font-bold text-center">
-                              Você é o dono deste produto!
-                            </div>
-                          ) : (
-                            <button
-                              onClick={() => handleAdicionarAoCarrinho(produto)}
-                              className={`w-full py-2 px-4 border-none mt-4 rounded-[5px] text-white text-sm md:text-base lg:text-lg cursor-pointer transition-colors duration-300 mb-2 flex items-center justify-center gap-2 h-10 md:h-12 ${
-                                jaNoCarrinho
-                                  ? 'bg-gray-400 cursor-not-allowed'
-                                  : 'bg-marieth hover:bg-verdeaceso'
-                              }`}
-                              disabled={jaNoCarrinho || carregandoCarrinho}
-                            >
-                              <CgShoppingCart className="text-lg md:text-xl" />
-                              <span>
-                                {jaNoCarrinho ? "Já está no Carrinho" : "Adicionar ao Carrinho"}
-                              </span>
-                            </button>
-                          )
+                      {autenticado ? (
+                        isOwner(produto) ? (
+                          <div className="mt-4 text-vermelho font-bold text-center p-4 bg-red-50 rounded-lg">
+                            🏠 Você é o proprietário deste produto!
+                          </div>
                         ) : (
+                          <button
+                            type="button"
+                            onClick={() => handleAdicionarAoCarrinho(produto)}
+                            className={`w-full py-2 px-4 border-none mt-4 rounded-[5px] text-white text-sm md:text-base lg:text-lg cursor-pointer transition-colors duration-300 mb-2 flex items-center justify-center gap-2 h-10 md:h-12 ${
+                              jaNoCarrinho
+                                ? 'bg-gray-400 cursor-not-allowed'
+                                : 'bg-marieth hover:bg-verdeaceso'
+                            }`}
+                            disabled={jaNoCarrinho || carregandoCarrinho}
+                          >
+                            <CgShoppingCart className="text-lg md:text-xl" />
+                            <span>
+                              {jaNoCarrinho ? "Já está no Carrinho" : "Adicionar ao Carrinho"}
+                            </span>
+                          </button>
+                        )
+                      ) : (
                           <Link
                             href="/login"
                             className="bg-marieth w-full py-2 px-4 border-none mt-4 rounded-[5px] text-white text-center text-sm md:text-base cursor-pointer 

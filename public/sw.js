@@ -1,1 +1,257 @@
-if(!self.define){let e,i={};const s=(s,n)=>(s=new URL(s+".js",n).href,i[s]||new Promise((i=>{if("document"in self){const e=document.createElement("script");e.src=s,e.onload=i,document.head.appendChild(e)}else e=s,importScripts(s),i()})).then((()=>{let e=i[s];if(!e)throw new Error(`Module ${s} didn’t register its module`);return e})));self.define=(n,a)=>{const c=e||("document"in self?document.currentScript.src:"")||location.href;if(i[c])return;let t={};const d=e=>s(e,c),r={module:{uri:c},exports:t,require:d};i[c]=Promise.all(n.map((e=>r[e]||d(e)))).then((e=>(a(...e),t)))}}define(["./workbox-4754cb34"],(function(e){"use strict";importScripts(),self.skipWaiting(),e.clientsClaim(),e.precacheAndRoute([{url:"/_next/app-build-manifest.json",revision:"5bb0bf5168857f3b40755d7cb5137b75"},{url:"/_next/static/chunks/1684-5abdf0904437fc24.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/3154-909eb4a75648f79b.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/385cb88d-849e2ed3ead67f54.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/3d47b92a-3c04bbea2f0d46c2.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/472.a3826d29d6854395.js",revision:"a3826d29d6854395"},{url:"/_next/static/chunks/479ba886-5d7b5f437dc0546f.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/4952-686644fa051bded4.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/4bd1b696-43e3607287f851c0.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/53c13509-66743e397ad7bf8a.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/59650de3-83dbc19cc336dd34.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/5e22fd23-e9243ee3b9163650.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/6406-4944df6ec12d939e.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/6766-90c27aa86547dc55.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/6874-9c5f7cad713417e8.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/795d4814-f5cfa9132eb4d516.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/8542-055b7dd33515b19c.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/8579-7fbf8365b0baab32.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/8e1d74a4-944effe40f0ed373.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/9341.3de5922501c09e3c.js",revision:"3de5922501c09e3c"},{url:"/_next/static/chunks/94730671-4e56eca2ced62bf2.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/9c4e2130-96ac7d4dafdc57ee.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/app/Administrador/page-c089a5b636c1547b.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/app/Cadastroagricultor/page-68442f5d49d2189c.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/app/Cadastrocomprador/page-2b918ffd889bec2c.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/app/DetalhesProduto/%5BprodutoId%5D/page-3661bb63bd5393c9.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/app/EditarProduto/%5Bid%5D/page-fbf0251dd9acb6d4.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/app/PoliticaPrivacidade/page-94d0638344def683.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/app/ProdCad/page-d1ba93787d6b9ce5.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/app/Promoverproduto/page-e194481c7d9481f7.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/app/Seleccionar/page-66e7485bb3682ede.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/app/TodosProdutos/page-0c58ab68931015d7.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/app/_not-found/page-9fb9157b903abae9.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/app/cadastrofornecedor/page-ba0205bad3ddd5f0.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/app/carrinho/page-fb595072f4a08dc5.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/app/categoriafrutas/page-9a0680c95f4557c4.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/app/categoriagrao/page-0f192a72148be06f.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/app/categoriainsumo/page-ed54e2f1776dd985.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/app/categoriatuberraiz/page-3ed6260a25113554.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/app/categoriaverdura/page-a0f22eae262b6e68.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/app/comecarcomprar/page-afec9a641799dff2.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/app/editarperfil/page-cdb7ac6ca8149562.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/app/enderecopedido/page-e6ca6d2fc406fc65.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/app/layout-0d282e365a70d530.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/app/login/page-7bf10d4edd7d0756.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/app/notificacoes/page-c29296eea59eda09.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/app/pagamentoConfirmado/page-d9407cc64b5c1672.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/app/page-250cce4bde8692fe.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/app/perfilagricultor/page-bd5dfbd7f2b6e46f.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/app/perfilcomprador/page-3726c40dae59e329.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/app/perfilfornecedor/page-4b639305db2da421.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/app/relatoriocomprador/page-c48b65fd61719faa.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/app/telapaga/page-d3cb11344bd66dcc.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/app/termosuso/page-e9ac673802263f12.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/app/transportadora/page-bbebb98c9c788c98.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/b563f954-e6fa304440099085.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/c916193b-99ad539e8729a3fc.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/ca377847-9f1d207aaacae45d.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/e34aaff9-d0cb6fab0d44524f.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/ee560e2c-42a039a38582500b.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/eec3d76d-66c521cea6149e79.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/f7333993-ae6d5e1192cba824.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/framework-fda66049c8bbcca5.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/main-6a745aa79cb222b3.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/main-app-c5ecc0747a3fef44.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/pages/_app-5eef2bc2d7659273.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/pages/_error-7c851e5682ba33fe.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/chunks/polyfills-42372ed130431b0a.js",revision:"846118c33b2c0e922d7b3a7676f81f6f"},{url:"/_next/static/chunks/webpack-29a81b6864468f4e.js",revision:"k_R0i7zdwguJQwnLKUmiz"},{url:"/_next/static/css/715be398208dca58.css",revision:"715be398208dca58"},{url:"/_next/static/css/ffbfd330a1493db9.css",revision:"ffbfd330a1493db9"},{url:"/_next/static/k_R0i7zdwguJQwnLKUmiz/_buildManifest.js",revision:"cbeae80e38548e6d0234a7ec2e3e3af6"},{url:"/_next/static/k_R0i7zdwguJQwnLKUmiz/_ssgManifest.js",revision:"b6652df95db52feb4daf4eca35380933"},{url:"/_next/static/media/26a46d62cd723877-s.woff2",revision:"befd9c0fdfa3d8a645d5f95717ed6420"},{url:"/_next/static/media/55c55f0601d81cf3-s.woff2",revision:"43828e14271c77b87e3ed582dbff9f74"},{url:"/_next/static/media/569ce4b8f30dc480-s.p.woff2",revision:"ef6cefb32024deac234e82f932a95cbd"},{url:"/_next/static/media/581909926a08bbc8-s.woff2",revision:"f0b86e7c24f455280b8df606b89af891"},{url:"/_next/static/media/6d93bde91c0c2823-s.woff2",revision:"621a07228c8ccbfd647918f1021b4868"},{url:"/_next/static/media/747892c23ea88013-s.woff2",revision:"a0761690ccf4441ace5cec893b82d4ab"},{url:"/_next/static/media/8d697b304b401681-s.woff2",revision:"cc728f6c0adb04da0dfcb0fc436a8ae5"},{url:"/_next/static/media/93f479601ee12b01-s.p.woff2",revision:"da83d5f06d825c5ae65b7cca706cb312"},{url:"/_next/static/media/9610d9e46709d722-s.woff2",revision:"7b7c0ef93df188a852344fc272fc096b"},{url:"/_next/static/media/97e0cb1ae144a2a9-s.woff2",revision:"e360c61c5bd8d90639fd4503c829c2dc"},{url:"/_next/static/media/a34f9d1faa5f3315-s.p.woff2",revision:"d4fe31e6a2aebc06b8d6e558c9141119"},{url:"/_next/static/media/ba015fad6dcf6784-s.woff2",revision:"8ea4f719af3312a055caf09f34c89a77"},{url:"/_next/static/media/df0a9ae256c0569c-s.woff2",revision:"d54db44de5ccb18886ece2fda72bdfe0"},{url:"/file.svg",revision:"d09f95206c3fa0bb9bd9fefabfd0ea71"},{url:"/globe.svg",revision:"2aaafa6a49b6563925fe440891e32717"},{url:"/icons/icon-128x128.png",revision:"cd934662079e4eed5dc9b99996f270cc"},{url:"/icons/icon-144x144.png",revision:"ed3c66d25597e5869fa1580283b479a1"},{url:"/icons/icon-152x152.png",revision:"de800ffe0cdfc5916236263f89673383"},{url:"/icons/icon-192x192.png",revision:"49494fc96363af7fbe4d92302415cdae"},{url:"/icons/icon-384x384.png",revision:"d65da3d5c92abc60b70da95878c79d60"},{url:"/icons/icon-512x512.png",revision:"bc3e6c803abbbd24817aab95f7dadb09"},{url:"/icons/icon-72x72.png",revision:"235aca1ab4ebf6ca44d2293797c4e984"},{url:"/icons/icon-96x96.png",revision:"585742c19b3e943f1add83c89bfa3165"},{url:"/images/logo.jpg",revision:"53e581ee21599e98353e768c3bb33fe5"},{url:"/images/tomateorg.jpg",revision:"4da366a3f7f23dc097eb934f8951d658"},{url:"/manifest.json",revision:"4ca73ddc13779defab3634d236f6acd2"}],{ignoreURLParametersMatching:[]}),e.cleanupOutdatedCaches(),e.registerRoute("/",new e.NetworkFirst({cacheName:"start-url",plugins:[{cacheWillUpdate:async({request:e,response:i,event:s,state:n})=>i&&"opaqueredirect"===i.type?new Response(i.body,{status:200,statusText:"OK",headers:i.headers}):i}]}),"GET"),e.registerRoute(/^https:\/\/fonts\.(?:gstatic)\.com\/.*/i,new e.CacheFirst({cacheName:"google-fonts-webfonts",plugins:[new e.ExpirationPlugin({maxEntries:4,maxAgeSeconds:31536e3})]}),"GET"),e.registerRoute(/^https:\/\/fonts\.(?:googleapis)\.com\/.*/i,new e.StaleWhileRevalidate({cacheName:"google-fonts-stylesheets",plugins:[new e.ExpirationPlugin({maxEntries:4,maxAgeSeconds:604800})]}),"GET"),e.registerRoute(/\.(?:eot|otf|ttc|ttf|woff|woff2|font.css)$/i,new e.StaleWhileRevalidate({cacheName:"static-font-assets",plugins:[new e.ExpirationPlugin({maxEntries:4,maxAgeSeconds:604800})]}),"GET"),e.registerRoute(/\.(?:jpg|jpeg|gif|png|svg|ico|webp)$/i,new e.StaleWhileRevalidate({cacheName:"static-image-assets",plugins:[new e.ExpirationPlugin({maxEntries:64,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(/\/_next\/image\?url=.+$/i,new e.StaleWhileRevalidate({cacheName:"next-image",plugins:[new e.ExpirationPlugin({maxEntries:64,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(/\.(?:mp3|wav|ogg)$/i,new e.CacheFirst({cacheName:"static-audio-assets",plugins:[new e.RangeRequestsPlugin,new e.ExpirationPlugin({maxEntries:32,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(/\.(?:mp4)$/i,new e.CacheFirst({cacheName:"static-video-assets",plugins:[new e.RangeRequestsPlugin,new e.ExpirationPlugin({maxEntries:32,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(/\.(?:js)$/i,new e.StaleWhileRevalidate({cacheName:"static-js-assets",plugins:[new e.ExpirationPlugin({maxEntries:32,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(/\.(?:css|less)$/i,new e.StaleWhileRevalidate({cacheName:"static-style-assets",plugins:[new e.ExpirationPlugin({maxEntries:32,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(/\/_next\/data\/.+\/.+\.json$/i,new e.StaleWhileRevalidate({cacheName:"next-data",plugins:[new e.ExpirationPlugin({maxEntries:32,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(/\.(?:json|xml|csv)$/i,new e.NetworkFirst({cacheName:"static-data-assets",plugins:[new e.ExpirationPlugin({maxEntries:32,maxAgeSeconds:86400})]}),"GET"),e.registerRoute((({url:e})=>{if(!(self.origin===e.origin))return!1;const i=e.pathname;return!i.startsWith("/api/auth/")&&!!i.startsWith("/api/")}),new e.NetworkFirst({cacheName:"apis",networkTimeoutSeconds:10,plugins:[new e.ExpirationPlugin({maxEntries:16,maxAgeSeconds:86400})]}),"GET"),e.registerRoute((({url:e})=>{if(!(self.origin===e.origin))return!1;return!e.pathname.startsWith("/api/")}),new e.NetworkFirst({cacheName:"others",networkTimeoutSeconds:10,plugins:[new e.ExpirationPlugin({maxEntries:32,maxAgeSeconds:86400})]}),"GET"),e.registerRoute((({url:e})=>!(self.origin===e.origin)),new e.NetworkFirst({cacheName:"cross-origin",networkTimeoutSeconds:10,plugins:[new e.ExpirationPlugin({maxEntries:32,maxAgeSeconds:3600})]}),"GET")}));
+// Service Worker PWA completo e otimizado
+const CACHE_NAME = "meu-pwa-cache-v2";
+const STATIC_CACHE = "static-cache-v2";
+const DYNAMIC_CACHE = "dynamic-cache-v2";
+
+// URLs para cache imediato (arquivos estáticos críticos)
+const STATIC_URLS = [
+  "/",
+  "/favicon.ico",
+  "/manifest.json",
+  "/offline.html", // página offline personalizada
+];
+
+// Padrões de URLs para cache dinâmico
+const CACHE_PATTERNS = {
+  static: [
+    /\/_next\/static\//,
+    /\.(?:js|css|woff2?|png|jpg|jpeg|gif|svg|ico)$/,
+  ],
+  pages: [
+    /^\/(?!api\/)/,
+  ]
+};
+
+// Evento de instalação: cache arquivos críticos
+self.addEventListener("install", event => {
+  console.log("[SW] Instalando Service Worker...");
+  
+  event.waitUntil(
+    Promise.all([
+      // Cache arquivos estáticos críticos
+      caches.open(STATIC_CACHE).then(cache => {
+        console.log("[SW] Cacheando arquivos estáticos");
+        return cache.addAll(STATIC_URLS);
+      }),
+      // Pre-cache alguns recursos do Next.js se disponíveis
+      caches.open(DYNAMIC_CACHE).then(cache => {
+        console.log("[SW] Cache dinâmico inicializado");
+        return Promise.resolve();
+      })
+    ]).then(() => {
+      console.log("[SW] Instalação concluída");
+      // Força ativação imediata
+      return self.skipWaiting();
+    })
+  );
+});
+
+// Evento de ativação: limpeza de caches antigos
+self.addEventListener("activate", event => {
+  console.log("[SW] Ativando Service Worker...");
+  
+  event.waitUntil(
+    Promise.all([
+      // Remove caches antigos
+      caches.keys().then(cacheNames => {
+        return Promise.all(
+          cacheNames
+            .filter(cacheName => 
+              cacheName !== STATIC_CACHE && 
+              cacheName !== DYNAMIC_CACHE &&
+              cacheName !== CACHE_NAME
+            )
+            .map(cacheName => {
+              console.log("[SW] Removendo cache antigo:", cacheName);
+              return caches.delete(cacheName);
+            })
+        );
+      }),
+      // Assume controle de todas as páginas
+      self.clients.claim()
+    ]).then(() => {
+      console.log("[SW] Ativação concluída - SW está no controle");
+    })
+  );
+});
+
+// Intercepta todas as requisições
+self.addEventListener("fetch", event => {
+  const { request } = event;
+  const url = new URL(request.url);
+  
+  // Ignora requisições para outras origens e APIs
+  if (url.origin !== location.origin || url.pathname.startsWith('/api/')) {
+    return;
+  }
+
+  event.respondWith(handleRequest(request));
+});
+
+// Função principal para lidar com requisições
+async function handleRequest(request) {
+  const url = new URL(request.url);
+  
+  try {
+    // Estratégia 1: Cache First para recursos estáticos
+    if (isStaticResource(url)) {
+      return await cacheFirstStrategy(request, STATIC_CACHE);
+    }
+    
+    // Estratégia 2: Network First para páginas e conteúdo dinâmico
+    if (isPageRequest(request)) {
+      return await networkFirstStrategy(request, DYNAMIC_CACHE);
+    }
+    
+    // Estratégia 3: Stale While Revalidate para outros recursos
+    return await staleWhileRevalidateStrategy(request, DYNAMIC_CACHE);
+    
+  } catch (error) {
+    console.log("[SW] Erro ao processar requisição:", error);
+    return await handleOffline(request);
+  }
+}
+
+// Cache First: ideal para recursos estáticos que não mudam
+async function cacheFirstStrategy(request, cacheName) {
+  const cachedResponse = await caches.match(request);
+  
+  if (cachedResponse) {
+    console.log("[SW] Cache hit:", request.url);
+    return cachedResponse;
+  }
+  
+  console.log("[SW] Cache miss, buscando da rede:", request.url);
+  const networkResponse = await fetch(request);
+  
+  if (networkResponse.ok) {
+    const cache = await caches.open(cacheName);
+    cache.put(request, networkResponse.clone());
+  }
+  
+  return networkResponse;
+}
+
+// Network First: ideal para conteúdo que muda frequentemente
+async function networkFirstStrategy(request, cacheName) {
+  try {
+    console.log("[SW] Network first para:", request.url);
+    const networkResponse = await fetch(request);
+    
+    if (networkResponse.ok) {
+      const cache = await caches.open(cacheName);
+      cache.put(request, networkResponse.clone());
+    }
+    
+    return networkResponse;
+  } catch (error) {
+    console.log("[SW] Rede falhou, tentando cache:", request.url);
+    const cachedResponse = await caches.match(request);
+    
+    if (cachedResponse) {
+      return cachedResponse;
+    }
+    
+    throw error;
+  }
+}
+
+// Stale While Revalidate: serve do cache e atualiza em background
+async function staleWhileRevalidateStrategy(request, cacheName) {
+  const cachedResponse = await caches.match(request);
+  
+  // Busca da rede em background (não bloqueia)
+  const networkPromise = fetch(request).then(networkResponse => {
+    if (networkResponse.ok) {
+      const cache = caches.open(cacheName);
+      cache.then(c => c.put(request, networkResponse.clone()));
+    }
+    return networkResponse;
+  }).catch(error => {
+    console.log("[SW] Erro na atualização em background:", error);
+  });
+  
+  // Retorna cache imediatamente se disponível, senão espera a rede
+  return cachedResponse || networkPromise;
+}
+
+// Tratamento para quando tudo falha (offline)
+async function handleOffline(request) {
+  // Para navegação, retorna página offline
+  if (request.destination === 'document') {
+    const offlinePage = await caches.match('/offline.html');
+    if (offlinePage) {
+      return offlinePage;
+    }
+  }
+  
+  // Para imagens, retorna placeholder se disponível
+  if (request.destination === 'image') {
+    const placeholderImage = await caches.match('/placeholder.png');
+    if (placeholderImage) {
+      return placeholderImage;
+    }
+  }
+  
+  // Resposta padrão offline
+  return new Response(
+    JSON.stringify({ 
+      error: 'Offline', 
+      message: 'Conteúdo não disponível offline' 
+    }),
+    {
+      status: 503,
+      statusText: 'Service Unavailable',
+      headers: { 'Content-Type': 'application/json' }
+    }
+  );
+}
+
+// Funções auxiliares para classificar requisições
+function isStaticResource(url) {
+  return CACHE_PATTERNS.static.some(pattern => pattern.test(url.pathname));
+}
+
+function isPageRequest(request) {
+  return request.destination === 'document' ||
+         (request.method === 'GET' && 
+          request.headers.get('accept')?.includes('text/html'));
+}
+
+// Escuta mensagens do cliente (para controle manual)
+self.addEventListener("message", event => {
+  if (event.data && event.data.type) {
+    switch (event.data.type) {
+      case 'SKIP_WAITING':
+        self.skipWaiting();
+        break;
+      case 'GET_VERSION':
+        event.ports[0]?.postMessage({ version: CACHE_NAME });
+        break;
+      case 'CLEAR_CACHE':
+        clearAllCaches().then(() => {
+          event.ports[0]?.postMessage({ success: true });
+        });
+        break;
+    }
+  }
+});
+
+// Função para limpar todos os caches
+async function clearAllCaches() {
+  const cacheNames = await caches.keys();
+  await Promise.all(cacheNames.map(name => caches.delete(name)));
+  console.log("[SW] Todos os caches foram limpos");
+}
+
+// Evento para sincronização em background (se suportado)
+self.addEventListener("sync", event => {
+  if (event.tag === 'background-sync') {
+    event.waitUntil(
+      console.log("[SW] Executando sincronização em background")
+    );
+  }
+});
+
+// Log de inicialização
+console.log(`[SW] Service Worker ${CACHE_NAME} carregado e pronto!`);

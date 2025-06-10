@@ -116,6 +116,7 @@ export default function AdminDashboard() {
   const [sidebarActive, setSidebarActive] = useState(false);
   const [usuario, setUsuario] = useState<usuarios[]>([]);
   const [pedidos, setPedidos] = useState<Pedidos[]>([]);
+
   const [notifications, setNotifications] = useState<Notification[]>([
     { id: 1, title: 'Novo Usuário', message: 'João Silva solicitou cadastro como Agricultor', time: '5 min atrás', read: false, type: 'info' },
     { id: 2, title: 'Produto Esgotado', message: 'Tomate - estoque zerado', time: '1 hora atrás', read: false, type: 'warning' },
@@ -170,38 +171,45 @@ export default function AdminDashboard() {
     fetchPedidos();
   }, []);
 
-  useEffect(() => {
-    async function fetchCardsData() {
-      try {
-        const usuariosAtivos = usuario.filter(u => u.status === 'Aprovado').length;
-        const pedidosHoje = pedidos.filter((p: Pedidos) => new Date(p.data_pedido).toDateString() === new Date().toDateString()).length;
-        const produtosAtivos = produtos.length;
-        const receitaMensal = pedidos.reduce((total: number, pedido: Pedidos) => total + pedido.valor_total, 0) / 1000;
-        setCardsData({
-          UsuariosActivo: usuariosAtivos,
-          PedidosHoje: pedidosHoje,
-          ProdutosAtivos: produtosAtivos,
-          ReceitaMensal: receitaMensal
-        });
-      } catch (error) {
-        setCardsData({
-          UsuariosActivo: 0,
-          PedidosHoje: 0,
-          ProdutosAtivos: 0,
-          ReceitaMensal: 0
-        });
-        console.error("Erro ao buscar dados dos cartões:", error);
-      }
-    }
-    fetchCardsData();
-  }, [produtos, usuario, pedidos]);
 
-  const [Cardsdata, setCardsData] = useState({
+   const [Cardsdata, setCardsData] = useState({
     UsuariosActivo: 0,
     PedidosHoje: 0,
     ProdutosAtivos: 0,
     ReceitaMensal: 0
   });
+  
+useEffect(() => {
+  async function fetchCardsData() {
+    try {
+      const usuariosAtivos = Array.isArray(usuario) ? usuario.filter(u => u.status === 'Aprovado').length : 0;
+      const pedidosHoje = Array.isArray(pedidos)
+        ? pedidos.filter((p: Pedidos) => new Date(p.data_pedido).toDateString() === new Date().toDateString()).length
+        : 0;
+      const produtosAtivos = Array.isArray(produtos) ? produtos.length : 0;
+      const receitaMensal = Array.isArray(pedidos)
+        ? pedidos.reduce((total: number, pedido: Pedidos) => total + pedido.valor_total, 0) / 1000
+        : 0;
+
+      setCardsData({
+        UsuariosActivo: usuariosAtivos,
+        PedidosHoje: pedidosHoje,
+        ProdutosAtivos: produtosAtivos,
+        ReceitaMensal: receitaMensal
+      });
+    } catch (error) {
+      setCardsData({
+        UsuariosActivo: 0,
+        PedidosHoje: 0,
+        ProdutosAtivos: 0,
+        ReceitaMensal: 0
+      });
+      console.error("Erro ao buscar dados dos cartões:", error);
+    }
+  }
+  fetchCardsData();
+}, [produtos, usuario, pedidos]);
+ 
 
   const markNotificationAsRead = (id: number) => {
     setNotifications((prev) =>
@@ -378,11 +386,7 @@ const GestãoPedidos: React.FC = () => {
         label: 'Produtos',
         data: [12, 19, 7, 5],
         backgroundColor: [
-          '#10b981',
-          '#f59e42',
-          '#3b82f6',
-          '#f43f5e'
-        ],
+          '#10b981', '#f59e42','#3b82f6','#f43f5e'],
         borderWidth: 1,
       },
     ],
@@ -578,20 +582,9 @@ const GestãoPedidos: React.FC = () => {
 <div className="mb-8 overflow-x-auto">
   <div className="flex gap-2 min-w-max px-2 py-1">
     {([
-      'Dashboard',
-      'Usuários', 
-      'Produtos',
-      'Pedidos',
-      'Transportadoras',
-      'Relatórios',
-      'Logística',
-      'Suporte',
-      'Controle de Pedidos',
-      'Configurações',
-      'Notificações',
-      'Cadastrar Transportadora',
-      'Gerenciamento de Usuarios',
-      'Logout'
+      'Dashboard','Usuários', 'Produtos','Pedidos','Transportadoras','Relatórios',
+      'Logística','Suporte', 'Controle de Pedidos','Configurações','Notificações',
+      'Cadastrar Transportadora','Gerenciamento de Usuarios','Logout'
       
     ] as TabType[]).map((tab) => (
       <button
@@ -955,7 +948,7 @@ const GestãoPedidos: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {pedidosFiltrados.map((pedido) => (
+                {Array.isArray(pedidosFiltrados) && pedidosFiltrados.map((pedido) => (
                   <tr key={pedido.id_pedido} className="hover:bg-gray-50">
                     <td className="p-4 border-b border-gray-200">#{pedido.id_pedido}</td>
                     <td className="p-4 border-b border-gray-200">

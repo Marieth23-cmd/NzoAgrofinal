@@ -118,7 +118,7 @@ export default function DetalhesProduto(){
   // Verifica se produto já está no carrinho
   const jaNoCarrinho = produtoId ? produtosNoCarrinho.includes(Number(produtoId)) : false;
 
-  // CORRIGIDO - Verificar autenticação e carregar dados do usuário
+  //  Verificar autenticação e carregar dados do usuário
   useEffect(() => {
     const verificarECarregarUsuario = async () => {
       try {
@@ -168,35 +168,36 @@ export default function DetalhesProduto(){
     }
   }, [autenticado]);
 
-  // CORRIGIDO - Buscar avaliações do produto
+  //Buscar avaliações do produto
   useEffect(() => {
-    if (!produtoId) return;
-    
-    const carregarAvaliacoes = async () => {
-      setCarregandoAvaliacoes(true);
-      try {
-        const resultado = await buscarMediaEstrelas(Number(produtoId));
-        setAvaliacaoData({
-          media_estrelas: resultado.media_estrelas || 0,
-          total: resultado.total || 0,
-          recomendacoes: resultado.recomendacoes || 0,
-          avaliacoes: resultado.avaliacoes || []
-        });
-      } catch (error) {
-        console.error("Erro ao carregar avaliações:", error);
-        setAvaliacaoData({
-          media_estrelas: 0,
-          total: 0,
-          recomendacoes: 0,
-          avaliacoes: []
-        });
-      } finally {
-        setCarregandoAvaliacoes(false);
-      }
-    };
+  if (!produtoId) return;
+  
+  const carregarAvaliacoes = async () => {
+    setCarregandoAvaliacoes(true);
+    try {
+      const resultado = await buscarMediaEstrelas(Number(produtoId));
+      setAvaliacaoData({
+        // Garantir que media_estrelas seja sempre um número
+        media_estrelas: Number(resultado.media_estrelas) || 0,
+        total: Number(resultado.total) || 0,
+        recomendacoes: Number(resultado.recomendacoes) || 0,
+        avaliacoes: resultado.avaliacoes || []
+      });
+    } catch (error) {
+      console.error("Erro ao carregar avaliações:", error);
+      setAvaliacaoData({
+        media_estrelas: 0, // Valor padrão seguro
+        total: 0,
+        recomendacoes: 0,
+        avaliacoes: []
+      });
+    } finally {
+      setCarregandoAvaliacoes(false);
+    }
+  };
 
-    carregarAvaliacoes();
-  }, [produtoId, avaliacaoRealizada]);
+  carregarAvaliacoes();
+}, [produtoId, avaliacaoRealizada]);
 
   // Função para selecionar estrela temporariamente
   const handleSelecionarEstrela = (nota: number) => {
@@ -263,7 +264,8 @@ export default function DetalhesProduto(){
     }
   }, [produto, quantidadeSelecionada]);
 
-  // CORRIGIDO - Verificar se o usuário é dono do produto
+
+  //  Verificar se o usuário é dono do produto
   const isOwner = (): boolean => {
     if (!usuario || !produto) {
       console.log("Verificação de proprietário: usuário ou produto não carregado");
@@ -593,30 +595,28 @@ export default function DetalhesProduto(){
                 <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-marieth"></div>
               </div>
             ) : (
-              <>
-                <div className="flex flex-wrap gap-4 lg:gap-8 mb-6">
+                              <><div className="flex flex-wrap gap-4 lg:gap-8 mb-6">
                   <div className="text-center bg-pretobranco p-4 rounded-lg">
                     <div className="text-[1.3rem] lg:text-[1.5rem] text-marieth font-bold">
-                      {avaliacaoData.media_estrelas.toFixed(1)}
+                      {(Number(avaliacaoData.media_estrelas) || 0).toFixed(1)}
                     </div>
                     <div className="text-sm lg:text-base text-cortexto">Média Geral</div>
                   </div>
                   <div className="text-center bg-pretobranco p-4 rounded-lg">
                     <div className="text-[1.3rem] lg:text-[1.5rem] text-marieth font-bold">
-                      {avaliacaoData.total}
+                      {Number(avaliacaoData.total) || 0}
                     </div>
                     <div className="text-sm lg:text-base text-cortexto">
-                      {avaliacaoData.total === 1 ? 'Avaliação' : 'Avaliações'}
+                      {(Number(avaliacaoData.total) || 0) === 1 ? 'Avaliação' : 'Avaliações'}
                     </div>
                   </div>
                   <div className="text-center bg-pretobranco p-4 rounded-lg">
                     <div className="text-[1.3rem] lg:text-[1.5rem] text-marieth font-bold">
-                      {avaliacaoData.recomendacoes}%
+                      {Number(avaliacaoData.recomendacoes) || 0}%
                     </div>
                     <div className="text-sm lg:text-base text-cortexto">Recomendações</div>
                   </div>
                 </div>
-
                 {/* FORMULÁRIO DE AVALIAÇÃO */}
                 <div className="mt-6 p-4 lg:p-6 rounded-[10px] bg-back2">
                   <h3 className="mb-4 text-[1.1rem] lg:text-[1.2rem] font-semibold">

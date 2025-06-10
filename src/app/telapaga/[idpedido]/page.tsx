@@ -1,3 +1,4 @@
+
 'use client'
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import Footer from '../../Components/Footer'
@@ -127,40 +128,72 @@ const extrairIdPedido = (pathname: string, searchParams: URLSearchParams): strin
   return null
 }
 
-// Função simulada - substitua pela sua função real
+// Função para buscar dados do pedido da API
 const buscarPedidoPagamento = async (id_pedido: number): Promise<PedidoPagamentoData> => {
-  // Simular delay de API
-  await new Promise(resolve => setTimeout(resolve, 1000))
-  
-  // Dados simulados - substitua pela sua implementação real
-  return {
-    id_pedido,
-    valor_total: 2550,
-    estado: 'pendente',
-    data_pedido: new Date().toISOString(),
-    rua: 'Rua das Flores, 123',
-    bairro: 'Maianga',
-    municipio: 'Luanda',
-    provincia: 'Luanda',
-    pais: 'Angola',
-    itens: [
-      {
-        id_produto: 1,
-        quantidade_comprada: 2,
-        preco: 1250,
-        subtotal: 2500,
-        nome_produto: 'Produto Exemplo',
-        peso_kg: 1.5
-      }
-    ],
-    resumo: {
-      subtotal: 2500,
-      frete: 150,
-      comissao: 100,
-      total: 2550,
-      peso_total: 3.0,
-      quantidade_itens: 2
+  try {
+    // Pegar o token do localStorage ou onde você armazena
+    const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken')
+    
+    if (!token) {
+      throw new Error('Token de autenticação não encontrado')
     }
+
+    const response = await fetch(`/api/pedidos/${id_pedido}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    })
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        throw new Error('Pedido não encontrado')
+      }
+      if (response.status === 401) {
+        throw new Error('Não autorizado - faça login novamente')
+      }
+      throw new Error(`Erro ${response.status}: ${response.statusText}`)
+    }
+
+    const data = await response.json()
+    
+    // Transformar os dados da API para o formato esperado pelo componente
+    const pedidoFormatado: PedidoPagamentoData = {
+      id_pedido: data.id_pedido,
+      valor_total: data.valor_total,
+      estado: data.estado,
+      data_pedido: data.data_pedido,
+      rua: data.endereco?.rua,
+      bairro: data.endereco?.bairro,
+      pais: data.endereco?.pais,
+      municipio: data.endereco?.municipio,
+      referencia: data.endereco?.referencia,
+      provincia: data.endereco?.provincia,
+      numero: data.endereco?.numero,
+      itens: data.itens.map((item: any) => ({
+        id_produto: item.id_produto,
+        quantidade_comprada: item.quantidade_comprada,
+        preco: item.preco,
+        subtotal: item.subtotal,
+        nome_produto: item.nome_produto || item.nome,
+        peso_kg: item.peso_kg || 0
+      })),
+      resumo: {
+        subtotal: data.resumo?.subtotal || data.subtotalProdutos || 0,
+        frete: data.resumo?.frete || data.dados_pagamento?.frete || 0,
+        comissao: data.resumo?.comissao || data.dados_pagamento?.comissao || 0,
+        total: data.valor_total,
+        peso_total: data.resumo?.peso_total || data.dados_pagamento?.peso_total || 0,
+        quantidade_itens: data.itens.length
+      }
+    }
+
+    return pedidoFormatado
+
+  } catch (error: any) {
+    console.error('Erro ao buscar pedido:', error)
+    throw new Error(error.message || 'Erro ao carregar dados do pedido')
   }
 }
 
@@ -205,7 +238,7 @@ export default function PagamentoPage() {
         setPedido(dadosPedido)
       } catch (error: any) {
         console.error('Erro ao carregar pedido:', error) // Para debug
-        setErro(error.mensagem || 'Erro ao carregar dados do pedido')
+        setErro(error.message || 'Erro ao carregar dados do pedido')
       } finally {
         setCarregando(false)
       }
@@ -338,7 +371,7 @@ export default function PagamentoPage() {
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
-                botao
+                botão
               </button>
             </div>
           </div>

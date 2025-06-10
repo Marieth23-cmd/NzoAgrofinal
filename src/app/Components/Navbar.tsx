@@ -33,6 +33,9 @@ export default function Navbar() {
            const resposta = await badgeNotificacoes();
            setNotificacoesNaoLidas(resposta.total);
            console.log("🔔 Estado atualizado para:", resposta.total);
+           console.log("🔔 notificacoesNaoLidas atual:", notificacoesNaoLidas);
+
+
  
            console.log("Notificações não lidas:", resposta.total);
          } catch (error) {
@@ -42,6 +45,14 @@ export default function Navbar() {
        }
      };
      
+
+
+     useEffect(() => {
+    console.log("🔔 useEffect executado - autenticado:", autenticado);
+    if (autenticado) {
+        carregarNotificacoes();
+    }
+}, [autenticado]); 
    
      useEffect(() => {
       const checar = async () => {
