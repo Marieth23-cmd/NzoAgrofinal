@@ -176,29 +176,17 @@ const [error, setError] = useState<string | null>(null);
     fetchProdutos();
   }, []);
 
- const fetchUsuarios = async () => {
+  const fetchUsuarios = async () => {
     try {
-      setIsLoading(true); // Iniciar carregamento
-      setError(null); // Limpar erros anteriores
-      
       const data = await getUsuarios();
-      if (!data) {
-        throw new Error('Nenhum dado recebido');
-      }
-      
       setUsuarios(data);
       console.log("Usuários carregados:", data);
     } catch (error) {
-      console.error("Erro ao buscar usuários:", error);
-      setError("Erro ao carregar usuários. Tente novamente.");
       setUsuarios([]);
-    } finally {
-      setIsLoading(false); // Finalizar carregamento independente do resultado
+      console.error("Erro ao buscar usuários:", error);
     }
   };
-
-
-  useEffect(() => {
+ useEffect(() => {
     fetchUsuarios();
   }, []); 
 
