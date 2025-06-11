@@ -138,7 +138,7 @@ const buscarPedidoPagamento = async (id_pedido: number): Promise<PedidoPagamento
       throw new Error('Token de autenticação não encontrado')
     }
 
-    const response = await fetch(`/api/pedidos/${id_pedido}`, {
+    const response = await fetch(`/pedidos/${id_pedido}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -251,7 +251,7 @@ export default function PagamentoPage() {
     if (!pedido) return
     
     const novaReferencia = `REF_${pedido.id_pedido}_${Date.now()}`
-    const novoTransacaoId = `TXN_${Math.random().toString(36).substr(2, 8).toUpperCase()}`
+    const novoTransacaoId = `TXN_${Math.random().toString(36).slice(2, 10).toUpperCase()}`
     
     setReferenciaPagamento(novaReferencia)
     setTransacaoId(novoTransacaoId)

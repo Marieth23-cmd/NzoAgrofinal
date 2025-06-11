@@ -29,7 +29,7 @@ export default function Localizacao() {
 
 
   interface Pedido {
-  id_pedido?: number; // O id_pedido pode ser opcional se não for retornado imediatamente
+  id_pedido: number; // O id_pedido pode ser opcional se não for retornado imediatamente
   estado: string;
   valor_total: number;
   rua: string;
@@ -99,22 +99,24 @@ export default function Localizacao() {
     };
 
 
-
-const navegarParaPagamento = (idPedido?: number) => {
-  if (!idPedido || idPedido === 0) {
-    console.error('ID do pedido não fornecido ou inválido');
-    setSubmitError('Erro ao processar pedido. Tente novamente.');
+const navegarParaPagamento = (idPedido: number) => {
+  console.log('Tentando navegar para pagamento com ID:', idPedido);
+  
+  if (!idPedido || idPedido <= 0) {
+    console.error('ID do pedido inválido:', idPedido);
+    setSubmitError('ID do pedido inválido');
     return;
   }
-  
+
   try {
-    router.push(`/telapaga/${idPedido}`);
+    const url = `/telapaga/${idPedido}`;
+    console.log('Navegando para:', url);
+    router.push(url);
   } catch (error) {
-    console.error('Erro ao navegar:', error);
-    setSubmitError('Erro ao redirecionar. Tente novamente.');
+    console.error('Erro na navegação:', error);
+    setSubmitError('Erro ao redirecionar para pagamento');
   }
 };
-
 
 
 
