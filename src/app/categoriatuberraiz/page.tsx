@@ -4,15 +4,11 @@ import Footer from "../Components/Footer"
 import Navbar from "../Components/Navbar"
 import Image from "next/image"
 import Head from "next/head"
-import { Metadata } from 'next'
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import React from "react"
 import { buscarProdutosPorCategoria } from "../Services/produtos"
 
-export const metadata: Metadata = {
-  title: 'Categoria Tubérculos e Raízes',
-}
 
 export default function CategoriaTuberRaiz() {
   interface Produto {
