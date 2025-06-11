@@ -6,6 +6,7 @@ import { ChartOptions } from 'chart.js';
 import { Chart as ChartJS, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from 'chart.js';
 import Navbar from "../Components/Navbar"
 import Footer from "../Components/Footer"
+import { useRouter } from 'next/navigation';
 import { getUsuarioById } from '../Services/user';
 import { 
   getRelatorioComprasComprador, 
@@ -124,7 +125,7 @@ export default function Relatorios() {
   const [error, setError] = useState<string | null>(null);
   const [exportLoading, setExportLoading] = useState(false);
   const [primeiraConsulta, setPrimeiraConsulta] = useState<boolean>(false);
-
+  const router = useRouter();
   // Estados para filtros de data
   const [dataInicial, setDataInicial] = useState<string>('');
   const [dataFinal, setDataFinal] = useState<string>('');
@@ -183,34 +184,91 @@ const podeVerVendas = () => {
   };
 
 
-
-   const buscarUsuario = async () => {
-    try {
-      // Pegar o ID do usuário do localStorage
-      const userId = localStorage.getItem('userId');
-      
-      if (!userId) {
-        throw new Error('Usuário não autenticado');
-      }
-
-      // Buscar dados do usuário da API
-      const dadosUsuario = await getUsuarioById();
-      setUsuario(dadosUsuario);
-      
-      return dadosUsuario.tipo_usuario;
-    } catch (error) {
-      console.error('Erro ao buscar usuário:', error);
-      return 'Comprador'; // valor padrão
-    } finally {
-      setCarregandoUsuario(false);
+const buscarUsuario = async () => {
+  try {
+    const userId = localStorage.getItem('userId');
+    const token = localStorage.getItem('token');
+    
+    if (!userId || !token) {
+      router.push('/login');
+      throw new Error('Usuário não autenticado');
     }
-  };
+
+    const dadosUsuario = await getUsuarioById();
+    
+    if (!dadosUsuario) {
+      throw new Error('Usuário não encontrado');
+    }
+
+    setUsuario(dadosUsuario);
+    return dadosUsuario.tipo_usuario;
+  } catch (error) {
+    console.error('Erro ao buscar usuário:', error);
+    setError('Erro ao carregar dados do usuário. Por favor, faça login novamente.');
+    router.push('/login');
+    return null;
+  } finally {
+    setCarregandoUsuario(false);
+  }
+};
+
+
 
 
     useEffect(() => {
     buscarUsuario();
   }, []);
 
+
+
+  useEffect(() => {
+  const checkAuth = () => {
+    const token = localStorage.getItem('token');
+    const userId = localStorage.getItem('userId');
+
+    if (!token || !userId) {
+      router.push('/login');
+      return;
+    }
+  };
+
+  checkAuth();
+  buscarUsuario();
+}, []);
+
+// Modificar a função carregarDadosCompras para incluir o token
+const carregarDadosCompras = async () => {
+  setIsLoading(true);
+  setError(null);
+  
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('Token não encontrado');
+    }
+
+    const relatorioData = await getRelatorioComprasComprador(
+      dataInicial || undefined, 
+      dataFinal || undefined
+    );
+
+    if (!relatorioData) {
+      setRelatorioCompras([]);
+      return;
+    }
+
+    setRelatorioCompras(relatorioData);
+    // ...rest of the function
+  } catch (error: any) {
+    console.error("Erro ao carregar relatório:", error);
+    setError('Erro ao carregar dados. Por favor, tente novamente.');
+    if (error.response?.status === 401) {
+      router.push('/login');
+    }
+  } finally {
+    setIsLoading(false);
+  }
+};
 
    if (carregandoUsuario) {
     return (
@@ -258,66 +316,6 @@ const podeVerVendas = () => {
     }
   };
 
-  // Função para carregar dados de compras
-  const carregarDadosCompras = async () => {
-    setIsLoading(true);
-    setError(null);
-    
-    try {
-      // Buscar relatório de compras do comprador
-      const relatorioData = await getRelatorioComprasComprador(dataInicial || undefined, dataFinal || undefined);
-      setRelatorioCompras(relatorioData || []);
-      
-      try {
-        // Buscar estatísticas de compras do comprador
-        const estatisticasData = await getEstatisticasComprasComprador();
-        setEstatisticasCompras(estatisticasData);
-        
-        // Atualizar gráfico
-        if (estatisticasData?.por_mes) {
-          const dadosMensais = Array(12).fill(0);
-          const coresFundo = Array(12).fill('#E53E3E');
-          const coresBorda = Array(12).fill('#C53030');
-          
-          estatisticasData.por_mes.forEach((item: ItemMensal) => {
-            if (item.mes >= 1 && item.mes <= 12) {
-              dadosMensais[item.mes - 1] = item.total_mes;
-              
-              const cores = determinarCor(item.total_mes);
-              coresFundo[item.mes - 1] = cores.backgroundColor;
-              coresBorda[item.mes - 1] = cores.borderColor;
-            }
-          });
-          
-          setDadosGraficoCompras(prev => ({
-            ...prev,
-            datasets: [{
-              ...prev.datasets[0],
-              data: dadosMensais,
-              backgroundColor: coresFundo,
-              borderColor: coresBorda
-            }]
-          }));
-        }
-      } catch (estatisticasError) {
-        console.log("Erro ao carregar estatísticas de compras:", estatisticasError);
-      }
-      
-      setPrimeiraConsulta(true);
-      
-    } catch (error) {
-      console.log("Erro ao carregar relatório de compras:", error);
-      
-      if (error instanceof Error && error.message.includes("sem dados")) {
-        setRelatorioCompras([]);
-        setPrimeiraConsulta(true);
-      } else {
-        setError("Erro ao carregar dados de compras. Por favor, tente novamente.");
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   // Função para carregar dados de vendas
   const carregarDadosVendas = async () => {

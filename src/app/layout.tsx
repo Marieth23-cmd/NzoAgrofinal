@@ -2,8 +2,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { Inter } from 'next/font/google'
-
+import { Inter } from 'next/font/google';
 import ServiceWorkerRegistry from './Components/ServiceWorkerRegistry'
 
 const inter = Inter({ subsets: ['latin'] })

@@ -5,7 +5,7 @@ import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement
 import {
   MdMenu, MdDashboard, MdGroup, MdShield, MdShoppingCart, MdInventory, MdBarChart,
   MdLocalShipping, MdHeadset, MdDeliveryDining, MdAssignment, MdNotifications, MdPerson,
-  MdSearch, MdAttachMoney, MdEdit, MdDelete, MdAdd, MdSettings, MdCheck, MdClose
+  MdSearch, MdAttachMoney, MdEdit, MdDelete,MdLogout , MdAdd, MdSettings, MdCheck, MdClose
 } from 'react-icons/md';
 import { FaChartBar, FaUsers, FaBox, FaMoneyBillWave, FaSearch, FaSpinner } from 'react-icons/fa';
 import { getProdutos, deletarProduto } from '../Services/produtos';
@@ -38,7 +38,6 @@ type TabType =
 type UserType = 'Agricultor' | 'Comprador' | 'Fornecedor';
 type UserStatus = 'Pendente' | 'Aprovado' | 'Rejeitado';
 type NotificationType = 'info' | 'warning' | 'success' | 'error';
-
 interface Produto {
   id_produtos: number;
   nome: string;
@@ -48,6 +47,7 @@ interface Produto {
   preco: number;
   idUsuario: number;
   peso_kg: number;
+  categoria: 'Frutas' | 'Graos' | 'Tubérculos' | 'Insumos' | 'Verduras';
 }
 
 interface Usuario {
@@ -68,6 +68,33 @@ interface Notificacao {
   type?: NotificationType;
 }
 
+interface ItemPedido {
+  id_produto: number;
+  quantidade_comprada: number;
+  preco: number;
+  subtotal: number;
+  nome_produto?: string;
+}
+
+interface CategoriaContagem {
+  Frutas: number;
+  Graos: number;
+  Tuberculos: number;
+  Insumos: number;
+  Verduras: number;
+}
+
+// Update the categorias object
+const categorias: CategoriaContagem = {
+  Frutas: 0,
+  Graos: 0,
+  Tuberculos: 0,
+  Insumos: 0,
+  Verduras: 0
+};
+
+
+
 interface Pedido {
   id_pedido: number;
   estado: string;
@@ -85,7 +112,7 @@ interface Pedido {
 interface FormDataTransportadora {
   nome: string;
   nif: string;
-  telefone: string;
+  contacto:string;
   email: string;
   senha: string;
   confirmar_senha: string;
@@ -108,7 +135,7 @@ export default function AdminDashboard() {
   const [formData, setFormData] = useState<FormDataTransportadora>({
     nome: '',
     nif: '',
-    telefone: '',
+    contacto: '',
     email: '',
     senha: '',
     confirmar_senha: '',
@@ -117,6 +144,9 @@ export default function AdminDashboard() {
   const [termoBusca, setTermoBusca] = useState('');
   const [carregandoPedidos, setCarregandoPedidos] = useState(true);
   const [erro, setErro] = useState<string>('');
+  // No início do seu componente
+const [isLoading, setIsLoading] = useState(true);
+const [error, setError] = useState<string | null>(null);
 
   // Initial notifications data
   useEffect(() => {
@@ -146,17 +176,19 @@ export default function AdminDashboard() {
     fetchProdutos();
   }, []);
 
+  const fetchUsuarios = async () => {
+    try {
+      const data = await getUsuarios();
+      setUsuarios(data);
+      console.log("Usuários carregados:", data);
+    } catch (error) {
+      setUsuarios([]);
+      console.error("Erro ao buscar usuários:", error);
+    }
+  };
+
   // Fetch usuarios
   useEffect(() => {
-    async function fetchUsuarios() {
-      try {
-        const data = await getUsuarios();
-        setUsuarios(data);
-      } catch (error) {
-        setUsuarios([]);
-        console.error("Erro ao buscar usuários:", error);
-      }
-    }
     fetchUsuarios();
   }, []);
 
@@ -180,6 +212,83 @@ export default function AdminDashboard() {
     fetchPedidos();
   }, []);
 
+
+
+
+  useEffect(() => {
+  async function fetchCardsData() {
+    try {
+      // Contagem de usuários ativos
+      const usuariosAtivos = Array.isArray(usuarios) 
+        ? usuarios.filter(u => u.status === 'Aprovado').length 
+        : 0;
+
+      // Pedidos de hoje
+      const hoje = new Date().toISOString().split('T')[0];
+      const pedidosHoje = Array.isArray(pedidos)
+        ? pedidos.filter(p => p.data_pedido.startsWith(hoje)).length
+        : 0;
+
+      // Produtos ativos e contagem por categoria
+      const produtosAtivos = Array.isArray(produtos) ? produtos.length : 0;
+      
+      // Calcular total por categoria
+      const categorias = {
+        Frutas: 0,
+        Graos: 0,
+        Tuberculos: 0,
+        Insumos: 0,
+        Verduras: 0
+      };
+
+      produtos.forEach(produto => {
+        const normalizedCategoria = produto.categoria.normalize('NFD').replace(/[\u0300-\u036f]/g, '') as keyof CategoriaContagem;
+        if (normalizedCategoria in categorias) {
+          categorias[normalizedCategoria]++;
+        }
+      });
+
+      // Calcular receita mensal
+      const mesAtual = new Date().getMonth() + 1;
+      const receitaMensal = Array.isArray(pedidos)
+        ? pedidos
+            .filter(p => new Date(p.data_pedido).getMonth() + 1 === mesAtual)
+            .reduce((total, pedido) => total + pedido.valor_total, 0)
+        : 0;
+
+      setCardsData({
+        UsuariosActivo: usuariosAtivos,
+        PedidosHoje: pedidosHoje,
+        ProdutosAtivos: produtosAtivos,
+        ReceitaMensal: receitaMensal / 1000 // Converter para milhares
+      });
+
+      // Atualizar dados do gráfico de categorias
+      // Update setCategoryData call
+setCategoryData({
+  labels: ['Frutas', 'Graos', 'Tuberculos', 'Insumos', 'Verduras'],
+  datasets: [{
+    label: 'Produtos por Categoria',
+    data: [
+      categorias.Frutas,
+      categorias.Graos,
+      categorias.Tuberculos,
+      categorias.Insumos,
+      categorias.Verduras
+    ],
+    backgroundColor: ['#10b981', '#f59e42', '#3b82f6', '#f43f5e', '#8b5cf6'],
+    borderWidth: 1,
+  }]
+});
+
+    } catch (error) {
+      console.error("Erro ao buscar dados dos cartões:", error);
+      // ... error handling ...
+    }
+  }
+  fetchCardsData();
+}, [produtos, usuarios, pedidos]);
+
   const [Cardsdata, setCardsData] = useState({
     UsuariosActivo: 0,
     PedidosHoje: 0,
@@ -187,37 +296,78 @@ export default function AdminDashboard() {
     ReceitaMensal: 0
   });
 
+
   useEffect(() => {
-    async function fetchCardsData() {
-      try {
-        const usuariosAtivos = Array.isArray(usuarios) ? usuarios.filter(u => u.status === 'Aprovado').length : 0;
-        const pedidosHoje = Array.isArray(pedidos)
-          ? pedidos.filter((p: Pedido) => new Date(p.data_pedido).toDateString() === new Date().toDateString()).length
-          : 0;
-        const produtosAtivos = Array.isArray(produtos) ? produtos.length : 0;
-        const receitaMensal = Array.isArray(pedidos)
-          ? pedidos.reduce((total: number, pedido: Pedido) => total + pedido.valor_total, 0) / 1000
-          : 0;
+  async function fetchCardsData() {
+    try {
+      // Contagem de usuários ativos
+      const usuariosAtivos = Array.isArray(usuarios) 
+        ? usuarios.filter(u => u.status === 'Aprovado').length 
+        : 0;
 
-        setCardsData({
-          UsuariosActivo: usuariosAtivos,
-          PedidosHoje: pedidosHoje,
-          ProdutosAtivos: produtosAtivos,
-          ReceitaMensal: receitaMensal
-        });
-      } catch (error) {
-        setCardsData({
-          UsuariosActivo: 0,
-          PedidosHoje: 0,
-          ProdutosAtivos: 0,
-          ReceitaMensal: 0
-        });
-        console.error("Erro ao buscar dados dos cartões:", error);
-      }
+      // Pedidos de hoje
+      const hoje = new Date().toISOString().split('T')[0];
+      const pedidosHoje = Array.isArray(pedidos)
+        ? pedidos.filter(p => p.data_pedido.startsWith(hoje)).length
+        : 0;
+
+      // Produtos ativos e contagem por categoria
+      const produtosAtivos = Array.isArray(produtos) ? produtos.length : 0;
+      
+      // Calcular total por categoria
+      const categorias = {
+        Frutas: 0,
+        Graos: 0,
+        Tuberculos: 0,
+        Insumos: 0,
+        Verduras: 0
+      };
+
+      produtos.forEach(produto => {
+        const normalizedCategoria = produto.categoria.normalize('NFD').replace(/[\u0300-\u036f]/g, '') as keyof typeof categorias;
+        if (normalizedCategoria in categorias) {
+          categorias[normalizedCategoria]++;
+        }
+      });
+
+      // Calcular receita mensal
+      const mesAtual = new Date().getMonth() + 1;
+      const receitaMensal = Array.isArray(pedidos)
+        ? pedidos
+            .filter(p => new Date(p.data_pedido).getMonth() + 1 === mesAtual)
+            .reduce((total, pedido) => total + pedido.valor_total, 0)
+        : 0;
+
+      setCardsData({
+        UsuariosActivo: usuariosAtivos,
+        PedidosHoje: pedidosHoje,
+        ProdutosAtivos: produtosAtivos,
+        ReceitaMensal: receitaMensal / 1000 // Converter para milhares
+      });
+
+      // Atualizar dados do gráfico de categorias
+      setCategoryData({
+        labels: ['Frutas', 'Grãos', 'Tubérculos', 'Insumos'],
+        datasets: [{
+          label: 'Produtos por Categoria',
+          data: [
+            categorias.Frutas,
+            categorias.Graos,
+            categorias.Tuberculos,
+            categorias.Insumos
+          ],
+          backgroundColor: ['#10b981', '#f59e42', '#3b82f6', '#f43f5e'],
+          borderWidth: 1,
+        }]
+      });
+
+    } catch (error) {
+      console.error("Erro ao buscar dados dos cartões:", error);
+      // ... error handling ...
     }
-    fetchCardsData();
-  }, [produtos, usuarios, pedidos]);
-
+  }
+  fetchCardsData();
+}, [produtos, usuarios, pedidos]);
   const markNotificationAsRead = (id_notificacoes: number) => {
     setNotifications((prev) =>
       prev.map((n) => (n.id_notificacoes === id_notificacoes ? { ...n, is_lida: 1 } : n))
@@ -314,7 +464,15 @@ export default function AdminDashboard() {
     }
   };
 
-  const categoryData = {
+  const [categoryData, setCategoryData] = useState<{
+    labels: string[];
+    datasets: {
+      label: string;
+      data: number[];
+      backgroundColor: string[];
+      borderWidth: number;
+    }[];
+  }>({
     labels: ['Grãos', 'Tubérculos', 'Legumes', 'Frutas'],
     datasets: [
       {
@@ -324,7 +482,7 @@ export default function AdminDashboard() {
         borderWidth: 1,
       },
     ],
-  };
+  });
 
   const handleMenuToggle = () => {
     setSidebarActive(!sidebarActive);
@@ -358,6 +516,51 @@ export default function AdminDashboard() {
     },
   };
 
+useEffect(() => {
+  if (activeTab === 'Controle de Pedidos') {
+    fetchPedidos();
+  }
+}, [activeTab]);
+
+
+
+const atualizarStatusPedido = async (idPedido: number, novoStatus: string) => {
+  try {
+    const token = localStorage.getItem('token');
+    
+    if (!token) {
+      throw new Error('Token não encontrado');
+    }
+
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/pedidos/${idPedido}/status`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ estado: novoStatus })
+    });
+
+    if (!response.ok) {
+      throw new Error('Erro ao atualizar status');
+    }
+
+    // Atualiza a lista de pedidos
+    setPedidos(pedidos.map(pedido => 
+      pedido.id_pedido === idPedido 
+        ? { ...pedido, estado: novoStatus }
+        : pedido
+    ));
+
+    toast.success('Status atualizado com sucesso!');
+  } catch (error) {
+    console.error('Erro ao atualizar status:', error);
+    toast.error('Erro ao atualizar status do pedido');
+  }
+};
+
+
+
   return (
     <div className="min-h-screen bg-gray-50">
       <ToastContainer position="top-right" autoClose={4000} />
@@ -382,7 +585,7 @@ export default function AdminDashboard() {
           />
         </div>
         <nav className="space-y-2">
-          {(['Dashboard', 'Usuários', 'Produtos', 'Pedidos', 'Transportadoras', 'Relatórios', 'Logística', 'Suporte', 'Controle de Pedidos', 'Configurações', 'Notificações', 'Cadastrar Transportadora', 'Gerenciamento de Usuarios', 'Logout'] as TabType[]).map((tab) => (
+          {(['Dashboard', 'Usuários', 'Produtos', 'Pedidos', 'Transportadoras', 'Relatórios', 'Logística', 'Suporte', 'Controle de Pedidos', 'Configurações', 'Notificações', 'Cadastrar Transportadora', 'Gerenciamento de Usuarios'] as TabType[]).map((tab) => (
             <a
               key={tab}
               href="#"
@@ -462,23 +665,17 @@ export default function AdminDashboard() {
             <div className="hidden sm:block">
               <span className="font-semibold text-gray-800">Admin</span>
             </div>
-          </div>
+                    <button 
+              onClick={handleLogout}
+              className="text-gray-600 hover:text-red-600 transition-colors"
+            >
+              <MdLogout size={24} />
+            </button>
+                  </div>
+
         </div>
       </header>
 
-      {/* Logout Modal */}
-      {showLogoutModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-96 mx-4">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Confirmar Logout</h3>
-            <p className="text-gray-600 mb-6">Tem certeza que deseja terminar a sessão?</p>
-            <div className="flex space-x-3 justify-end">
-              <button className="px-4 py-2 text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition-colors" onClick={() => setShowLogoutModal(false)}>Cancelar</button>
-              <button className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors" onClick={handleLogout}>Sim, Terminar</button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Main Content */}
       <main className="md:ml-72 mt-16 p-8">
@@ -514,8 +711,10 @@ export default function AdminDashboard() {
               </div>
               <div className="bg-white p-6 rounded-lg shadow-sm">
                 <h3 className="text-gray-600 text-sm mb-2">Receita Mensal</h3>
-                <div className="text-3xl font-bold text-marieth">AOA {Cardsdata.ReceitaMensal}K</div>
-              </div>
+                <div className="text-3xl font-bold text-marieth">
+                    AOA {new Intl.NumberFormat('pt-AO').format(Cardsdata.ReceitaMensal)}K
+                  </div>
+                 </div>
             </div>
             <div className="bg-white rounded-lg shadow-sm">
               <div className="p-6 border-b border-gray-200 flex justify-between items-center">
@@ -614,49 +813,77 @@ export default function AdminDashboard() {
             </div>
           </div>
         )}
-
-        {/* Usuários Tab */}
-        {activeTab === 'Usuários' && (
-          <div className="bg-white rounded-lg shadow-sm mb-6">
-            <div className="p-6 border-b border-gray-200 flex justify-between items-center">
-              <h2 className="text-xl font-semibold text-gray-800">Gerenciamento de Usuários</h2>
-              <div className="relative">
-                <input type="search" placeholder="Buscar usuários..." className="px-4 py-2 border border-gray-300 rounded-md w-80 focus:outline-none focus:ring-2 focus:ring-marieth focus:border-transparent" />
-              </div>
-            </div>
-            <div className="p-6">
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr>
-                      <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">ID</th>
-                      <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Nome</th>
-                      <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Tipo</th>
-                      <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Data de Criação</th>
-                      <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Status</th>
-                      <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Ações</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {Array.isArray(usuarios) && usuarios.map((user) => (
-                      <tr key={user.id_usuario}>
-                        <td className="p-4 border-b border-gray-200">{user.id_usuario}</td>
-                        <td className="p-4 border-b border-gray-200">{user.nome}</td>
-                        <td className="p-4 border-b border-gray-200">{user.tipo_usuario}</td>
-                        <td className="p-4 border-b border-gray-200">{user.data_criacao}</td>
-                        <td className={`p-4 border-b border-gray-200 ${getStatusColor(user.status)}`}>{user.status}</td>
-                        <td className="p-4 border-b border-gray-200">
-                          <button className="px-4 py-2 bg-marieth text-white rounded-md hover:bg-green-700 transition-colors font-medium">Detalhes</button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        )}
-
+{activeTab === 'Usuários' && (
+  <div className="bg-white rounded-lg shadow-sm mb-6">
+    <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+      <h2 className="text-xl font-semibold text-gray-800">Gerenciamento de Usuários</h2>
+      <div className="relative">
+        <input 
+          type="search" 
+          placeholder="Buscar usuários..." 
+          className="px-4 py-2 border border-gray-300 rounded-md w-80" 
+        />
+      </div>
+    </div>
+    <div className="p-6">
+      {isLoading ? (
+        <div className="text-center py-12">
+          <FaSpinner className="animate-spin mx-auto h-8 w-8 text-marieth mb-4" />
+          <p className="text-gray-600">Carregando usuários...</p>
+        </div>
+      ) : error ? (
+        <div className="text-center py-12">
+          <p className="text-red-600">{error}</p>
+          <button 
+            onClick={() => fetchUsuarios()} 
+            className="mt-4 px-4 py-2 bg-marieth text-white rounded-md"
+          >
+            Tentar novamente
+          </button>
+        </div>
+      ) : usuarios.length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-gray-600">Nenhum usuário encontrado</p>
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr>
+                <th className="p-4 text-left">ID</th>
+                <th className="p-4 text-left">Nome</th>
+                <th className="p-4 text-left">Tipo</th>
+                <th className="p-4 text-left">Data Cadastro</th>
+                <th className="p-4 text-left">Status</th>
+                <th className="p-4 text-left">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {usuarios.map((user) => (
+                <tr key={user.id_usuario} className="hover:bg-gray-50">
+                  <td className="p-4 border-b">{user.id_usuario}</td>
+                  <td className="p-4 border-b">{user.nome}</td>
+                  <td className="p-4 border-b">{user.tipo_usuario}</td>
+                  <td className="p-4 border-b">{new Date(user.data_criacao).toLocaleDateString()}</td>
+                  <td className="p-4 border-b">
+                    <span className={`inline-block px-2 py-1 rounded-full text-sm ${getStatusColor(user.status)}`}>
+                      {user.status}
+                    </span>
+                  </td>
+                  <td className="p-4 border-b">
+                    <button className="px-3 py-1 bg-marieth text-white rounded hover:bg-green-700">
+                      Detalhes
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  </div>
+)}
         {/* Cadastrar Transportadora Tab */}
         {activeTab === 'Cadastrar Transportadora' && (
           <div className="bg-white rounded-lg shadow-sm mb-6">
@@ -678,7 +905,7 @@ export default function AdminDashboard() {
                 </div>
                 <div>
                   <label htmlFor="telefone" className="block text-sm font-medium text-gray-700">Telefone</label>
-                  <input id="telefone" value={formData.telefone} onChange={handleInputChange} name="telefone" type="text" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-marieth focus:border-transparent" placeholder="Telefone de Contato" />
+                  <input id="telefone" value={formData.contacto} onChange={handleInputChange} name="telefone" type="text" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-marieth focus:border-transparent" placeholder="Telefone de Contato" />
                 </div>
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
@@ -1019,166 +1246,95 @@ export default function AdminDashboard() {
         )}
 
         {/* Controle de Pedidos Tab */}
-        {activeTab === 'Controle de Pedidos' && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-              <div className="bg-white p-4 rounded-lg shadow-sm">
-                <h3 className="text-gray-600 text-sm mb-2">Total de Pedidos</h3>
-                <div className="text-2xl font-bold text-gray-800">1,234</div>
-              </div>
-              <div className="bg-white p-4 rounded-lg shadow-sm">
-                <h3 className="text-gray-600 text-sm mb-2">Pendentes</h3>
-                <div className="text-2xl font-bold text-yellow-600">45</div>
-              </div>
-              <div className="bg-white p-4 rounded-lg shadow-sm">
-                <h3 className="text-gray-600 text-sm mb-2">Processando</h3>
-                <div className="text-2xl font-bold text-blue-600">32</div>
-              </div>
-              <div className="bg-white p-4 rounded-lg shadow-sm">
-                <h3 className="text-gray-600 text-sm mb-2">Entregues</h3>
-                <div className="text-2xl font-bold text-green-marieth">1,157</div>
-              </div>
-              <div className="bg-white p-4 rounded-lg shadow-sm">
-                <h3 className="text-gray-600 text-sm mb-2">Cancelados</h3>
-                <div className="text-2xl font-bold text-red-600">23</div>
-              </div>
-            </div>
-            <div className="bg-white rounded-lg shadow-sm">
-              <div className="p-6 border-b border-gray-200">
-                <div className="flex flex-wrap gap-4 items-center justify-between">
-                  <h2 className="text-xl font-semibold text-gray-800">Controle Detalhado de Pedidos</h2>
-                  <div className="flex space-x-2">
-                    <select className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                      <option>Todos os Status</option>
-                      <option>Pendente</option>
-                      <option>Processando</option>
-                      <option>Enviado</option>
-                      <option>Entregue</option>
-                      <option>Cancelado</option>
-                    </select>
-                    <select className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                      <option>Período</option>
-                      <option>Hoje</option>
-                      <option>Esta Semana</option>
-                      <option>Este Mês</option>
-                    </select>
-                    <div className="relative">
-                      <MdSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                      <input type="search" placeholder="Buscar por ID ou cliente..." className="pl-10 pr-4 py-2 border border-gray-300 rounded-md w-80 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="p-6">
-                <div className="overflow-x-auto">
-                  <table className="w-full border-collapse">
-                    <thead>
-                      <tr>
-                        <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">
-                          <input type="checkbox" className="mr-2" /> ID do Pedido
-                        </th>
-                        <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Cliente</th>
-                        <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Produtos</th>
-                        <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Valor Total</th>
-                        <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Status</th>
-                        <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Data</th>
-                        <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Ações</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td className="p-4 border-b border-gray-200">#1001</td>
-                        <td className="p-4 border-b border-gray-200">
-                          <div>
-                            <p className="font-medium">Roberto Carlos</p>
-                            <p className="text-sm text-gray-500">roberto.carlos@email.com</p>
-                          </div>
-                        </td>
-                        <td className="p-4 border-b border-gray-200">
-                          <div>
-                            <p>Milho Verde (2kg)</p>
-                            <p className="text-sm text-gray-500">Feijão (1kg)</p>
-                          </div>
-                        </td>
-                        <td className="p-4 border-b border-gray-200">AOA 2,850</td>
-                        <td className="p-4 border-b border-gray-200">
-                          <select className="px-3 py-1 border border-gray-300 rounded text-sm">
-                            <option>Pendente</option>
-                            <option>Processando</option>
-                            <option>Enviado</option>
-                            <option>Entregue</option>
-                            <option>Cancelado</option>
-                          </select>
-                        </td>
-                        <td className="p-4 border-b border-gray-200">
-                          <div>
-                            <p>2023-08-17</p>
-                            <p className="text-sm text-gray-500">14:30</p>
-                          </div>
-                        </td>
-                        <td className="p-4 border-b border-gray-200">
-                          <div className="flex space-x-2">
-                            <button className="px-3 py-1 bg-marieth text-white rounded hover:bg-green-700 transition-colors text-sm">Ver</button>
-                            <button className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm">Editar</button>
-                          </div>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td className="p-4 border-b border-gray-200">#1002</td>
-                        <td className="p-4 border-b border-gray-200">
-                          <div>
-                            <p className="font-medium">Ana Maria</p>
-                            <p className="text-sm text-gray-500">ana.maria@email.com</p>
-                          </div>
-                        </td>
-                        <td className="p-4 border-b border-gray-200">
-                          <div>
-                            <p>Batata Doce (3kg)</p>
-                            <p className="text-sm text-gray-500">Mandioca (2kg)</p>
-                          </div>
-                        </td>
-                        <td className="p-4 border-b border-gray-200">AOA 3,100</td>
-                        <td className="p-4 border-b border-gray-200">
-                          <select className="px-3 py-1 border border-gray-300 rounded text-sm">
-                            <option>Processando</option>
-                            <option>Pendente</option>
-                            <option>Enviado</option>
-                            <option>Entregue</option>
-                            <option>Cancelado</option>
-                          </select>
-                        </td>
-                        <td className="p-4 border-b border-gray-200">
-                          <div>
-                            <p>2023-08-17</p>
-                            <p className="text-sm text-gray-500">13:15</p>
-                          </div>
-                        </td>
-                        <td className="p-4 border-b border-gray-200">
-                          <div className="flex space-x-2">
-                            <button className="px-3 py-1 bg-marieth text-white rounded hover:bg-green-700 transition-colors text-sm">Ver</button>
-                            <button className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm">Editar</button>
-                          </div>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-                <div className="mt-4 flex justify-between items-center">
-                  <div className="flex space-x-2">
-                    <button className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors">Aprovar Selecionados</button>
-                    <button className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors">Cancelar Selecionados</button>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <span className="text-sm text-gray-600">Mostrando 1-10 de 234 pedidos</span>
-                    <button className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50">Anterior</button>
-                    <button className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50">Próximo</button>
-                  </div>
-                </div>
-              </div>
-            </div>
+       {activeTab === 'Controle de Pedidos' && (
+  <div className="space-y-6">
+    {/* ... cards existentes ... */}
+    
+    <div className="bg-white rounded-lg shadow-sm">
+      <div className="p-6 border-b border-gray-200">
+        <div className="flex flex-wrap gap-4 items-center justify-between">
+          <h2 className="text-xl font-semibold text-gray-800">
+            Controle Detalhado de Pedidos
+          </h2>
+          <div className="flex space-x-2">
+            <input
+              type="text"
+              placeholder="Buscar pedido..."
+              value={termoBusca}
+              onChange={(e) => setTermoBusca(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            />
+          </div>
+        </div>
+      </div>
+      
+      <div className="p-6">
+        {carregandoPedidos ? (
+          <div className="text-center py-12">
+            <FaSpinner className="animate-spin mx-auto h-8 w-8 text-marieth mb-4" />
+            <p className="text-gray-600">Carregando pedidos...</p>
+          </div>
+        ) : erro ? (
+          <div className="text-center py-12">
+            <p className="text-red-600">{erro}</p>
+            <button 
+              onClick={fetchPedidos}
+              className="mt-4 px-4 py-2 bg-marieth text-white rounded-md hover:bg-green-700"
+            >
+              Tentar novamente
+            </button>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr>
+                  <th className="p-4 text-left">ID</th>
+                  <th className="p-4 text-left">Cliente</th>
+                  <th className="p-4 text-left">Valor Total</th>
+                  <th className="p-4 text-left">Status</th>
+                  <th className="p-4 text-left">Data</th>
+                  <th className="p-4 text-left">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pedidosFiltrados.map((pedido) => (
+                  <tr key={pedido.id_pedido}>
+                    <td className="p-4 border-b">#{pedido.id_pedido}</td>
+                    <td className="p-4 border-b">{pedido.nome_usuario}</td>
+                    <td className="p-4 border-b">{formatarValor(pedido.valor_total)}</td>
+                    <td className="p-4 border-b">
+                      <select
+                        value={pedido.estado}
+                        onChange={(e) => atualizarStatusPedido(pedido.id_pedido, e.target.value)}
+                        className={`px-3 py-1 rounded-full text-sm ${getStatusColor(pedido.estado)}`}
+                      >
+                        <option value="Pendente">Pendente</option>
+                        <option value="Em Processamento">Em Processamento</option>
+                        <option value="Em Trânsito">Em Trânsito</option>
+                        <option value="Entregue">Entregue</option>
+                        <option value="Cancelado">Cancelado</option>
+                      </select>
+                    </td>
+                    <td className="p-4 border-b">{formatarData(pedido.data_pedido)}</td>
+                    <td className="p-4 border-b">
+                      <button
+                        onClick={() => console.log('Ver detalhes do pedido')}
+                        className="px-3 py-1 bg-marieth text-white rounded-md hover:bg-green-700 mr-2"
+                      >
+                        Detalhes
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
-
+      </div>
+    </div>
+  </div>
+)}
         {/* Configurações Tab */}
         {activeTab === 'Configurações' && (
           <div className="bg-white rounded-lg shadow-sm mb-6">
