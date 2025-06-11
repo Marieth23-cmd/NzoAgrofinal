@@ -3,7 +3,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Inter } from 'next/font/google'
-import Image from 'next/image'
+
 import ServiceWorkerRegistry from './Components/ServiceWorkerRegistry'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -47,17 +47,7 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
       </head>
       <body className={inter.className}>
-        <ServiceWorkerRegistry />
-        <div className="fixed top-0 left-0 p-4 z-50">
-          <Image
-            src="/images/logo.jpg"
-            alt="NzoAgro Logo"
-            width={120}
-            height={40}
-            priority
-            className="object-contain"
-          />
-        </div>
+        <ServiceWorkerRegistry /> 
         {children}
       </body>
     </html>
