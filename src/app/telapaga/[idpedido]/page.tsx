@@ -1,9 +1,11 @@
-
 'use client'
-import { useRouter, useSearchParams, usePathname } from 'next/navigation'
-import Footer from '../../Components/Footer'
 import Navbar from '../../Components/Navbar'
+import Footer from '../../Components/Footer'
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
+import { gerarReferenciaPagamento } from '../../Services/pagamentos';
 import { useState, useEffect, FormEvent } from 'react'
+import { simularPagamento } from '../../Services/pagamentos';
+import { finalizarCompra } from '../../Services/cart'
 
 type MetodoPagamento = 'unitel_money' | 'afrimoney' | 'multicaixa'
 type StatusPagamento = 'inicial' | 'referencia_gerada' | 'processando' | 'sucesso' | 'erro'
@@ -193,22 +195,24 @@ const buscarPedidoPagamento = async (id_pedido: number): Promise<PedidoPagamento
 
   } catch (error: any) {
     console.error('Erro ao buscar pedido:', error)
-    throw new Error(error.message || 'Erro ao carregar dados do pedido')
+    throw error
   }
 }
 
 export default function PagamentoPage() {
-  const [pedido, setPedido] = useState<PedidoPagamentoData | null>(null)
-  const [carregando, setCarregando] = useState(true)
+  // Estados do componente
+  const [loading, setLoading] = useState(false)
   const [erro, setErro] = useState('')
   const [metodo, setMetodo] = useState<MetodoPagamento>('unitel_money')
   const [status, setStatus] = useState<StatusPagamento>('inicial')
   const [referenciaPagamento, setReferenciaPagamento] = useState('')
-  const [referenciaInput, setReferenciaInput] = useState('')
   const [transacaoId, setTransacaoId] = useState('')
+  const [mensagemErro, setMensagemErro] = useState('')
   const [copiado, setCopiado] = useState(false)
   const [mostrarModal, setMostrarModal] = useState(false)
-  const [mensagemErro, setMensagemErro] = useState('')
+  const [pedido, setPedido] = useState<PedidoPagamentoData | null>(null)
+  const [carregando, setCarregando] = useState(true)
+  const [referenciaInput, setReferenciaInput] = useState('')
   
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -247,16 +251,31 @@ export default function PagamentoPage() {
     carregarPedido()
   }, [pathname, searchParams])
 
-  const gerarReferencia = () => {
-    if (!pedido) return
+  const gerarReferencia = async () => {
+    if (!pedido) return;
     
-    const novaReferencia = `REF_${pedido.id_pedido}_${Date.now()}`
-    const novoTransacaoId = `TXN_${Math.random().toString(36).substr(2, 8).toUpperCase()}`
-    
-    setReferenciaPagamento(novaReferencia)
-    setTransacaoId(novoTransacaoId)
-    setStatus('referencia_gerada')
-  }
+    try {
+      setLoading(true);
+      
+      const dadosPagamento = {
+        tipo_pagamento: metodo,
+        valor_total: pedido.valor_total,
+        carrinho_id: pedido.id_pedido.toString(),
+      };
+
+      const response = await gerarReferenciaPagamento(dadosPagamento);
+      
+      setReferenciaPagamento(response.referencia);
+      setTransacaoId(response.transacao_id || `TXN_${Date.now()}`);
+      setStatus('referencia_gerada');
+      
+    } catch (error: any) {
+      console.error('Erro ao gerar referência:', error);
+      setErro(error.message || 'Erro ao gerar referência de pagamento');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const copiarReferencia = async () => {
     try {
@@ -274,14 +293,29 @@ export default function PagamentoPage() {
     setMensagemErro('')
   }
 
-  const processarPagamento = (e: FormEvent) => {
-    e.preventDefault()
+  const processarPagamento = async (e?: FormEvent) => {
+    if (e) e.preventDefault()
+    
+    if (!referenciaInput.trim()) {
+      setMensagemErro('Digite a referência de pagamento')
+      return
+    }
+
     setStatus('processando')
     setMensagemErro('')
 
-    setTimeout(() => {
-      if (referenciaInput.trim() === referenciaPagamento) {
-        setStatus('sucesso')
+    // Simular verificação de pagamento
+    setTimeout(async () => {
+      if (referenciaInput === referenciaPagamento) {
+        try {
+          // Chama a função de finalizar compra
+          await finalizarCompra(pedido!.id_pedido)
+          setStatus('sucesso')
+        } catch (error) {
+          console.error('Erro ao finalizar compra:', error)
+          setStatus('erro')
+          setMensagemErro('Erro ao finalizar compra')
+        }
       } else {
         setStatus('erro')
         setMensagemErro('Referência inválida. Verifique e tente novamente.')
@@ -289,9 +323,18 @@ export default function PagamentoPage() {
     }, 2000)
   }
 
-  const finalizarCompra = () => {
-    setMostrarModal(false)
-    router.push('/confirmacao-pedido')
+  const finalizarCompraHandler = async () => {
+    try {
+      setLoading(true)
+      await finalizarCompra(pedido!.id_pedido)
+      setMostrarModal(false)
+      router.push('/pagamentoConfirmado')
+    } catch (error) {
+      console.error('Erro ao finalizar compra:', error)
+      setMensagemErro('Erro ao finalizar compra')
+    } finally {
+      setLoading(false)
+    }
   }
 
   const fecharModal = () => {
@@ -309,50 +352,6 @@ export default function PagamentoPage() {
     setMensagemErro('')
   }
 
-  // Loading state
-  if (carregando) {
-    return (
-      <main className="flex flex-col min-h-screen">
-        <Navbar />
-        <div className="flex-grow flex items-center justify-center">
-          <div className="text-center">
-            <div className="w-12 h-12 border-4 border-green-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-gray-600">Carregando dados do pedido...</p>
-          </div>
-        </div>
-        <Footer />
-      </main>
-    )
-  }
-
-  // Error state
-  if (erro || !pedido) {
-    return (
-      <main className="flex flex-col min-h-screen">
-        <Navbar />
-        <div className="flex-grow flex items-center justify-center">
-          <div className="text-center text-red-600">
-            <svg className="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <h2 className="text-xl font-bold mb-2">Erro ao carregar pedido</h2>
-            <p className="mb-2">{erro}</p>
-            <p className="text-sm text-gray-600 mb-4">
-              URL atual: {pathname}
-            </p>
-            <button 
-              onClick={() => router.back()} 
-              className="mt-4 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
-            >
-              Voltar
-            </button>
-          </div>
-        </div>
-        <Footer />
-      </main>
-    )
-  }
-
   // MODAL DE PAGAMENTO
   const ModalPagamento = () => {
     if (!mostrarModal) return null
@@ -367,11 +366,10 @@ export default function PagamentoPage() {
                  status === 'sucesso' ? 'Pagamento Confirmado!' : 
                  status === 'erro' ? 'Erro no Pagamento' : 'Inserir Referência'}
               </h2>
-              <button onClick={fecharModal} className="text-gray-400 hover:text-gray-600 sr-only">
+              <button onClick={fecharModal} className="text-gray-400 hover:text-gray-600">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
-                botão
               </button>
             </div>
           </div>
@@ -421,7 +419,7 @@ export default function PagamentoPage() {
                   <span className="font-semibold">{metodos[metodo].nome}</span>
                 </div>
                 <div className="text-right">
-                  <div className="text-lg font-bold">{pedido.resumo.total.toLocaleString()} Kz</div>
+                  <div className="text-lg font-bold">{pedido?.resumo.total.toLocaleString()} Kz</div>
                 </div>
               </div>
             </div>
@@ -474,25 +472,22 @@ export default function PagamentoPage() {
                   {!referenciaInput.trim() ? 'Digite a Referência' : 'Processar Pagamento'}
                 </button>
               )}
-              
               {status === 'sucesso' && (
                 <button
-                  onClick={finalizarCompra}
-                  className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-semibold transition"
+                  onClick={finalizarCompraHandler}
+                  disabled={loading}
+                  className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-semibold transition flex items-center justify-center"
                 >
-                  Finalizar Compra
+                  {loading ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                      <span>Finalizando...</span>
+                    </>
+                  ) : (
+                    'Finalizar Compra'
+                  )}
                 </button>
               )}
-
-              {status === 'erro' && (
-                <button
-                  onClick={() => {setStatus('referencia_gerada'); setMensagemErro(''); setReferenciaInput('')}}
-                  className="w-full bg-yellow-600 hover:bg-yellow-700 text-white py-3 rounded-lg font-semibold transition"
-                >
-                  Tentar Novamente
-                </button>
-              )}
-
               <button
                 onClick={fecharModal}
                 className="w-full bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 rounded-lg transition"
@@ -511,6 +506,50 @@ export default function PagamentoPage() {
           </div>
         </div>
       </div>
+    )
+  }
+
+  // Loading state
+  if (carregando) {
+    return (
+      <main className="flex flex-col min-h-screen">
+        <Navbar />
+        <div className="flex-grow flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-12 h-12 border-4 border-green-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-600">Carregando dados do pedido...</p>
+          </div>
+        </div>
+        <Footer />
+      </main>
+    )
+  }
+
+  // Error state
+  if (erro || !pedido) {
+    return (
+      <main className="flex flex-col min-h-screen">
+        <Navbar />
+        <div className="flex-grow flex items-center justify-center">
+          <div className="text-center text-red-600">
+            <svg className="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <h2 className="text-xl font-bold mb-2">Erro ao carregar pedido</h2>
+            <p className="mb-2">{erro}</p>
+            <p className="text-sm text-gray-600 mb-4">
+              URL atual: {pathname}
+            </p>
+            <button 
+              onClick={() => router.back()} 
+              className="mt-4 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
+            >
+              Voltar
+            </button>
+          </div>
+        </div>
+        <Footer />
+      </main>
     )
   }
 
@@ -587,7 +626,6 @@ export default function PagamentoPage() {
                 {[pedido.rua, pedido.bairro, pedido.municipio, pedido.provincia].filter(Boolean).join(', ')}
               </p>
             </div>
-
             {/* Métodos de Pagamento */}
             <div className="mb-6">
               <h3 className="font-semibold mb-3 text-base sm:text-lg text-green-600">Selecione o método:</h3>
@@ -622,20 +660,29 @@ export default function PagamentoPage() {
                 })}
               </div>
             </div>
-
-            {/* Botão Gerar Referência */}
-            {status === 'inicial' && (
-              <button
-                onClick={gerarReferencia}
-                className="w-full bg-green-600 hover:bg-green-700 text-white py-2 sm:py-3 rounded-lg font-semibold transition flex items-center justify-center space-x-2 mb-4"
-              >
-                <span className="text-sm sm:text-base">Gerar Referência de Pagamento</span>
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-            )}
-
+               {status === 'inicial' && (
+  <button
+    onClick={gerarReferencia}
+    disabled={loading}
+    className={`w-full ${
+      loading ? 'bg-gray-400' : 'bg-green-600 hover:bg-green-700'
+    } text-white py-2 sm:py-3 rounded-lg font-semibold transition flex items-center justify-center space-x-2 mb-4`}
+  >
+    {loading ? (
+      <>
+        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+        <span className="text-sm sm:text-base">Gerando referência...</span>
+      </>
+    ) : (
+      <>
+        <span className="text-sm sm:text-base">Gerar Referência de Pagamento</span>
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+        </svg>
+      </>
+    )}
+  </button>
+)}
 
 
 

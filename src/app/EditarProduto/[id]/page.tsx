@@ -1,15 +1,17 @@
 "use client"
+
 import Head from "next/head"
 import Footer from "../../Components/Footer"
 import Navbar from "../../Components/Navbar"
-import React, { useState, useEffect, Suspense } from "react";
-import { atualizarProduto } from "../../Services/produtos";
-import { useRouter, useSearchParams } from "next/navigation"
-import { getProdutoById } from "../../Services/produtos";
-import Image from "next/image";
-import { verificarAuth } from "../../Services/auth";
+import React, { useState, useEffect, Suspense } from "react"
+import { atualizarProduto } from "../../Services/produtos"
+import { useRouter, useParams } from "next/navigation"
+import { getProdutoById } from "../../Services/produtos"
+import Image from "next/image"
+import { verificarAuth } from "../../Services/auth"
+import { toast, ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 
-// Componente de carregamento para usar com Suspense
 function Loading() {
     return (
         <div className="min-h-screen flex items-center justify-center">
@@ -18,178 +20,172 @@ function Loading() {
                 <p>Carregando produto...</p>
             </div>
         </div>
-    );
+    )
 }
 
-// Componente que usa o searchParams
 function EditarProdutoForm() {
-    // Constantes do router e outros hooks
-    const router = useRouter();
-    const searchParams = useSearchParams();
-    const id = searchParams?.get("id") || null;
+    const router = useRouter()
+    const params = useParams()
+    const id = params?.id as string
 
-    // Estados com tipagem correta
-    const [nome, setNome] = useState<string>("");
-    const [descricao, setDescricao] = useState<string>("");
-    const [preco, setPreco] = useState<number>(0);
-    const [quantidade, setQuantidade] = useState<number>(0);
-    const [categoria, setCategoria] = useState<string>("");
-    const [Unidade, setUnidade] = useState<string>("");
-    const [foto_produto, setfoto] = useState<File | null>(null);
-    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-    const [provincia, setProvincia] = useState<string>("");
-    const [autenticado, SetAutenticado] = useState<boolean | null>(null);
-    const [tipo_usuario, setTipoUsuario] = useState<string | null>(null);
-    const [isLoadingProduto, setIsLoadingProduto] = useState<boolean>(true);
-    const [isLoadingAuth, setIsLoadingAuth] = useState<boolean>(true);
-    const [error, setError] = useState<string | null>(null);
+    const [nome, setNome] = useState("")
+    const [descricao, setDescricao] = useState("")
+    const [preco, setPreco] = useState(0)
+    const [quantidade, setQuantidade] = useState(0)
+    const [categoria, setCategoria] = useState("")
+    const [Unidade, setUnidade] = useState("")
+    const [foto_produto, setFoto] = useState<File | null>(null)
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+    const [provincia, setProvincia] = useState("")
+    const [autenticado, setAutenticado] = useState<boolean | null>(null)
+    const [tipo_usuario, setTipoUsuario] = useState<string | null>(null)
+    const [isLoading, setIsLoading] = useState(true)
+    const [isSubmitting, setIsSubmitting] = useState(false)
 
-    // Verificação de autenticação
+
+    // Verifica autenticação e carrega os dados do produto
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+useEffect(() => {
+    if (!autenticado) {
+        router.push('/login')
+        return
+    }
+}, [autenticado])
+
+
+    
     useEffect(() => {
-        const checkAuth = async () => {
+        const checkAuthAndLoadProduct = async () => {
             try {
-                const res = await verificarAuth();
-                SetAutenticado(true);
-                setTipoUsuario(res.tipo_usuario);
-                setIsLoadingAuth(false);
-            } catch (error) {
-                console.error("Erro na autenticação:", error);
-                SetAutenticado(false);
-                setIsLoadingAuth(false);
-                router.push("/login");
-            }
-        };
+                const authRes = await verificarAuth()
+                setAutenticado(true)
+                setTipoUsuario(authRes.tipo_usuario)
 
-        checkAuth();
-    }, [router]);
-
-    // Carrega dados do produto quando ID e autenticação estiverem prontos
-    useEffect(() => {
-        if (!id) {
-            setError("ID do produto não fornecido");
-            setIsLoadingProduto(false);
-            return;
-        }
-
-        if (autenticado === null || isLoadingAuth) {
-            return; // Aguarda autenticação
-        }
-
-        if (autenticado === false) {
-            return; // Não carrega se não autenticado
-        }
-
-        const loadProduto = async () => {
-            try {
-                console.log("Carregando produto ID:", id);
-                const produto = await getProdutoById(Number(id));
-                console.log("Produto carregado:", produto);
-                
-                setNome(produto.nome || "");
-                setDescricao(produto.descricao || "");
-                setPreco(produto.preco || 0);
-                setQuantidade(produto.quantidade || 0);
-                setCategoria(produto.categoria || "");
-                setUnidade(produto.Unidade || "");
-                setProvincia(produto.provincia || "");
-                
-                if (produto.foto_produto) {
-                    setPreviewUrl(`${process.env.NEXT_PUBLIC_BACKEND_URL}${produto.foto_produto}`);
+                if (!id) {
+                    toast.error("ID do produto não fornecido")
+                    return
                 }
-                
-                setIsLoadingProduto(false);
+
+                const produto = await getProdutoById(Number(id))
+                if (!produto) {
+                    throw new Error("Produto não encontrado")
+                }
+
+                setNome(produto.nome || "")
+                setDescricao(produto.descricao || "")
+                setPreco(produto.preco || 0)
+                setQuantidade(produto.quantidade || 0)
+                setCategoria(produto.categoria || "")
+                setUnidade(produto.Unidade || "")
+                setProvincia(produto.provincia || "")
+
+                if (produto.foto_produto) {
+                    setPreviewUrl(`${process.env.NEXT_PUBLIC_BACKEND_URL}${produto.foto_produto}`)
+                }
+
             } catch (error) {
-                console.error("Erro ao carregar produto:", error);
-                setError("Erro ao carregar os dados do produto");
-                setIsLoadingProduto(false);
+                console.error("Erro:", error)
+                toast.error("Erro ao carregar dados. Por favor, tente novamente.")
+                router.push("/login")
+            } finally {
+                setIsLoading(false)
             }
-        };
+        }
 
-        loadProduto();
-    }, [id, autenticado, isLoadingAuth]);
+        checkAuthAndLoadProduct()
 
-    // Mostra carregando enquanto verifica autenticação ou carrega produto
-    if (isLoadingAuth || (autenticado && isLoadingProduto)) {
-        return <Loading />;
-    }
-
-    // Mostra erro se houver
-    if (error) {
-        return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="text-center">
-                    <div className="bg-red-50 border border-red-200 text-red-700 p-6 rounded-lg">
-                        <h2 className="text-xl font-bold mb-2">Erro</h2>
-                        <p>{error}</p>
-                        <button 
-                            onClick={() => router.back()}
-                            className="mt-4 bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
-                        >
-                            Voltar
-                        </button>
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
-    // Se não está autenticado, não renderiza nada (redirecionamento já foi feito)
-    if (autenticado === false) {
-        return null;
-    }
+        // Cleanup function
+        return () => {
+            if (previewUrl) {
+                URL.revokeObjectURL(previewUrl)
+            }
+        }
+    }, [id, router])
 
     const handleAtualizar = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        
-        // Criando o FormData para enviar os dados
-        const formData = new FormData();
-        formData.append('nome', nome);
-        formData.append('descricao', descricao);
-        formData.append('preco', preco.toString());
-        formData.append('quantidade', quantidade.toString());
-        formData.append('categoria', categoria);
-        formData.append('Unidade', Unidade);
-        formData.append('provincia', provincia);
-      
-        if (foto_produto) {
-            formData.append('foto', foto_produto);
-        }
-        
-        if (!nome || !descricao || !categoria || !Unidade || !provincia) {
-            alert("Preencha todos os campos obrigatórios");
-            return;
-        }
+        e.preventDefault()
         
         try {
-            await atualizarProduto(Number(id), formData);
-            alert("Produto atualizado com sucesso");
-            router.push(tipo_usuario === "Agricultor" ? "/perfilagricultor" : "/perfilfornecedor");
-        } catch (error) {
-            console.error("Erro ao atualizar produto:", error);
-            alert("Erro ao atualizar produto!");
+            setIsSubmitting(true)
+
+            if (!nome?.trim() || !descricao?.trim() || !categoria || !Unidade || !provincia) {
+                toast.error("Preencha todos os campos obrigatórios")
+                return
+            }
+
+            const formData = new FormData()
+            formData.append('nome', nome.trim())
+            formData.append('descricao', descricao.trim())
+            formData.append('preco', preco.toString())
+            formData.append('quantidade', quantidade.toString())
+            formData.append('categoria', categoria)
+            formData.append('Unidade', Unidade)
+            formData.append('provincia', provincia)
+
+            if (foto_produto) {
+                formData.append('foto', foto_produto)
+            }
+
+            await atualizarProduto(Number(id), formData)
+            toast.success("Produto atualizado com sucesso!")
+            router.push(tipo_usuario === "Agricultor" ? "/perfilagricultor" : "/perfilfornecedor")
+            
+        } catch (error: any) {
+            // Log the error for debugging
+            if (error.response) {
+                console.error("Erro de resposta:", error.response.data)
+            } else {
+                console.error("Erro de rede:", error.message)
+            }
+            console.error("Erro ao atualizar produto:", error)
+            const errorMessage = error.response?.data?.message || "Erro ao atualizar produto"
+
+            toast.error("Erro ao atualizar produto. Tente novamente.")
+        } finally {
+            setIsSubmitting(false)
         }
-    };
+    }
 
     const handleImagemChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
+        const file = e.target.files?.[0]
         if (file) {
-            setfoto(file);
-            const preview = URL.createObjectURL(file);
-            setPreviewUrl(preview);
+            if (!file.type.startsWith('image/')) {
+                toast.error('Por favor selecione apenas arquivos de imagem')
+                return
+            }
+
+            if (file.size > 5 * 1024 * 1024) {
+                toast.error('A imagem não pode ter mais que 5MB')
+                return
+            }
+
+            setFoto(file)
+            const preview = URL.createObjectURL(file)
+            setPreviewUrl(preview)
         }
-    };
+    }
 
     const handleCancel = () => {
-        if (confirm("Tens certeza que queres cancelar? As alterações não serão salvas.")) {
-            router.back();
+        if (window.confirm("Tens certeza que queres cancelar? As alterações não serão salvas.")) {
+            router.back()
         }
-    };
+    }
 
+    if (isLoading) {
+        return <Loading />
+    }
+
+    if (!autenticado) {
+        return null
+    }
+
+    // Rest of your JSX remains the same, just update the submit button to show loading state:
     return (
         <div className="min-h-screen bg-gray-50 py-8">
             <div className="container mx-auto px-4">
                 <form onSubmit={handleAtualizar}>
-                    <div className="bg-white rounded-[10px] p-8 w-full max-w-[800px] mx-auto shadow-lg">
+                    {/* ...existing form fields... */}
+                     <div className="bg-white rounded-[10px] p-8 w-full max-w-[800px] mx-auto shadow-lg">
                        
                          <h3 className="mb-6 text-marieth text-[1.8rem] font-bold">Editar Produto</h3>
 
@@ -348,30 +344,33 @@ function EditarProdutoForm() {
                             </div>
                         </div>
 
-                        <div className="flex justify-between gap-4">
-                            <button 
-                                type="button" 
-                                onClick={handleCancel}
-                                className="bg-red-600 text-white py-3 px-6 text-base cursor-pointer font-medium transition-colors duration-150 hover:bg-red-700 border-none rounded-[10px] flex-1"
-                            >
-                                Cancelar
-                            </button>
+                    </div>
+                    {/* Update submit button to show loading state */}
+                    <div className="flex justify-between gap-4">
+                        <button 
+                            type="button"
+                            onClick={handleCancel}
+                            disabled={isSubmitting}
+                            className="bg-red-600 text-white py-3 px-6 text-base cursor-pointer font-medium transition-colors duration-150 hover:bg-red-700 border-none rounded-[10px] flex-1 disabled:opacity-50"
+                        >
+                            Cancelar
+                        </button>
 
-                            <button 
-                                type="submit" 
-                                className="bg-marieth text-white py-3 px-6 text-base cursor-pointer font-medium transition-colors duration-150 hover:bg-verdeaceso border-none rounded-[10px] flex-1"
-                            >
-                                Atualizar
-                            </button>
-                        </div>
+                        <button 
+                            type="submit"
+                            disabled={isSubmitting}
+                            className="bg-marieth text-white py-3 px-6 text-base cursor-pointer font-medium transition-colors duration-150 hover:bg-verdeaceso border-none rounded-[10px] flex-1 disabled:opacity-50"
+                        >
+                            {isSubmitting ? 'Atualizando...' : 'Atualizar'}
+                        </button>
                     </div>
                 </form>
             </div>
+            <ToastContainer position="top-right" />
         </div>
-    );
+    )
 }
 
-// Componente principal que envolve o formulário com Suspense
 export default function EditarProduto() {
     return (
         <main className="min-h-screen bg-gray-50">
@@ -384,5 +383,5 @@ export default function EditarProduto() {
             </Suspense>
             <Footer />
         </main>
-    );
+    )
 }

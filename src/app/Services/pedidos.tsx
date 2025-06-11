@@ -28,6 +28,81 @@ export const getPedidosUsuario = async (): Promise<any> => {
   }
 };
 
+
+
+// Interface para tipagem dos dados de pagamento do pedido
+export interface PedidoPagamentoData {
+  id_pedido: number;
+  valor_total: number;
+  estado: string;
+  data_pedido: string;
+  rua?: string;
+  bairro?: string;
+  pais?: string;
+  municipio?: string;
+  referencia?: string;
+  provincia?: string;
+  numero?: string;
+  itens: Array<{
+    id_produto: number;
+    quantidade_comprada: number;
+    preco: number;
+    subtotal: number;
+    nome_produto: string;
+    peso_kg: number;
+  }>;
+  resumo: {
+    subtotal: number;
+    frete: number;
+    comissao: number;
+    total: number;
+    peso_total: number;
+    quantidade_itens: number;
+  };
+}
+
+export const iniciarNovoPedido = async (dadosPedido: {
+  // Dados do endereço
+  rua: string;
+  bairro: string;
+  pais: string;
+  municipio: string;
+  referencia: string;
+  provincia: string;
+  numero: string;
+  
+  // Dados do pedido
+  itens: Array<{
+    id_produto: number;
+    quantidade_comprada: number;
+    preco: number;
+    subtotal: number;
+  }>;
+  
+  // Valores calculados
+  valor_total: number;
+  estado: string; // Iniciado, Pendente, etc
+}): Promise<PedidoPagamentoData> => {
+  try {
+    // Primeiro cria o pedido
+    const pedidoCriado = await criarPedido(dadosPedido);
+    
+    // Depois busca os dados completos do pedido para pagamento
+    const dadosPagamento = await buscarPedidoPagamento(pedidoCriado.id_pedido);
+    
+    return dadosPagamento;
+  } catch (error: any) {
+    console.error('Erro ao iniciar pedido:', error);
+    throw { 
+      mensagem: error.response?.data?.message || "Erro ao iniciar o pedido",
+      detalhes: error.response?.data
+    };
+  }
+};
+
+
+
+
 // Criar um novo pedido
 export const criarPedido = async (pedidoData: {
   estado: string;

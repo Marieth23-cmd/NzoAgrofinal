@@ -70,6 +70,11 @@ const PromoPage = () => {
           }
         }
 
+        
+
+
+
+
         // Se não encontrou com chaves específicas, pegar qualquer valor que pareça um ID
         if (!idString) {
           const paramValues = Object.values(params);

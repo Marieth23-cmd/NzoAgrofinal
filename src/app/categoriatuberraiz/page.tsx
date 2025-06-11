@@ -4,12 +4,17 @@ import Footer from "../Components/Footer"
 import Navbar from "../Components/Navbar"
 import Image from "next/image"
 import Head from "next/head"
+import { Metadata } from 'next'
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import React from "react"
 import { buscarProdutosPorCategoria } from "../Services/produtos"
 
-export default function categoriaTuberculos() {
+export const metadata: Metadata = {
+  title: 'Categoria Tubérculos e Raízes',
+}
+
+export default function CategoriaTuberRaiz() {
   interface Produto {
     id_produtos: number,
     nome: string,
@@ -28,6 +33,7 @@ export default function categoriaTuberculos() {
   const [precoFiltroInput, setPrecoFiltroInput] = useState("")
   const [filtroAtivado, setFiltroAtivado] = useState(false)
   const [mostrarMensagemErro, setMostrarMensagemErro] = useState(false)
+  const [isLoading, setIsLoading] = useState(false);
   // States para sugestões contextuais
   const [sugestoesContextuais, setSugestoesContextuais] = useState<{
     provincias: string[],
@@ -40,54 +46,64 @@ export default function categoriaTuberculos() {
     tipos: [],
     mensagem: ""
   })
+const aplicarFiltros = async () => {
+    setFiltroAtivado(true);
+    setMostrarMensagemErro(false);
 
-  const aplicarFiltros = async () => {
-    setFiltroAtivado(true)
-    setMostrarMensagemErro(false)
+    let precoMin: number | undefined = undefined;
+    let precoMax: number | undefined = undefined;
 
-    let precoMin: number | undefined = undefined
-    let precoMax: number | undefined = undefined
+    // Use os valores passados como parâmetros em vez do estado
+    const aplicarFiltrosComValores = async (
+        tipo: string,
+        provincia: string,
+        precoFiltro: string
+    ) => {
+        if (precoFiltro === "0-5000") {
+            precoMax = 5000;
+        } else if (precoFiltro === "5000-50000") {
+            precoMin = 5000;
+            precoMax = 50000;
+        } else if (precoFiltro === "50000-100000") {
+            precoMin = 50000;
+            precoMax = 100000;
+        } else if (precoFiltro === "100000-plus") {
+            precoMin = 100000;
+        }
 
-    if (precoFiltroInput === "0-5000") {
-      precoMax = 5000
-    } else if (precoFiltroInput === "5000-50000") {
-      precoMin = 5000
-      precoMax = 50000
-    } else if (precoFiltroInput === "50000-100000") {
-      precoMin = 50000
-      precoMax = 100000
-    } else if (precoFiltroInput === "100000-plus") {
-      precoMin = 100000
+        try {
+            const resultado = await buscarProdutosPorCategoria("Tuberculos", {
+                provincia: provincia,
+                precoMin,
+                precoMax,
+            });
+
+            const nomeMatch = tipo.toLowerCase();
+            const filtrados = resultado.filter(p =>
+                tipo ? p.nome.toLowerCase().includes(nomeMatch) : true
+            );
+
+            setProdutosFiltrados(filtrados);
+
+            if (filtrados.length === 0) {
+                await gerarSugestoesContextuais();
+                setMostrarMensagemErro(true);
+            } else {
+                setMostrarMensagemErro(false);
+                setSugestoesContextuais({ provincias: [], faixasPreco: [], tipos: [], mensagem: "" });
+            }
+        } catch (error) {
+            console.log("Erro ao aplicar filtros:", error);
+            setMostrarMensagemErro(true);
+        }
+        finally {
+        setIsLoading(false);
     }
+    };
 
-    try {
-      const resultado = await buscarProdutosPorCategoria("Tuberculos", {
-        provincia: provinciaFiltroInput,
-        precoMin,
-        precoMax,
-      })
-
-      const nomeMatch = tipoFiltroInput.toLowerCase()
-      const filtrados = resultado.filter(p =>
-        tipoFiltroInput ? p.nome.toLowerCase().includes(nomeMatch) : true
-      )
-
-      setProdutosFiltrados(filtrados)
-      
-      if (filtrados.length === 0) {
-        // Gerar sugestões contextuais baseadas nos filtros atuais
-        await gerarSugestoesContextuais()
-        setMostrarMensagemErro(true)
-      } else {
-        setMostrarMensagemErro(false)
-        setSugestoesContextuais({ provincias: [], faixasPreco: [], tipos: [], mensagem: "" })
-      }
-    } catch (error) {
-      console.log("Erro ao aplicar filtros:", error)
-      setMostrarMensagemErro(true)
-    }
-  }
-
+    // Chame a função com os valores atuais
+    await aplicarFiltrosComValores(tipoFiltroInput, provinciaFiltroInput, precoFiltroInput);
+};
   // Função para gerar sugestões contextuais mais inteligentes
   const gerarSugestoesContextuais = async () => {
     try {
@@ -272,36 +288,28 @@ export default function categoriaTuberculos() {
   }
 
   // Funções para aplicar as sugestões clicadas - Corrigidas para evitar o bug
-  const aplicarSugestaoFaixaPreco = (faixa: string) => {
-    setPrecoFiltroInput(faixa)
-    setMostrarMensagemErro(false)
-    setSugestoesContextuais({ provincias: [], faixasPreco: [], tipos: [], mensagem: "" })
-    
-    // Usar setTimeout para garantir que o estado seja atualizado antes de aplicar filtros
-    setTimeout(async () => {
-      await aplicarFiltros()
-    }, 50)
-  }
+  // Remova os setTimeout e use async/await
+const aplicarSugestaoFaixaPreco = async (faixa: string) => {
+    await setPrecoFiltroInput(faixa);
+    setMostrarMensagemErro(false);
+    setSugestoesContextuais({ provincias: [], faixasPreco: [], tipos: [], mensagem: "" });
+    await aplicarFiltros();
+}
 
-  const aplicarSugestaoProvincia = (provincia: string) => {
-    setProvinciaFiltroInput(provincia)
-    setMostrarMensagemErro(false)
-    setSugestoesContextuais({ provincias: [], faixasPreco: [], tipos: [], mensagem: "" })
-    
-    setTimeout(async () => {
-      await aplicarFiltros()
-    }, 50)
-  }
+const aplicarSugestaoProvincia = async (provincia: string) => {
+    await setProvinciaFiltroInput(provincia);
+    setMostrarMensagemErro(false);
+    setSugestoesContextuais({ provincias: [], faixasPreco: [], tipos: [], mensagem: "" });
+    await aplicarFiltros();
+}
 
-  const aplicarSugestaoTipo = (tipo: string) => {
-    setTipoFiltroInput(tipo)
-    setMostrarMensagemErro(false)
-    setSugestoesContextuais({ provincias: [], faixasPreco: [], tipos: [], mensagem: "" })
-    
-    setTimeout(async () => {
-      await aplicarFiltros()
-    }, 50)
-  }
+const aplicarSugestaoTipo = async (tipo: string) => {
+    await setTipoFiltroInput(tipo);
+    setMostrarMensagemErro(false);
+    setSugestoesContextuais({ provincias: [], faixasPreco: [], tipos: [], mensagem: "" });
+    await aplicarFiltros();
+}
+
 
   useEffect(() => {
     async function carregarProdutosParaSelects() {
@@ -340,20 +348,20 @@ export default function categoriaTuberculos() {
   return (
     <main>
       <Head>
-        <title>Categoria Frutas</title>
+        <title>Categoria Tubérculos e Raízes</title>
       </Head>
       <Navbar />
 
-      <div className="mb-20 mt-[52%] lg:mt-[18%]">
-        <h1 className="text-center my-6 text-[1.5rem] lg:text-[2rem] sm:text-[1.75rem] md:text-[2rem] font-bold text-marieth">Frutas</h1>
-
+      <div className="mb-20 mt-[52%] lg:mt-[18%]" role="main">
+        <h1 className="text-center my-6 text-[1.5rem] lg:text-[2rem] sm:text-[1.75rem] md:text-[2rem] font-bold text-marieth" aria-label="Tubérculos e Raízes">Tubérculos e Raízes</h1>
+    
         {/* Seção de filtros com ocupação horizontal ajustada */}
         <div className="my-12 mx-4 sm:mx-6 md:mx-9 px-2 sm:px-3 md:px-4">
           <div className="flex flex-col gap-4 lg:flex-row justify-between w-full">
             {/* Tipo de Fruta Select - Ocupando todo espaço disponível */}
             <div className="flex flex-col w-full">
               <label htmlFor="tuberculos" className="mb-[0.5rem] font-medium block">
-                Tipo de Tuberculo
+                Tipo de Tubérculos e Raízes
                 <div className="shadow-custom bg-white rounded-[10px] p-2">
                   <select
                     id="tuberculos"
@@ -369,6 +377,8 @@ export default function categoriaTuberculos() {
                 </div>
               </label>
             </div>
+            
+           
             
             {/* Província Select - Ocupando todo espaço disponível */}
             <div className="flex flex-col w-full">
@@ -391,6 +401,8 @@ export default function categoriaTuberculos() {
                 </div>
               </label>
             </div>
+
+
             
             {/* Faixa de Preço Select - Ocupando todo espaço disponível */}
             <div className="flex flex-col w-full">
@@ -415,16 +427,25 @@ export default function categoriaTuberculos() {
           </div>
             
           {/* Botão de pesquisa com estilo melhorado */}
-          <button
-            onClick={aplicarFiltros}
-            disabled={!isFormValid}
-            className={`flex border-none text-white bg-marieth hover:bg-verdeaceso py-[0.8rem] px-6 rounded-[5px] text-sm sm:text-base items-center gap-2 my-4 mx-auto transition-all duration-300 ${!isFormValid ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105 cursor-pointer'}`}
-          >
+         <button
+    onClick={aplicarFiltros}
+    disabled={!isFormValid || isLoading}
+    className={`flex border-none text-white bg-marieth hover:bg-verdeaceso py-[0.8rem] px-6 rounded-[5px] text-sm sm:text-base items-center gap-2 my-4 mx-auto transition-all duration-300 ${
+        !isFormValid || isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105 cursor-pointer'
+    }`}
+>
+           {isLoading ? (
+             <span className="flex items-center gap-2">
+            <div className="animate-spin h-4 w-4 border-2 border-white rounded-full border-t-transparent"></div>
+            Pesquisando...
+             </span>
+               ) : (
+               <>
             <BiSearch className="text-[1.1rem]" />
             Pesquisar
-          </button>
-        </div>
-
+               </>
+               )}
+</button>
         {/* Mensagem de erro com sugestões contextuais */}
         {mostrarMensagemErro && (
           <div className="mx-4 sm:mx-6 md:mx-9 px-4 py-6 bg-red-50 border border-red-100 rounded-lg shadow-sm">
@@ -533,6 +554,7 @@ export default function categoriaTuberculos() {
       </div>
 
       <Footer />
+    </div>
     </main>
   )
-}
+}     

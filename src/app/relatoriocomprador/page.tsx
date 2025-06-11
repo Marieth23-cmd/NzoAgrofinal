@@ -6,6 +6,7 @@ import { ChartOptions } from 'chart.js';
 import { Chart as ChartJS, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from 'chart.js';
 import Navbar from "../Components/Navbar"
 import Footer from "../Components/Footer"
+import { getUsuarioById } from '../Services/user';
 import { 
   getRelatorioComprasComprador, 
   getEstatisticasComprasComprador, // Função correta para comprador
@@ -21,6 +22,26 @@ import {
 // Registrando os componentes necessários do Chart.js
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
 
+// Configurações do gráfico
+const options: ChartOptions<'bar'> = {
+  responsive: true,
+  maintainAspectRatio: false,
+  scales: {
+    y: {
+      beginAtZero: true
+    }
+  },
+  plugins: {
+    legend: {
+      position: 'top' as const,
+    },
+    title: {
+      display: true,
+      text: 'Histórico Mensal'
+    }
+  }
+};
+
 // Interface para os dados estatísticos de compras
 interface EstatisticasCompras {
   total_pedidos: number;
@@ -31,6 +52,14 @@ interface EstatisticasCompras {
     mes: number;
     total_mes: number;
   }>;
+}
+
+// Interface para o usuário
+interface Usuario {
+  id_usuario: number;
+  nome: string;
+  tipo_usuario: 'Comprador' | 'Agricultor' | 'Fornecedor';
+  email: string;
 }
 
 // Interface para os itens do relatório de compras
@@ -144,56 +173,52 @@ export default function Relatorios() {
       },
     ],
   });
+const [usuario, setUsuario] = useState<Usuario | null>(null);
+  const [carregandoUsuario, setCarregandoUsuario] = useState(true);
 
-  // Função para obter tipo de usuário
-  const getTipoUsuario = (): 'Comprador' | 'Agricultor' | 'Fornecedor' => {
-  // Verificar se estamos no cliente antes de acessar localStorage
-  if (typeof window !== 'undefined') {
-    const tipoUsuario = localStorage.getItem('tipo_usuario');
-    return tipoUsuario as 'Comprador' | 'Agricultor' | 'Fornecedor' || 'Comprador';
-  }
-  // Retornar valor padrão durante o SSR
-  return 'Comprador';
-};
 
-// Verificar se pode ver vendas (também corrigida)
 const podeVerVendas = () => {
-  const tipo_usuario = getTipoUsuario();
-  return tipo_usuario === 'Agricultor' || tipo_usuario === 'Fornecedor';
-};
+    if (!usuario) return false;
+    return usuario.tipo_usuario === 'Agricultor' || usuario.tipo_usuario === 'Fornecedor';
+  };
 
-  // Opções do gráfico
-  const options: ChartOptions<'bar'> = { 
-    responsive: true,
-    maintainAspectRatio: false,
-    animation: {
-      duration: 500
-    },
-    plugins: {
-      legend: {
-        display: true,
-        position: 'top',
-      },
-      tooltip: {
-        callbacks: {
-          label: function(context) {
-            return `Total: ${formatarMoeda(context.parsed.y)}`;
-          }
-        }
+
+
+   const buscarUsuario = async () => {
+    try {
+      // Pegar o ID do usuário do localStorage
+      const userId = localStorage.getItem('userId');
+      
+      if (!userId) {
+        throw new Error('Usuário não autenticado');
       }
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-        ticks: {
-          callback: function(value) {
-            return 'kzs ' + Number(value).toLocaleString('pt-BR');
-          }
-        }
-      }
+
+      // Buscar dados do usuário da API
+      const dadosUsuario = await getUsuarioById();
+      setUsuario(dadosUsuario);
+      
+      return dadosUsuario.tipo_usuario;
+    } catch (error) {
+      console.error('Erro ao buscar usuário:', error);
+      return 'Comprador'; // valor padrão
+    } finally {
+      setCarregandoUsuario(false);
     }
   };
 
+
+    useEffect(() => {
+    buscarUsuario();
+  }, []);
+
+
+   if (carregandoUsuario) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-marieth border-t-transparent"></div>
+      </div>
+    );
+  }
   // Função para determinar cores
   const determinarCor = (valor: number) => {
     if (valor >= LIMITE_VALOR_ALTO) {

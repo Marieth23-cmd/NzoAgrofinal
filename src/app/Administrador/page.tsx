@@ -5,20 +5,17 @@ import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement
 import {
   MdMenu, MdDashboard, MdGroup, MdShield, MdShoppingCart, MdInventory, MdBarChart,
   MdLocalShipping, MdHeadset, MdDeliveryDining, MdAssignment, MdNotifications, MdPerson,
-  MdSearch, MdAttachMoney, MdEdit, MdDelete, MdAdd, MdSettings
+  MdSearch, MdAttachMoney, MdEdit, MdDelete, MdAdd, MdSettings, MdCheck, MdClose
 } from 'react-icons/md';
-import { FaChartBar, FaUsers, FaBox, FaMoneyBillWave } from 'react-icons/fa';
+import { FaChartBar, FaUsers, FaBox, FaMoneyBillWave, FaSearch, FaSpinner } from 'react-icons/fa';
 import { getProdutos, deletarProduto } from '../Services/produtos';
 import { logout } from '../Services/auth';
 import { useRouter } from 'next/navigation';
 import { getUsuarios } from '../Services/user';
 import { getPedidos } from '../Services/pedidos';
-import {cadastrarTransportadora} from '../Services/transportadora';
-import { toast, ToastContainer } from 'react-toastify';
+import { cadastrarTransportadora } from '../Services/transportadora';
+import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { FaSearch, FaSpinner } from 'react-icons/fa';
-import {listarNotificacoes} from '../Services/notificacoes';
-
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, ArcElement);
 
@@ -37,9 +34,10 @@ type TabType =
   | 'Cadastrar Transportadora'
   | 'Gerenciamento de Usuarios'
   | 'Logout';
-type TabTypeWithActions = TabType | 'Logout' | 'Cadastro de Transportadora' | 'Gerenciamento de Usuarios';
+
 type UserType = 'Agricultor' | 'Comprador' | 'Fornecedor';
 type UserStatus = 'Pendente' | 'Aprovado' | 'Rejeitado';
+type NotificationType = 'info' | 'warning' | 'success' | 'error';
 
 interface Produto {
   id_produtos: number;
@@ -52,26 +50,25 @@ interface Produto {
   peso_kg: number;
 }
 
-interface usuarios {
+interface Usuario {
   id_usuario: number;
   nome: string;
   tipo_usuario: string;
   data_criacao: string;
   status: UserStatus;
-  foto: string;
+  foto?: string; // Made optional
 }
 
-type NotificationType = 'info' | 'warning' | 'success' | 'error';
-interface Notification {
-  id: number;
-  title: string;
-  message: string;
-  time: string;
-  read: boolean;
-  type: NotificationType;
+interface Notificacao {
+  id_notificacoes: number;
+  titulo: string;
+  mensagem: string;
+  data_legivel: string;
+  is_lida: number;
+  type?: NotificationType;
 }
 
-interface Pedidos {
+interface Pedido {
   id_pedido: number;
   estado: string;
   valor_total: number;
@@ -85,50 +82,54 @@ interface Pedidos {
   }>;
 }
 
-
-interface CadastroTransportadora {
-    nome: string;
-    nif: string;
-    telefone: string;
-    email: string;
-    senha: string;
-    provincia_base?: string;
-    confirmar_senha?: string;
-}
-
-
-function getStatusColor(status: UserStatus) {
-  switch (status) {
-    case 'Pendente':
-      return 'bg-yellow-100 text-yellow-800';
-    case 'Aprovado':
-      return 'bg-green-100 text-green-800';
-    case 'Rejeitado':
-      return 'bg-red-100 text-red-800';
-    default:
-      return '';
-  }
+interface FormDataTransportadora {
+  nome: string;
+  nif: string;
+  telefone: string;
+  email: string;
+  senha: string;
+  confirmar_senha: string;
+  provincia_base: string;
 }
 
 export default function AdminDashboard() {
-  const [produtos, setProdutos] = useState<Produto[]>([]);
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabType>('Dashboard');
   const [sidebarActive, setSidebarActive] = useState(false);
-  const [usuario, setUsuario] = useState<usuarios[]>([]);
-  const [pedidos, setPedidos] = useState<Pedidos[]>([]);
-
-  const [notifications, setNotifications] = useState<Notification[]>([
-    { id: 1, title: 'Novo Usuário', message: 'João Silva solicitou cadastro como Agricultor', time: '5 min atrás', read: false, type: 'info' },
-    { id: 2, title: 'Produto Esgotado', message: 'Tomate - estoque zerado', time: '1 hora atrás', read: false, type: 'warning' },
-    { id: 3, title: 'Pedido Entregue', message: 'Pedido #12343 foi entregue com sucesso', time: '2 horas atrás', read: true, type: 'success' },
-    { id: 4, title: 'Problema de Pagamento', message: 'Erro no pagamento do pedido #12340', time: '3 horas atrás', read: false, type: 'error' },
-    { id: 5, title: 'Nova Transportadora', message: 'TransRápido solicitou parceria', time: '1 dia atrás', read: true, type: 'info' }
-  ]);
+  const [produtos, setProdutos] = useState<Produto[]>([]);
+  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
+  const [pedidos, setPedidos] = useState<Pedido[]>([]);
+  const [notifications, setNotifications] = useState<Notificacao[]>([]);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [autenticado, setAutenticado] = useState<boolean | null>(null);
-  const router = useRouter();
+  const [showCadastroTransportadora, setShowCadastroTransportadora] = useState(false);
+  const [showGerenciamentoUsuarios, setShowGerenciamentoUsuarios] = useState(false);
+  const [formData, setFormData] = useState<FormDataTransportadora>({
+    nome: '',
+    nif: '',
+    telefone: '',
+    email: '',
+    senha: '',
+    confirmar_senha: '',
+    provincia_base: ''
+  });
+  const [termoBusca, setTermoBusca] = useState('');
+  const [carregandoPedidos, setCarregandoPedidos] = useState(true);
+  const [erro, setErro] = useState<string>('');
 
+  // Initial notifications data
+  useEffect(() => {
+    setNotifications([
+      { id_notificacoes: 1, titulo: 'Novo Usuário', mensagem: 'João Silva solicitou cadastro como Agricultor', data_legivel: '5 min atrás', is_lida: 0 },
+      { id_notificacoes: 2, titulo: 'Produto Esgotado', mensagem: 'Tomate - estoque zerado', data_legivel: '1 hora atrás', is_lida: 0 },
+      { id_notificacoes: 3, titulo: 'Pedido Entregue', mensagem: 'Pedido #12343 foi entregue com sucesso', data_legivel: '2 horas atrás', is_lida: 1 },
+      { id_notificacoes: 4, titulo: 'Problema de Pagamento', mensagem: 'Erro no pagamento do pedido #12340', data_legivel: '3 horas atrás', is_lida: 0 },
+      { id_notificacoes: 5, titulo: 'Nova Transportadora', mensagem: 'TransRápido solicitou parceria', data_legivel: '1 dia atrás', is_lida: 1 }
+    ]);
+  }, []);
+
+  // Fetch produtos
   useEffect(() => {
     async function fetchProdutos() {
       try {
@@ -145,102 +146,90 @@ export default function AdminDashboard() {
     fetchProdutos();
   }, []);
 
+  // Fetch usuarios
   useEffect(() => {
     async function fetchUsuarios() {
       try {
         const data = await getUsuarios();
-        setUsuario(data);
+        setUsuarios(data);
       } catch (error) {
-        setUsuario([]);
+        setUsuarios([]);
         console.error("Erro ao buscar usuários:", error);
       }
     }
     fetchUsuarios();
   }, []);
 
-  useEffect(() => {
-    async function fetchPedidos() {
-      try {
-        const data = await getPedidos();
-        setPedidos(data);
-      } catch (error) {
-        setPedidos([]);
-        console.error("Erro ao buscar pedidos:", error);
-      }
+  const fetchPedidos = async () => {
+    try {
+      setCarregandoPedidos(true);
+      setErro('');
+      const data = await getPedidos();
+      setPedidos(Array.isArray(data) ? data : []);
+    } catch (error: any) {
+      console.error('Erro ao carregar pedidos:', error);
+      setErro(error?.mensagem || 'Erro ao carregar pedidos');
+      setPedidos([]);
+    } finally {
+      setCarregandoPedidos(false);
     }
+  };
+
+  // Fetch pedidos
+  useEffect(() => {
     fetchPedidos();
   }, []);
 
-
-   const [Cardsdata, setCardsData] = useState({
+  const [Cardsdata, setCardsData] = useState({
     UsuariosActivo: 0,
     PedidosHoje: 0,
     ProdutosAtivos: 0,
     ReceitaMensal: 0
   });
-  
-useEffect(() => {
-  async function fetchCardsData() {
-    try {
-      const usuariosAtivos = Array.isArray(usuario) ? usuario.filter(u => u.status === 'Aprovado').length : 0;
-      const pedidosHoje = Array.isArray(pedidos)
-        ? pedidos.filter((p: Pedidos) => new Date(p.data_pedido).toDateString() === new Date().toDateString()).length
-        : 0;
-      const produtosAtivos = Array.isArray(produtos) ? produtos.length : 0;
-      const receitaMensal = Array.isArray(pedidos)
-        ? pedidos.reduce((total: number, pedido: Pedidos) => total + pedido.valor_total, 0) / 1000
-        : 0;
 
-      setCardsData({
-        UsuariosActivo: usuariosAtivos,
-        PedidosHoje: pedidosHoje,
-        ProdutosAtivos: produtosAtivos,
-        ReceitaMensal: receitaMensal
-      });
-    } catch (error) {
-      setCardsData({
-        UsuariosActivo: 0,
-        PedidosHoje: 0,
-        ProdutosAtivos: 0,
-        ReceitaMensal: 0
-      });
-      console.error("Erro ao buscar dados dos cartões:", error);
+  useEffect(() => {
+    async function fetchCardsData() {
+      try {
+        const usuariosAtivos = Array.isArray(usuarios) ? usuarios.filter(u => u.status === 'Aprovado').length : 0;
+        const pedidosHoje = Array.isArray(pedidos)
+          ? pedidos.filter((p: Pedido) => new Date(p.data_pedido).toDateString() === new Date().toDateString()).length
+          : 0;
+        const produtosAtivos = Array.isArray(produtos) ? produtos.length : 0;
+        const receitaMensal = Array.isArray(pedidos)
+          ? pedidos.reduce((total: number, pedido: Pedido) => total + pedido.valor_total, 0) / 1000
+          : 0;
+
+        setCardsData({
+          UsuariosActivo: usuariosAtivos,
+          PedidosHoje: pedidosHoje,
+          ProdutosAtivos: produtosAtivos,
+          ReceitaMensal: receitaMensal
+        });
+      } catch (error) {
+        setCardsData({
+          UsuariosActivo: 0,
+          PedidosHoje: 0,
+          ProdutosAtivos: 0,
+          ReceitaMensal: 0
+        });
+        console.error("Erro ao buscar dados dos cartões:", error);
+      }
     }
-  }
-  fetchCardsData();
-}, [produtos, usuario, pedidos]);
- 
+    fetchCardsData();
+  }, [produtos, usuarios, pedidos]);
 
-  const markNotificationAsRead = (id: number) => {
+  const markNotificationAsRead = (id_notificacoes: number) => {
     setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
+      prev.map((n) => (n.id_notificacoes === id_notificacoes ? { ...n, is_lida: 1 } : n))
     );
   };
-  const [showCadastroTransportadora, setShowCadastroTransportadora] = useState(false);
-  const [showGerenciamentoUsuarios, setShowGerenciamentoUsuarios] = useState(false);
-const [formData, setFormData] = useState<CadastroTransportadora>({
-    nome: '',
-    nif: '',
-    telefone: '',
-    email: '',
-    senha: '',
-    provincia_base: '',
-    confirmar_senha: ''
-  });
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleCadastroTransportadora = () => {
-    setShowCadastroTransportadora(!showCadastroTransportadora);
-  };
-
-  const handleGerenciamentoUsuarios = () => {
-    setShowGerenciamentoUsuarios(!showGerenciamentoUsuarios);
-  };
- const cadastrarTransportadoraHandler = async (e: React.FormEvent<HTMLFormElement>) => {
+  const cadastrarTransportadoraHandler = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (formData.senha !== formData.confirmar_senha) {
       toast.error("As senhas não coincidem.");
@@ -255,65 +244,8 @@ const [formData, setFormData] = useState<CadastroTransportadora>({
       console.error("Erro ao cadastrar transportadora:", error);
       toast.error("Erro ao cadastrar transportadora. Tente novamente mais tarde.");
     }
-  }
-
-
-
-interface ItemPedido {
-  id_produto: number;
-  quantidade_comprada: number;
-  preco: number;
-  subtotal: number;
-}
-
-interface Pedido {
-  id_pedido: number;
-  estado: string;
-  valor_total: number;
-  data_pedido: string;
-  nome_usuario: string;
-  itens: ItemPedido[];
-}
-
-// Adicione este componente dentro do seu componente principal
-const GestãoPedidos: React.FC = () => {
-  const [pedidos, setPedidos] = useState<Pedido[]>([]);
-  const [carregandoPedidos, setCarregandoPedidos] = useState(true);
-  const [erro, setErro] = useState<string>('');
-  const [termoBusca, setTermoBusca] = useState('');
-
-  // Função para carregar pedidos
-  const carregarPedidos = async () => {
-    try {
-      setCarregandoPedidos(true);
-      setErro('');
-      const dadosPedidos = await getPedidos();
-      setPedidos(Array.isArray(dadosPedidos) ? dadosPedidos : []);
-;
-    } catch (error: any) {
-      console.error('Erro ao carregar pedidos:', error);
-      setErro(error?.mensagem || 'Erro ao carregar pedidos');
-    } finally {
-      setCarregandoPedidos(false);
-    }
   };
 
-  // Carregar pedidos ao montar o componente
-  useEffect(() => {
-    carregarPedidos();
-  }, []);
-
-  // Função para formatar data
-  const formatarData = (data: string) => {
-    return new Date(data).toLocaleDateString('pt-BR');
-  };
-
-  // Função para formatar valor
-  const formatarValor = (valor: number) => {
-    return `AOA ${Number(valor).toLocaleString()}`;
-  };
-
-  // Função para definir cor do status
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
       case 'pendente':
@@ -330,18 +262,21 @@ const GestãoPedidos: React.FC = () => {
     }
   };
 
-  // Filtrar pedidos por termo de busca
+  const formatarData = (data: string) => {
+    return new Date(data).toLocaleDateString('pt-BR');
+  };
+
+  const formatarValor = (valor: number) => {
+    return `AOA ${Number(valor).toLocaleString()}`;
+  };
+
   const pedidosFiltrados = pedidos.filter(pedido =>
     pedido.id_pedido.toString().includes(termoBusca) ||
     pedido.nome_usuario?.toLowerCase().includes(termoBusca.toLowerCase()) ||
     pedido.estado?.toLowerCase().includes(termoBusca.toLowerCase())
   );
 
-
-
-
-
-  const getNotificationIcon = (type: NotificationType) => {
+  const getNotificationIcon = (type?: NotificationType) => {
     switch (type) {
       case 'info':
         return <MdNotifications className="text-blue-500" size={20} />;
@@ -385,8 +320,7 @@ const GestãoPedidos: React.FC = () => {
       {
         label: 'Produtos',
         data: [12, 19, 7, 5],
-        backgroundColor: [
-          '#10b981', '#f59e42','#3b82f6','#f43f5e'],
+        backgroundColor: ['#10b981', '#f59e42', '#3b82f6', '#f43f5e'],
         borderWidth: 1,
       },
     ],
@@ -419,35 +353,19 @@ const GestãoPedidos: React.FC = () => {
   const chartOptions = {
     responsive: true,
     plugins: {
-      legend: {
-        display: true,
-        position: 'top' as const,
-      },
-      title: {
-        display: false,
-      },
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-      },
+      legend: { display: true, position: 'top' as const },
+      title: { display: false },
     },
   };
-
-
-
-
-
-  
 
   return (
     <div className="min-h-screen bg-gray-50">
       <ToastContainer position="top-right" autoClose={4000} />
       {/* Menu Toggle Button */}
       <button
-        className="menu-toggle md:hidden fixed top-4 left-4 z-50 bg-marieth text-white p-2 rounded-md sr-only"
+        className="menu-toggle md:hidden fixed top-4 left-4 z-50 bg-marieth text-white p-2 rounded-md"
         onClick={handleMenuToggle}
-      >menu
+      >
         <MdMenu size={24} />
       </button>
 
@@ -464,19 +382,30 @@ const GestãoPedidos: React.FC = () => {
           />
         </div>
         <nav className="space-y-2">
-          <a href="#" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'Dashboard' ? 'bg-marieth text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-marieth'}`} onClick={e => { e.preventDefault(); handleTabChange('Dashboard'); }}><MdDashboard className="mr-3" size={20} />Dashboard</a>
-          <a href="#" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'Usuários' ? 'bg-marieth text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-marieth'}`} onClick={e => { e.preventDefault(); handleTabChange('Usuários'); }}><MdGroup className="mr-3" size={20} />Usuários</a>
-          <a href="#" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'Produtos' ? 'bg-marieth text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-marieth'}`} onClick={e => { e.preventDefault(); handleTabChange('Produtos'); }}><MdInventory className="mr-3" size={20} />Produtos</a>
-          <a href="#" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'Pedidos' ? 'bg-marieth text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-marieth'}`} onClick={e => { e.preventDefault(); handleTabChange('Pedidos'); }}><MdShoppingCart className="mr-3" size={20} />Pedidos</a>
-          <a href="#" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'Transportadoras' ? 'bg-marieth text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-marieth'}`} onClick={e => { e.preventDefault(); handleTabChange('Transportadoras'); }}><MdDeliveryDining className="mr-3" size={20} />Transportadoras</a>
-          <a href="#" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'Relatórios' ? 'bg-marieth text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-marieth'}`} onClick={e => { e.preventDefault(); handleTabChange('Relatórios'); }}><MdBarChart className="mr-3" size={20} />Relatórios</a>
-          <a href="#" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'Logística' ? 'bg-marieth text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-marieth'}`} onClick={e => { e.preventDefault(); handleTabChange('Logística'); }}><MdLocalShipping className="mr-3" size={20} />Logística</a>
-          <a href="#" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'Suporte' ? 'bg-marieth text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-marieth'}`} onClick={e => { e.preventDefault(); handleTabChange('Suporte'); }}><MdHeadset className="mr-3" size={20} />Suporte</a>
-          <a href="#" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'Controle de Pedidos' ? 'bg-marieth text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-marieth'}`} onClick={e => { e.preventDefault(); handleTabChange('Controle de Pedidos'); }}><MdAssignment className="mr-3" size={20} />Controle de Pedidos</a>
-          <a href="#" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'Configurações' ? 'bg-marieth text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-marieth'}`} onClick={e => { e.preventDefault(); handleTabChange('Configurações'); }}><MdSettings className="mr-3" size={20} />Configurações</a>
-          <a href="#" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'Notificações' ? 'bg-marieth text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-marieth'}`} onClick={e => { e.preventDefault(); handleTabChange('Notificações'); }}><MdNotifications className="mr-3" size={20} />Notificações</a>
-          <a href="#" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'Cadastrar Transportadora' ? 'bg-marieth text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-marieth'}`} onClick={e => { e.preventDefault(); handleTabChange('Cadastrar Transportadora'); }}><MdAdd className="mr-3" size={20} />Cadastrar Transportadora</a>
-          <a href="#" className={`flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'Gerenciamento de Usuarios' ? 'bg-marieth text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-marieth'}`} onClick={e => { e.preventDefault(); handleTabChange('Gerenciamento de Usuarios'); }}><MdEdit className="mr-3" size={20} />Gerenciamento de Usuarios</a>
+          {(['Dashboard', 'Usuários', 'Produtos', 'Pedidos', 'Transportadoras', 'Relatórios', 'Logística', 'Suporte', 'Controle de Pedidos', 'Configurações', 'Notificações', 'Cadastrar Transportadora', 'Gerenciamento de Usuarios', 'Logout'] as TabType[]).map((tab) => (
+            <a
+              key={tab}
+              href="#"
+              className={`flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === tab ? 'bg-marieth text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-marieth'}`}
+              onClick={(e) => { e.preventDefault(); handleTabChange(tab); }}
+            >
+              {tab === 'Dashboard' && <MdDashboard className="mr-3" size={20} />}
+              {tab === 'Usuários' && <MdGroup className="mr-3" size={20} />}
+              {tab === 'Produtos' && <MdInventory className="mr-3" size={20} />}
+              {tab === 'Pedidos' && <MdShoppingCart className="mr-3" size={20} />}
+              {tab === 'Transportadoras' && <MdDeliveryDining className="mr-3" size={20} />}
+              {tab === 'Relatórios' && <MdBarChart className="mr-3" size={20} />}
+              {tab === 'Logística' && <MdLocalShipping className="mr-3" size={20} />}
+              {tab === 'Suporte' && <MdHeadset className="mr-3" size={20} />}
+              {tab === 'Controle de Pedidos' && <MdAssignment className="mr-3" size={20} />}
+              {tab === 'Configurações' && <MdSettings className="mr-3" size={20} />}
+              {tab === 'Notificações' && <MdNotifications className="mr-3" size={20} />}
+              {tab === 'Cadastrar Transportadora' && <MdAdd className="mr-3" size={20} />}
+              {tab === 'Gerenciamento de Usuarios' && <MdEdit className="mr-3" size={20} />}
+              {tab === 'Logout' && <MdClose className="mr-3" size={20} />}
+              {tab}
+            </a>
+          ))}
         </nav>
       </aside>
 
@@ -492,50 +421,36 @@ const GestãoPedidos: React.FC = () => {
             />
           </div>
         </div>
-
-        
         <div className="flex items-center space-x-4 relative">
           <div className="relative">
             <MdNotifications className="text-gray-600 cursor-pointer" size={24} onClick={() => setNotificationsOpen(!notificationsOpen)} />
-            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">{notifications.filter(n => !n.read).length}</span>
+            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">{notifications.filter(n => n.is_lida === 0).length}</span>
             {notificationsOpen && (
               <div className="notifications-dropdown absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-200 z-50">
                 <div className="p-4 border-b border-gray-200">
                   <h3 className="font-semibold text-gray-800">Notificações</h3>
                 </div>
                 <div className="max-h-96 overflow-y-auto">
-                  {notifications.map((notification) => (
+                  {notifications.map((notificacao) => (
                     <div
-                      key={notification.id}
-                      className={`p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer ${!notification.read ? 'bg-blue-50' : ''}`}
-                      onClick={() => markNotificationAsRead(notification.id)}
+                      key={notificacao.id_notificacoes}
+                      className={`p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer ${notificacao.is_lida === 0 ? 'bg-blue-50' : ''}`}
+                      onClick={() => markNotificationAsRead(notificacao.id_notificacoes)}
                     >
                       <div className="flex items-start space-x-3">
-                        <div className="flex-shrink-0 mt-1">
-                          {getNotificationIcon(notification.type)}
-                        </div>
+                        <div className="flex-shrink-0 mt-1">{getNotificationIcon(notificacao.type)}</div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900">
-                            {notification.title}
-                          </p>
-                          <p className="text-sm text-gray-500 mt-1">
-                            {notification.message}
-                          </p>
-                          <p className="text-xs text-gray-400 mt-1">
-                            {notification.time}
-                          </p>
+                          <p className="text-sm font-medium text-gray-900">{notificacao.titulo}</p>
+                          <p className="text-sm text-gray-500 mt-1">{notificacao.mensagem}</p>
+                          <p className="text-xs text-gray-400 mt-1">{notificacao.data_legivel}</p>
                         </div>
-                        {!notification.read && (
-                          <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-2"></div>
-                        )}
+                        {notificacao.is_lida === 0 && <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-2"></div>}
                       </div>
                     </div>
                   ))}
                 </div>
                 <div className="p-4 border-t border-gray-200">
-                  <button className="text-sm text-marieth hover:text-green-700 font-medium">
-                    Ver todas as notificações
-                  </button>
+                  <button className="text-sm text-marieth hover:text-green-700 font-medium">Ver todas as notificações</button>
                 </div>
               </div>
             )}
@@ -558,18 +473,8 @@ const GestãoPedidos: React.FC = () => {
             <h3 className="text-lg font-semibold text-gray-800 mb-4">Confirmar Logout</h3>
             <p className="text-gray-600 mb-6">Tem certeza que deseja terminar a sessão?</p>
             <div className="flex space-x-3 justify-end">
-              <button
-                className="px-4 py-2 text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
-                onClick={() => setShowLogoutModal(false)}
-              >
-                Cancelar
-              </button>
-              <button
-                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
-                onClick={handleLogout}
-              >
-                Sim, Terminar
-              </button>
+              <button className="px-4 py-2 text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition-colors" onClick={() => setShowLogoutModal(false)}>Cancelar</button>
+              <button className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors" onClick={handleLogout}>Sim, Terminar</button>
             </div>
           </div>
         </div>
@@ -577,34 +482,23 @@ const GestãoPedidos: React.FC = () => {
 
       {/* Main Content */}
       <main className="md:ml-72 mt-16 p-8">
-        {/* Tabs */}
-        {/* Tabs com scroll horizontal */}
-<div className="mb-8 overflow-x-auto">
-  <div className="flex gap-2 min-w-max px-2 py-1">
-    {([
-      'Dashboard','Usuários', 'Produtos','Pedidos','Transportadoras','Relatórios',
-      'Logística','Suporte', 'Controle de Pedidos','Configurações','Notificações',
-      'Cadastrar Transportadora','Gerenciamento de Usuarios','Logout'
-      
-    ] as TabType[]).map((tab) => (
-      <button
-        key={tab}
-        className={`px-6 py-3 rounded-lg whitespace-nowrap transition-colors flex-shrink-0 ${
-          activeTab === tab
-            ? 'bg-marieth text-white'
-            : 'bg-white text-gray-600 hover:bg-gray-100'
-        }`}
-        onClick={() => handleTabChange(tab)}
-      >
-        {tab}
-      </button>
-    ))}
-  </div>
-</div>
+        <div className="mb-8 overflow-x-auto">
+          <div className="flex gap-2 min-w-max px-2 py-1">
+            {(['Dashboard', 'Usuários', 'Produtos', 'Pedidos', 'Transportadoras', 'Relatórios', 'Logística', 'Suporte', 'Controle de Pedidos', 'Configurações', 'Notificações', 'Cadastrar Transportadora', 'Gerenciamento de Usuarios', 'Logout'] as TabType[]).map((tab) => (
+              <button
+                key={tab}
+                className={`px-6 py-3 rounded-lg whitespace-nowrap transition-colors flex-shrink-0 ${activeTab === tab ? 'bg-marieth text-white' : 'bg-white text-gray-600 hover:bg-gray-100'}`}
+                onClick={() => handleTabChange(tab)}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Dashboard Tab */}
         {activeTab === 'Dashboard' && (
           <div className="space-y-8">
-            {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <div className="bg-white p-6 rounded-lg shadow-sm">
                 <h3 className="text-gray-600 text-sm mb-2">Usuários Ativos</h3>
@@ -623,13 +517,10 @@ const GestãoPedidos: React.FC = () => {
                 <div className="text-3xl font-bold text-marieth">AOA {Cardsdata.ReceitaMensal}K</div>
               </div>
             </div>
-            {/* Recent Registrations */}
             <div className="bg-white rounded-lg shadow-sm">
               <div className="p-6 border-b border-gray-200 flex justify-between items-center">
                 <h2 className="text-xl font-semibold">Últimos Cadastros</h2>
-                <button className="bg-marieth text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors">
-                  Ver Todos
-                </button>
+                <button className="bg-marieth text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors">Ver Todos</button>
               </div>
               <table className="w-full">
                 <thead>
@@ -642,23 +533,20 @@ const GestãoPedidos: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {Array.isArray(usuario) && usuario.map((user: usuarios, index: number) => (
+                  {Array.isArray(usuarios) && usuarios.map((user, index) => (
                     <tr key={index} className="border-b border-gray-100">
                       <td className="py-3 px-4">
-                        <img src={user.foto} alt={user.nome} className="w-8 h-8 rounded-full mr-3 inline-block" />
+                        <img src={user.foto || '/default-user.png'} alt={user.nome} className="w-8 h-8 rounded-full mr-3 inline-block" />
                         {user.nome}
                       </td>
                       <td className="py-3 px-4">{user.tipo_usuario}</td>
                       <td className="py-3 px-4">{user.data_criacao}</td>
                       <td className="py-3 px-4">
-                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(user.status)}`}>
-                          {user.status}
-                        </span>
+                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(user.status)}`}>{user.status}</span>
                       </td>
                       <td className="py-3 px-4">
                         <button className="bg-marieth text-white px-3 py-1 rounded hover:bg-green-700 transition-colors">
-                          {user.status === 'Pendente' ? 'Aprovar' :
-                            user.status === 'Rejeitado' ? 'Revisar' : 'Detalhes'}
+                          {user.status === 'Pendente' ? 'Aprovar' : user.status === 'Rejeitado' ? 'Revisar' : 'Detalhes'}
                         </button>
                       </td>
                     </tr>
@@ -666,7 +554,6 @@ const GestãoPedidos: React.FC = () => {
                 </tbody>
               </table>
             </div>
-            {/* Sales Chart */}
             <div className="bg-white rounded-lg shadow-sm">
               <div className="p-6 border-b border-gray-200">
                 <h2 className="text-xl font-semibold">Vendas dos Últimos 7 Dias</h2>
@@ -677,7 +564,6 @@ const GestãoPedidos: React.FC = () => {
                 </div>
               </div>
             </div>
-            {/* Produtos por Categoria */}
             <div className="bg-white rounded-lg shadow-sm">
               <div className="p-6 border-b border-gray-200">
                 <h2 className="text-xl font-semibold">Produtos por Categoria</h2>
@@ -698,11 +584,7 @@ const GestãoPedidos: React.FC = () => {
               <h2 className="text-xl font-semibold">Gerenciamento de Produtos</h2>
               <div className="relative">
                 <MdSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                <input
-                  type="search"
-                  placeholder="Buscar produtos..."
-                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                />
+                <input type="search" placeholder="Buscar produtos..." className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500" />
               </div>
             </div>
             <div className="p-6">
@@ -710,11 +592,7 @@ const GestãoPedidos: React.FC = () => {
                 {Array.isArray(produtos) && produtos.map((produto) => (
                   <div key={produto.id_produtos} className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
                     <div className="h-48 bg-gray-100 flex items-center justify-center">
-                      {produto.foto_produto ? (
-                        <img src={produto.foto_produto} alt={produto.nome} className="h-full object-cover" />
-                      ) : (
-                        <span className="text-gray-400">Imagem do Produto</span>
-                      )}
+                      {produto.foto_produto ? <img src={produto.foto_produto} alt={produto.nome} className="h-full object-cover" /> : <span className="text-gray-400">Imagem do Produto</span>}
                     </div>
                     <div className="p-4">
                       <h3 className="font-semibold text-lg mb-2">{produto.nome}</h3>
@@ -723,12 +601,10 @@ const GestãoPedidos: React.FC = () => {
                       <p className="text-gray-600 mb-4">Quantidade: {produto.quantidade} {produto.Unidade}</p>
                       <div className="flex justify-between items-center">
                         <button className="flex items-center bg-marieth text-white px-3 py-2 rounded hover:bg-green-700 transition-colors">
-                          <MdEdit className="mr-1" size={16} />
-                          Editar
+                          <MdEdit className="mr-1" size={16} /> Editar
                         </button>
                         <button onClick={() => excluirProduto(produto.id_produtos)} className="flex items-center bg-red-600 text-white px-3 py-2 rounded hover:bg-red-700 transition-colors">
-                          <MdDelete className="mr-1" size={16} />
-                          Excluir
+                          <MdDelete className="mr-1" size={16} /> Excluir
                         </button>
                       </div>
                     </div>
@@ -738,24 +614,17 @@ const GestãoPedidos: React.FC = () => {
             </div>
           </div>
         )}
-            
-        {/* Usuários Tab */}
 
+        {/* Usuários Tab */}
         {activeTab === 'Usuários' && (
           <div className="bg-white rounded-lg shadow-sm mb-6">
             <div className="p-6 border-b border-gray-200 flex justify-between items-center">
               <h2 className="text-xl font-semibold text-gray-800">Gerenciamento de Usuários</h2>
               <div className="relative">
-                <input 
-                  type="search" 
-                  placeholder="Buscar usuários..." 
-                  className="px-4 py-2 border border-gray-300 rounded-md w-80 focus:outline-none focus:ring-2 focus:ring-marieth focus:border-transparent" 
-                />
+                <input type="search" placeholder="Buscar usuários..." className="px-4 py-2 border border-gray-300 rounded-md w-80 focus:outline-none focus:ring-2 focus:ring-marieth focus:border-transparent" />
               </div>
             </div>
-            
             <div className="p-6">
-
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse">
                   <thead>
@@ -769,19 +638,15 @@ const GestãoPedidos: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    { Array.isArray(usuario) && usuario.map((user) => (
+                    {Array.isArray(usuarios) && usuarios.map((user) => (
                       <tr key={user.id_usuario}>
                         <td className="p-4 border-b border-gray-200">{user.id_usuario}</td>
                         <td className="p-4 border-b border-gray-200">{user.nome}</td>
                         <td className="p-4 border-b border-gray-200">{user.tipo_usuario}</td>
                         <td className="p-4 border-b border-gray-200">{user.data_criacao}</td>
-                        <td className={`p-4 border-b border-gray-200 ${getStatusColor(user.status)}`}>
-                          {user.status}
-                        </td> 
+                        <td className={`p-4 border-b border-gray-200 ${getStatusColor(user.status)}`}>{user.status}</td>
                         <td className="p-4 border-b border-gray-200">
-                          <button className="px-4 py-2 bg-marieth text-white rounded-md hover:bg-green-700 transition-colors font-medium">
-                            Detalhes
-                          </button>
+                          <button className="px-4 py-2 bg-marieth text-white rounded-md hover:bg-green-700 transition-colors font-medium">Detalhes</button>
                         </td>
                       </tr>
                     ))}
@@ -792,747 +657,598 @@ const GestãoPedidos: React.FC = () => {
           </div>
         )}
 
-          {/* Transportadoras Tab */}
-          {activeTab === 'Cadastrar Transportadora' && (
-            <div className="bg-white rounded-lg shadow-sm mb-6">
-              <div className="p-6 border-b border-gray-200 flex justify-between items-center">
-                <h2 className="text-xl font-semibold text-gray-800">Cadastro de Transportadoras</h2>
-                <div className="relative">
-                  <input 
-                    type="search" 
-                    placeholder="Buscar transportadoras..." 
-                    className="px-4 py-2 border border-gray-300 rounded-md w-80 focus:outline-none focus:ring-2 focus:ring-marieth focus:border-transparent" 
-                  />
+        {/* Cadastrar Transportadora Tab */}
+        {activeTab === 'Cadastrar Transportadora' && (
+          <div className="bg-white rounded-lg shadow-sm mb-6">
+            <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+              <h2 className="text-xl font-semibold text-gray-800">Cadastro de Transportadoras</h2>
+              <div className="relative">
+                <input type="search" placeholder="Buscar transportadoras..." className="px-4 py-2 border border-gray-300 rounded-md w-80 focus:outline-none focus:ring-2 focus:ring-marieth focus:border-transparent" />
+              </div>
+            </div>
+            <div className="p-6">
+              <form onSubmit={cadastrarTransportadoraHandler} className="space-y-4">
+                <div>
+                  <label htmlFor="nome" className="block text-sm font-medium text-gray-700">Nome</label>
+                  <input id="nome" value={formData.nome} onChange={handleInputChange} name="nome" type="text" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-marieth focus:border-transparent" placeholder="Nome da Transportadora" />
                 </div>
-              </div>
-              
-              <div className="p-6">
-
-                <form onSubmit={cadastrarTransportadoraHandler} className="space-y-4">
-                  <div>
-                    <label  className="block text-sm font-medium text-gray-700">Nome</label>
-                    <input value={formData.nome} onChange={handleInputChange} name="nome" type="text" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-marieth focus:border-transparent" placeholder="Nome da Transportadora" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">NIF</label>
-                    <input value={formData.nif} onChange={handleInputChange} name="nif" type="text" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-marieth focus:border-transparent" placeholder="Número de Identificação Fiscal" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Telefone</label>
-                    <input value={formData.telefone} onChange={handleInputChange} name="telefone" type="text" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-marieth focus:border-transparent" placeholder="Telefone de Contato" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Email</label>
-                    <input value={formData.email} onChange={handleInputChange} name="email" type="email" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-marieth focus:border-transparent" placeholder="Email de Contato" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Senha</label>
-                    <label htmlFor="senha"></label>
-                    <input id="senha" value={formData.senha} onChange={handleInputChange} name="senha" type="password" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-marieth focus:border-transparent" placeholder="Senha de Acesso" />
-                  </div>
-                  <div>
-                    <label htmlFor="confirmar_senha" className="block text-sm font-medium text-gray-700">Confirmação de Senha</label>
-                    <input id="confirmar_senha" value={formData.confirmar_senha} onChange={handleInputChange} name="confirmar_senha" type="password" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-marieth focus:border-transparent" placeholder="Confirme sua senha" />
-                  </div>
-                  <div className="flex justify-end">
-                    <button type="submit" className="px-6 py-2 bg-marieth text-white rounded-md hover:bg-green-700 transition-colors font-medium">
-                      Cadastrar Transportadora
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          )}
-
-
-          {activeTab === 'Pedidos' && (
-  <div className="bg-white rounded-lg shadow-sm mb-6">
-    <div className="p-6 border-b border-gray-200 flex justify-between items-center">
-      <h2 className="text-xl font-semibold text-gray-800">Gestão de Pedidos</h2>
-      <div className="relative">
-        <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-        <input 
-          type="search" 
-          placeholder="Buscar pedidos..." 
-          value={termoBusca}
-          onChange={(e) => setTermoBusca(e.target.value)}
-          className="pl-10 pr-4 py-2 border border-gray-300 rounded-md w-80 focus:outline-none focus:ring-2 focus:ring-marieth focus:border-transparent" 
-        />
-      </div>
-    </div>
-    
-    <div className="p-6">
-      {carregandoPedidos ? (
-        <div className="text-center py-12">
-          <FaSpinner className="animate-spin mx-auto h-8 w-8 text-marieth mb-4" />
-          <p className="text-gray-600">Carregando pedidos...</p>
-        </div>
-      ) : erro ? (
-        <div className="text-center py-12">
-          <FaBox className="mx-auto h-16 w-16 text-red-400 mb-4" />
-          <p className="text-red-600 mb-4">{erro}</p>
-          <button
-            onClick={carregarPedidos}
-            className="px-4 py-2 bg-marieth text-white rounded-md hover:bg-green-700 transition-colors"
-          >
-            Tentar novamente
-          </button>
-        </div>
-      ) : pedidos.length === 0 ? (
-        <div className="text-center py-12">
-          <FaBox className="mx-auto h-16 w-16 text-gray-400 mb-4" />
-          <h3 className="text-lg font-semibold text-gray-700 mb-2">Nenhum pedido encontrado</h3>
-          <p className="text-gray-600 mb-4">
-            Ainda não há pedidos na plataforma ou nenhum pedido corresponde à sua busca.
-          </p>
-          <button
-            onClick={carregarPedidos}
-            className="px-4 py-2 bg-marieth text-white rounded-md hover:bg-green-700 transition-colors"
-          >
-            Atualizar lista
-          </button>
-        </div>
-      ) : (
-        <>
-          {/* Estatísticas rápidas */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <h4 className="text-sm font-medium text-blue-600">Total de Pedidos</h4>
-              <p className="text-2xl font-bold text-blue-900">{pedidos.length}</p>
-            </div>
-            <div className="bg-yellow-50 p-4 rounded-lg">
-              <h4 className="text-sm font-medium text-yellow-600">Pendentes</h4>
-              <p className="text-2xl font-bold text-yellow-900">
-                {pedidos.filter(p => p.estado?.toLowerCase() === 'pendente').length}
-              </p>
-            </div>
-            <div className="bg-green-50 p-4 rounded-lg">
-              <h4 className="text-sm font-medium text-green-600">Entregues</h4>
-              <p className="text-2xl font-bold text-green-900">
-                {pedidos.filter(p => p.estado?.toLowerCase() === 'entregue').length}
-              </p>
-            </div>
-            <div className="bg-red-50 p-4 rounded-lg">
-              <h4 className="text-sm font-medium text-red-600">Cancelados</h4>
-              <p className="text-2xl font-bold text-red-900">
-                {pedidos.filter(p => p.estado?.toLowerCase() === 'cancelado').length}
-              </p>
+                <div>
+                  <label htmlFor="nif" className="block text-sm font-medium text-gray-700">NIF</label>
+                  <input id="nif" value={formData.nif} onChange={handleInputChange} name="nif" type="text" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-marieth focus:border-transparent" placeholder="Número de Identificação Fiscal" />
+                </div>
+                <div>
+                  <label htmlFor="telefone" className="block text-sm font-medium text-gray-700">Telefone</label>
+                  <input id="telefone" value={formData.telefone} onChange={handleInputChange} name="telefone" type="text" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-marieth focus:border-transparent" placeholder="Telefone de Contato" />
+                </div>
+                <div>
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
+                  <input id="email" value={formData.email} onChange={handleInputChange} name="email" type="email" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-marieth focus:border-transparent" placeholder="Email de Contato" />
+                </div>
+                <div>
+                  <label htmlFor="senha" className="block text-sm font-medium text-gray-700">Senha</label>
+                  <input id="senha" value={formData.senha} onChange={handleInputChange} name="senha" type="password" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-marieth focus:border-transparent" placeholder="Senha de Acesso" />
+                </div>
+                <div>
+                  <label htmlFor="confirmar_senha" className="block text-sm font-medium text-gray-700">Confirmação de Senha</label>
+                  <input id="confirmar_senha" value={formData.confirmar_senha} onChange={handleInputChange} name="confirmar_senha" type="password" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-marieth focus:border-transparent" placeholder="Confirme sua senha" />
+                </div>
+                <div>
+                  <label htmlFor="provincia_base" className="block text-sm font-medium text-gray-700">Província Base</label>
+                  <input id="provincia_base" value={formData.provincia_base} onChange={handleInputChange} name="provincia_base" type="text" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-marieth focus:border-transparent" placeholder="Província Base" />
+                </div>
+                <div className="flex justify-end">
+                  <button type="submit" className="px-6 py-2 bg-marieth text-white rounded-md hover:bg-green-700 transition-colors font-medium">Cadastrar Transportadora</button>
+                </div>
+              </form>
             </div>
           </div>
+        )}
 
-          {/* Resultados da busca */}
-          {termoBusca && (
-            <div className="mb-4">
-              <p className="text-sm text-gray-600">
-                {pedidosFiltrados.length} pedido(s) encontrado(s) para "{termoBusca}"
-                {pedidosFiltrados.length === 0 && (
-                  <span className="block mt-1 text-gray-500">
-                    Tente buscar por ID do pedido, nome do cliente ou status
-                  </span>
-                )}
-              </p>
+        {/* Pedidos Tab */}
+        {activeTab === 'Pedidos' && (
+          <div className="bg-white rounded-lg shadow-sm mb-6">
+            <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+              <h2 className="text-xl font-semibold text-gray-800">Gestão de Pedidos</h2>
+              <div className="relative">
+                <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <input
+                  type="search"
+                  placeholder="Buscar pedidos..."
+                  value={termoBusca}
+                  onChange={(e) => setTermoBusca(e.target.value)}
+                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-md w-80 focus:outline-none focus:ring-2 focus:ring-marieth focus:border-transparent"
+                />
+              </div>
             </div>
-          )}
-
-          {/* Tabela de pedidos */}
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr>
-                  <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">ID</th>
-                  <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Cliente</th>
-                  <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Data</th>
-                  <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Valor</th>
-                  <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Status</th>
-                  <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                {Array.isArray(pedidosFiltrados) && pedidosFiltrados.map((pedido) => (
-                  <tr key={pedido.id_pedido} className="hover:bg-gray-50">
-                    <td className="p-4 border-b border-gray-200">#{pedido.id_pedido}</td>
-                    <td className="p-4 border-b border-gray-200">
-                      <div>
-                        <p className="font-medium text-gray-900">
-                          {pedido.nome_usuario || 'Nome não disponível'}
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          {pedido.itens.length} item(s) no pedido
-                        </p>
-                      </div>
-                    </td>
-                    <td className="p-4 border-b border-gray-200">
-                      {formatarData(pedido.data_pedido)}
-                    </td>
-                    <td className="p-4 border-b border-gray-200 font-medium">
-                      {formatarValor(pedido.valor_total)}
-                    </td>
-                    <td className="p-4 border-b border-gray-200">
-                      <span className={`inline-block px-4 py-2 rounded-full text-sm font-medium ${getStatusColor(pedido.estado)}`}>
-                        {pedido.estado || 'Status não definido'}
-                      </span>
-                    </td>
-                    <td className="p-4 border-b border-gray-200">
-                      <button 
-                        className="px-4 py-2 bg-marieth text-white rounded-md hover:bg-green-700 transition-colors font-medium mr-2"
-                        onClick={() => {
-                          console.log('Ver detalhes do pedido:', pedido);
-                        }}
-                      >
-                        Detalhes
-                      </button>
-                      <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
-                        {pedido.itens.length} itens
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="p-6">
+              {carregandoPedidos ? (
+                <div className="text-center py-12">
+                  <FaSpinner className="animate-spin mx-auto h-8 w-8 text-marieth mb-4" />
+                  <p className="text-gray-600">Carregando pedidos...</p>
+                </div>
+              ) : erro ? (
+                <div className="text-center py-12">
+                  <FaBox className="mx-auto h-16 w-16 text-red-400 mb-4" />
+                  <p className="text-red-600 mb-4">{erro}</p>
+                  <button onClick={() => fetchPedidos()} className="px-4 py-2 bg-marieth text-white rounded-md hover:bg-green-700 transition-colors">Tentar novamente</button>
+                </div>
+              ) : pedidos.length === 0 ? (
+                <div className="text-center py-12">
+                  <FaBox className="mx-auto h-16 w-16 text-gray-400 mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-700 mb-2">Nenhum pedido encontrado</h3>
+                  <p className="text-gray-600 mb-4">Ainda não há pedidos na plataforma ou nenhum pedido corresponde à sua busca.</p>
+                  <button onClick={() => fetchPedidos()} className="px-4 py-2 bg-marieth text-white rounded-md hover:bg-green-700 transition-colors">Atualizar lista</button>
+                </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                    <div className="bg-blue-50 p-4 rounded-lg">
+                      <h4 className="text-sm font-medium text-blue-600">Total de Pedidos</h4>
+                      <p className="text-2xl font-bold text-blue-900">{pedidos.length}</p>
+                    </div>
+                    <div className="bg-yellow-50 p-4 rounded-lg">
+                      <h4 className="text-sm font-medium text-yellow-600">Pendentes</h4>
+                      <p className="text-2xl font-bold text-yellow-900">{pedidos.filter(p => p.estado?.toLowerCase() === 'pendente').length}</p>
+                    </div>
+                    <div className="bg-green-50 p-4 rounded-lg">
+                      <h4 className="text-sm font-medium text-green-600">Entregues</h4>
+                      <p className="text-2xl font-bold text-green-900">{pedidos.filter(p => p.estado?.toLowerCase() === 'entregue').length}</p>
+                    </div>
+                    <div className="bg-red-50 p-4 rounded-lg">
+                      <h4 className="text-sm font-medium text-red-600">Cancelados</h4>
+                      <p className="text-2xl font-bold text-red-900">{pedidos.filter(p => p.estado?.toLowerCase() === 'cancelado').length}</p>
+                    </div>
+                  </div>
+                  {termoBusca && (
+                    <div className="mb-4">
+                      <p className="text-sm text-gray-600">
+                        {pedidosFiltrados.length} pedido(s) encontrado(s) para "{termoBusca}"
+                        {pedidosFiltrados.length === 0 && <span className="block mt-1 text-gray-500">Tente buscar por ID do pedido, nome do cliente ou status</span>}
+                      </p>
+                    </div>
+                  )}
+                  <div className="overflow-x-auto">
+                    <table className="w-full border-collapse">
+                      <thead>
+                        <tr>
+                          <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">ID</th>
+                          <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Cliente</th>
+                          <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Data</th>
+                          <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Valor</th>
+                          <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Status</th>
+                          <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Ações</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {Array.isArray(pedidosFiltrados) && pedidosFiltrados.map((pedido) => (
+                          <tr key={pedido.id_pedido} className="hover:bg-gray-50">
+                            <td className="p-4 border-b border-gray-200">#{pedido.id_pedido}</td>
+                            <td className="p-4 border-b border-gray-200">
+                              <div>
+                                <p className="font-medium text-gray-900">{pedido.nome_usuario || 'Nome não disponível'}</p>
+                                <p className="text-sm text-gray-500">{pedido.itens?.length || 0} item(s) no pedido</p>
+                              </div>
+                            </td>
+                            <td className="p-4 border-b border-gray-200">{formatarData(pedido.data_pedido)}</td>
+                            <td className="p-4 border-b border-gray-200 font-medium">{formatarValor(pedido.valor_total)}</td>
+                            <td className="p-4 border-b border-gray-200">
+                              <span className={`inline-block px-4 py-2 rounded-full text-sm font-medium ${getStatusColor(pedido.estado)}`}>{pedido.estado || 'Status não definido'}</span>
+                            </td>
+                            <td className="p-4 border-b border-gray-200">
+                              <button className="px-4 py-2 bg-marieth text-white rounded-md hover:bg-green-700 transition-colors font-medium mr-2" onClick={() => console.log('Ver detalhes do pedido:', pedido)}>Detalhes</button>
+                              <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">{pedido.itens?.length || 0} itens</span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
-        </>
-      )}
-    </div>
-  </div>
-)}
+        )}
 
-  
-
-          {/* Relatórios Tab (Exemplo) */}
-          {activeTab === 'Relatórios' && (
-            <div>
-              <h2 className="text-xl font-semibold text-gray-800">Relatórios</h2>
-              <div className="p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  <div 
-                    className="bg-white p-6 rounded-lg shadow-sm flex flex-col items-center justify-center gap-4 cursor-pointer hover:-translate-y-1 transition-transform" 
-                    onClick={() => alert("Gerando relatório de vendas...")}
-                  >
-                    <FaChartBar className="text-5xl text-marieth" />
-                    <h3 className="text-lg font-medium text-gray-800 text-center">Relatório de Vendas</h3>
-                  </div>
-                  <div 
-                    className="bg-white p-6 rounded-lg shadow-sm flex flex-col items-center justify-center gap-4 cursor-pointer hover:-translate-y-1 transition-transform" 
-                    onClick={() => alert("Gerando relatório de usuários...")}
-                  >
-                    <FaUsers className="text-5xl text-marieth" />
-                    <h3 className="text-lg font-medium text-gray-800 text-center">Relatório de Usuários</h3>
-                  </div>
-                  <div 
-                    className="bg-white p-6 rounded-lg shadow-sm flex flex-col items-center justify-center gap-4 cursor-pointer hover:-translate-y-1 transition-transform" 
-                    onClick={() => alert("Gerando relatório de produtos...")}
-                  >
-                    <FaBox className="text-5xl text-marieth" />
-                    <h3 className="text-lg font-medium text-gray-800 text-center">Relatório de Produtos</h3>
-                  </div>
-                  <div 
-                    className="bg-white p-6 rounded-lg shadow-sm flex flex-col items-center justify-center gap-4 cursor-pointer hover:-translate-y-1 transition-transform" 
-                    onClick={() => alert("Gerando relatório financeiro...")}
-                  >
-                    <FaMoneyBillWave className="text-5xl text-marieth" />
-                    <h3 className="text-lg font-medium text-gray-800 text-center">Relatório Financeiro</h3>
-                  </div>
+        {/* Relatórios Tab */}
+        {activeTab === 'Relatórios' && (
+          <div>
+            <h2 className="text-xl font-semibold text-gray-800">Relatórios</h2>
+            <div className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="bg-white p-6 rounded-lg shadow-sm flex flex-col items-center justify-center gap-4 cursor-pointer hover:-translate-y-1 transition-transform" onClick={() => alert("Gerando relatório de vendas...")}>
+                  <FaChartBar className="text-5xl text-marieth" />
+                  <h3 className="text-lg font-medium text-gray-800 text-center">Relatório de Vendas</h3>
+                </div>
+                <div className="bg-white p-6 rounded-lg shadow-sm flex flex-col items-center justify-center gap-4 cursor-pointer hover:-translate-y-1 transition-transform" onClick={() => alert("Gerando relatório de usuários...")}>
+                  <FaUsers className="text-5xl text-marieth" />
+                  <h3 className="text-lg font-medium text-gray-800 text-center">Relatório de Usuários</h3>
+                </div>
+                <div className="bg-white p-6 rounded-lg shadow-sm flex flex-col items-center justify-center gap-4 cursor-pointer hover:-translate-y-1 transition-transform" onClick={() => alert("Gerando relatório de produtos...")}>
+                  <FaBox className="text-5xl text-marieth" />
+                  <h3 className="text-lg font-medium text-gray-800 text-center">Relatório de Produtos</h3>
+                </div>
+                <div className="bg-white p-6 rounded-lg shadow-sm flex flex-col items-center justify-center gap-4 cursor-pointer hover:-translate-y-1 transition-transform" onClick={() => alert("Gerando relatório financeiro...")}>
+                  <FaMoneyBillWave className="text-5xl text-marieth" />
+                  <h3 className="text-lg font-medium text-gray-800 text-center">Relatório Financeiro</h3>
                 </div>
               </div>
             </div>
-          )}
-          
-          {/* Logística Tab */}
-          {activeTab === 'Logística' && (
-            <div className="bg-white rounded-lg shadow-sm mb-6">
-              <div className="p-6 border-b border-gray-200 flex justify-between items-center">
-                <h2 className="text-xl font-semibold text-gray-800">Gestão de Logística</h2>
-                <button className="px-4 py-2 bg-marieth text-white rounded-md hover:bg-emerald-700 transition-colors font-medium">
-                  <MdAdd className="inline mr-2" size={16} />
-                  Nova Rota
-                </button>
-              </div>
-              <div className="p-6">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-                  <div className="bg-blue-50 p-4 rounded-lg">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-blue-600 text-sm font-medium">Entregas Hoje</p>
-                        <p className="text-2xl font-bold text-blue-800">28</p>
-                      </div>
-                      <MdLocalShipping className="text-blue-600" size={32} />
+          </div>
+        )}
+
+        {/* Logística Tab */}
+        {activeTab === 'Logística' && (
+          <div className="bg-white rounded-lg shadow-sm mb-6">
+            <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+              <h2 className="text-xl font-semibold text-gray-800">Gestão de Logística</h2>
+              <button className="px-4 py-2 bg-marieth text-white rounded-md hover:bg-emerald-700 transition-colors">
+                <MdAdd className="inline mr-2" size={16} /> Nova Rota
+              </button>
+            </div>
+            <div className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-blue-600 text-sm font-medium">Entregas Hoje</p>
+                      <p className="text-2xl font-bold text-blue-800">28</p>
                     </div>
-                  </div>
-                  <div className="bg-green-50 p-4 rounded-lg">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-marieth text-sm font-medium">Entregues</p>
-                        <p className="text-2xl font-bold text-green-800">156</p>
-                      </div>
-                      <MdDeliveryDining className="text-marieth" size={32} />
-                    </div>
-                  </div>
-                  <div className="bg-yellow-50 p-4 rounded-lg">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-yellow-600 text-sm font-medium">Em Trânsito</p>
-                        <p className="text-2xl font-bold text-yellow-800">42</p>
-                      </div>
-                      <MdLocalShipping className="text-yellow-600" size={32} />
-                    </div>
-                  </div>
-                  <div className="bg-red-50 p-4 rounded-lg">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-red-600 text-sm font-medium">Atrasadas</p>
-                        <p className="text-2xl font-bold text-red-800">8</p>
-                      </div>
-                      <MdLocalShipping className="text-red-600" size={32} />
-                    </div>
+                    <MdLocalShipping className="text-blue-600" size={32} />
                   </div>
                 </div>
+                <div className="bg-green-50 p-4 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-marieth text-sm font-medium">Entregues</p>
+                      <p className="text-2xl font-bold text-green-800">156</p>
+                    </div>
+                    <MdDeliveryDining className="text-marieth" size={32} />
+                  </div>
+                </div>
+                <div className="bg-yellow-50 p-4 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-yellow-600 text-sm font-medium">Em Trânsito</p>
+                      <p className="text-2xl font-bold text-yellow-800">42</p>
+                    </div>
+                    <MdLocalShipping className="text-yellow-600" size={32} />
+                  </div>
+                </div>
+                <div className="bg-red-50 p-4 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-red-600 text-sm font-medium">Atrasadas</p>
+                      <p className="text-2xl font-bold text-red-800">8</p>
+                    </div>
+                    <MdLocalShipping className="text-red-600" size={32} />
+                  </div>
+                </div>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr>
+                      <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Rota</th>
+                      <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Transportadora</th>
+                      <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Destino</th>
+                      <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Status</th>
+                      <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Previsão</th>
+                      <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td className="p-4 border-b border-gray-200">#RT001</td>
+                      <td className="p-4 border-b border-gray-200">TransRápido</td>
+                      <td className="p-4 border-b border-gray-200">Luanda - Benguela</td>
+                      <td className="p-4 border-b border-gray-200"><span className="inline-block px-3 py-1 rounded-full text-sm bg-green-100 text-green-800">Em Trânsito</span></td>
+                      <td className="p-4 border-b border-gray-200">18:00</td>
+                      <td className="p-4 border-b border-gray-200"><button className="px-3 py-1 bg-marieth text-white rounded hover:bg-green-700 transition-colors mr-2">Rastrear</button></td>
+                    </tr>
+                    <tr>
+                      <td className="p-4 border-b border-gray-200">#RT002</td>
+                      <td className="p-4 border-b border-gray-200">Expresso Angola</td>
+                      <td className="p-4 border-b border-gray-200">Luanda - Huambo</td>
+                      <td className="p-4 border-b border-gray-200"><span className="inline-block px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800">Programada</span></td>
+                      <td className="p-4 border-b border-gray-200">20:00</td>
+                      <td className="p-4 border-b border-gray-200"><button className="px-3 py-1 bg-marieth text-white rounded hover:bg-green-700 transition-colors mr-2">Rastrear</button></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Suporte Tab */}
+        {activeTab === 'Suporte' && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <div className="bg-white p-6 rounded-lg shadow-sm">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-gray-600 text-sm mb-2">Tickets Abertos</h3>
+                    <div className="text-3xl font-bold text-red-600">23</div>
+                  </div>
+                  <MdHeadset className="text-red-600" size={32} />
+                </div>
+              </div>
+              <div className="bg-white p-6 rounded-lg shadow-sm">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-gray-600 text-sm mb-2">Em Andamento</h3>
+                    <div className="text-3xl font-bold text-yellow-600">15</div>
+                  </div>
+                  <MdHeadset className="text-yellow-600" size={32} />
+                </div>
+              </div>
+              <div className="bg-white p-6 rounded-lg shadow-sm">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-gray-600 text-sm mb-2">Resolvidos Hoje</h3>
+                    <div className="text-3xl font-bold text-marieth">47</div>
+                  </div>
+                  <MdHeadset className="text-marieth" size={32} />
+                </div>
+              </div>
+              <div className="bg-white p-6 rounded-lg shadow-sm">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-gray-600 text-sm mb-2">Tempo Médio</h3>
+                    <div className="text-3xl font-bold text-blue-600">2.5h</div>
+                  </div>
+                  <MdHeadset className="text-blue-600" size={32} />
+                </div>
+              </div>
+            </div>
+            <div className="bg-white rounded-lg shadow-sm">
+              <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+                <h2 className="text-xl font-semibold text-gray-800">Tickets de Suporte</h2>
+                <div className="flex space-x-2">
+                  <select className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    <option value="">Todos os Status</option>
+                    <option value="Aberto">Aberto</option>
+                    <option value="Em Andamento">Em Andamento</option>
+                    <option value="Resolvido">Resolvido</option>
+                  </select>
+                  <div className="relative">
+                    <MdSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                    <input type="search" placeholder="Buscar tickets..." className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                  </div>
+                </div>
+              </div>
+              <div className="p-6">
                 <div className="overflow-x-auto">
                   <table className="w-full border-collapse">
                     <thead>
                       <tr>
-                        <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Rota</th>
-                        <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Transportadora</th>
-                        <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Destino</th>
+                        <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">ID</th>
+                        <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Usuário</th>
+                        <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Assunto</th>
+                        <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Prioridade</th>
                         <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Status</th>
-                        <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Previsão</th>
+                        <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Data</th>
                         <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Ações</th>
                       </tr>
                     </thead>
                     <tbody>
                       <tr>
-                        <td className="p-4 border-b border-gray-200">#RT001</td>
-                        <td className="p-4 border-b border-gray-200">TransRápido</td>
-                        <td className="p-4 border-b border-gray-200">Luanda - Benguela</td>
-                        <td className="p-4 border-b border-gray-200">
-                          <span className="inline-block px-3 py-1 rounded-full text-sm bg-green-100 text-green-800">Em Trânsito</span>
-                        </td>
-                        <td className="p-4 border-b border-gray-200">18:00</td>
-                        <td className="p-4 border-b border-gray-200">
-                          <button className="px-3 py-1 bg-marieth text-white rounded hover:bg-green-700 transition-colors mr-2">
-                            Rastrear
-                          </button>
-                        </td>
+                        <td className="p-4 border-b border-gray-200">#SUP001</td>
+                        <td className="p-4 border-b border-gray-200">João Silva</td>
+                        <td className="p-4 border-b border-gray-200">Problema no pagamento</td>
+                        <td className="p-4 border-b border-gray-200"><span className="inline-block px-3 py-1 rounded-full text-sm bg-red-100 text-red-800">Alta</span></td>
+                        <td className="p-4 border-b border-gray-200"><span className="inline-block px-3 py-1 rounded-full text-sm bg-yellow-100 text-yellow-800">Em Andamento</span></td>
+                        <td className="p-4 border-b border-gray-200">2023-08-17</td>
+                        <td className="p-4 border-b border-gray-200"><button className="px-3 py-1 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors mr-2">Responder</button></td>
                       </tr>
                       <tr>
-                        <td className="p-4 border-b border-gray-200">#RT002</td>
-                        <td className="p-4 border-b border-gray-200">Expresso Angola</td>
-                        <td className="p-4 border-b border-gray-200">Luanda - Huambo</td>
-                        <td className="p-4 border-b border-gray-200">
-                          <span className="inline-block px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800">Programada</span>
-                        </td>
-                        <td className="p-4 border-b border-gray-200">20:00</td>
-                        <td className="p-4 border-b border-gray-200">
-                          <button className="px-3 py-1 bg-marieth text-white rounded hover:bg-green-700 transition-colors mr-2">
-                            Rastrear
-                          </button>
-                        </td>
+                        <td className="p-4 border-b border-gray-200">#SUP002</td>
+                        <td className="p-4 border-b border-gray-200">Maria Santos</td>
+                        <td className="p-4 border-b border-gray-200">Dúvida sobre entrega</td>
+                        <td className="p-4 border-b border-gray-200"><span className="inline-block px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800">Média</span></td>
+                        <td className="p-4 border-b border-gray-200"><span className="inline-block px-3 py-1 rounded-full text-sm bg-red-100 text-red-800">Aberto</span></td>
+                        <td className="p-4 border-b border-gray-200">2023-08-17</td>
+                        <td className="p-4 border-b border-gray-200"><button className="px-3 py-1 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors mr-2">Responder</button></td>
                       </tr>
                     </tbody>
                   </table>
                 </div>
               </div>
             </div>
-          )}
+          </div>
+        )}
 
-
-          
-
-          {/* Suporte Tab */}
-          {activeTab === 'Suporte' && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div className="bg-white p-6 rounded-lg shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-gray-600 text-sm mb-2">Tickets Abertos</h3>
-                      <div className="text-3xl font-bold text-red-600">23</div>
-                    </div>
-                    <MdHeadset className="text-red-600" size={32} />
-                  </div>
-                </div>
-                <div className="bg-white p-6 rounded-lg shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-gray-600 text-sm mb-2">Em Andamento</h3>
-                      <div className="text-3xl font-bold text-yellow-600">15</div>
-                    </div>
-                    <MdHeadset className="text-yellow-600" size={32} />
-                  </div>
-                </div>
-                <div className="bg-white p-6 rounded-lg shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-gray-600 text-sm mb-2">Resolvidos Hoje</h3>
-                      <div className="text-3xl font-bold text-yellow-600">47</div>
-                    </div>
-                    <MdHeadset className="text-marieth" size={32} />
-                  </div>
-                </div>
-                <div className="bg-white p-6 rounded-lg shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-gray-600 text-sm mb-2">Tempo Médio</h3>
-                      <div className="text-3xl font-bold text-blue-600">2.5h</div>
-                    </div>
-                    <MdHeadset className="text-blue-600" size={32} />
-                  </div>
-                </div>
+        {/* Controle de Pedidos Tab */}
+        {activeTab === 'Controle de Pedidos' && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+              <div className="bg-white p-4 rounded-lg shadow-sm">
+                <h3 className="text-gray-600 text-sm mb-2">Total de Pedidos</h3>
+                <div className="text-2xl font-bold text-gray-800">1,234</div>
               </div>
-              <div className="bg-white rounded-lg shadow-sm">
-                <div className="p-6 border-b border-gray-200 flex justify-between items-center">
-                  <h2 className="text-xl font-semibold text-gray-800">Tickets de Suporte</h2>
+              <div className="bg-white p-4 rounded-lg shadow-sm">
+                <h3 className="text-gray-600 text-sm mb-2">Pendentes</h3>
+                <div className="text-2xl font-bold text-yellow-600">45</div>
+              </div>
+              <div className="bg-white p-4 rounded-lg shadow-sm">
+                <h3 className="text-gray-600 text-sm mb-2">Processando</h3>
+                <div className="text-2xl font-bold text-blue-600">32</div>
+              </div>
+              <div className="bg-white p-4 rounded-lg shadow-sm">
+                <h3 className="text-gray-600 text-sm mb-2">Entregues</h3>
+                <div className="text-2xl font-bold text-green-marieth">1,157</div>
+              </div>
+              <div className="bg-white p-4 rounded-lg shadow-sm">
+                <h3 className="text-gray-600 text-sm mb-2">Cancelados</h3>
+                <div className="text-2xl font-bold text-red-600">23</div>
+              </div>
+            </div>
+            <div className="bg-white rounded-lg shadow-sm">
+              <div className="p-6 border-b border-gray-200">
+                <div className="flex flex-wrap gap-4 items-center justify-between">
+                  <h2 className="text-xl font-semibold text-gray-800">Controle Detalhado de Pedidos</h2>
                   <div className="flex space-x-2">
-                    <label htmlFor="suporte" className='sr-only'>suporte</label>
-                    <select id='suporte' name='suporte' className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                      <option value="">Todos os Status</option>
-                      <option value="">Aberto</option>
-                      <option value="">Em Andamento</option>
-                      <option value="">Resolvido</option>
+                    <select className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                      <option>Todos os Status</option>
+                      <option>Pendente</option>
+                      <option>Processando</option>
+                      <option>Enviado</option>
+                      <option>Entregue</option>
+                      <option>Cancelado</option>
+                    </select>
+                    <select className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                      <option>Período</option>
+                      <option>Hoje</option>
+                      <option>Esta Semana</option>
+                      <option>Este Mês</option>
                     </select>
                     <div className="relative">
                       <MdSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                      <input 
-                        type="search" 
-                        placeholder="Buscar tickets..." 
-                        className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500" 
-                      />
+                      <input type="search" placeholder="Buscar por ID ou cliente..." className="pl-10 pr-4 py-2 border border-gray-300 rounded-md w-80 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
                     </div>
-                  </div>
-                </div>
-                <div className="p-6">
-                  <div className="overflow-x-auto">
-                    <table className="w-full border-collapse">
-                      <thead>
-                        <tr>
-                          <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">ID</th>
-                          <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Usuário</th>
-                          <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Assunto</th>
-                          <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Prioridade</th>
-                          <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Status</th>
-                          <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Data</th>
-                          <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Ações</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td className="p-4 border-b border-gray-200">#SUP001</td>
-                          <td className="p-4 border-b border-gray-200">João Silva</td>
-                          <td className="p-4 border-b border-gray-200">Problema no pagamento</td>
-                          <td className="p-4 border-b border-gray-200">
-                            <span className="inline-block px-3 py-1 rounded-full text-sm bg-red-100 text-red-800">Alta</span>
-                          </td>
-                          <td className="p-4 border-b border-gray-200">
-                            <span className="inline-block px-3 py-1 rounded-full text-sm bg-yellow-100 text-yellow-800">Em Andamento</span>
-                          </td>
-                          <td className="p-4 border-b border-gray-200">2023-08-17</td>
-                          <td className="p-4 border-b border-gray-200">
-                            <button className="px-3 py-1 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors mr-2">
-                              Responder
-                            </button>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td className="p-4 border-b border-gray-200">#SUP002</td>
-                          <td className="p-4 border-b border-gray-200">Maria Santos</td>
-                          <td className="p-4 border-b border-gray-200">Dúvida sobre entrega</td>
-                          <td className="p-4 border-b border-gray-200">
-                            <span className="inline-block px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800">Média</span>
-                          </td>
-                          <td className="p-4 border-b border-gray-200">
-                            <span className="inline-block px-3 py-1 rounded-full text-sm bg-red-100 text-red-800">Aberto</span>
-                          </td>
-                          <td className="p-4 border-b border-gray-200">2023-08-17</td>
-                          <td className="p-4 border-b border-gray-200">
-                            <button className="px-3 py-1 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors mr-2">
-                              Responder
-                            </button>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
                   </div>
                 </div>
               </div>
-            </div>
-          )}
-
-          {/* Controle de Pedidos Tab */}
-          {activeTab === 'Controle de Pedidos' && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                <div className="bg-white p-4 rounded-lg shadow-sm">
-                  <h3 className="text-gray-600 text-sm mb-2">Total de Pedidos</h3>
-                  <div className="text-2xl font-bold text-gray-800">1,234</div>
+              <div className="p-6">
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr>
+                        <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">
+                          <input type="checkbox" className="mr-2" /> ID do Pedido
+                        </th>
+                        <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Cliente</th>
+                        <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Produtos</th>
+                        <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Valor Total</th>
+                        <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Status</th>
+                        <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Data</th>
+                        <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td className="p-4 border-b border-gray-200">#1001</td>
+                        <td className="p-4 border-b border-gray-200">
+                          <div>
+                            <p className="font-medium">Roberto Carlos</p>
+                            <p className="text-sm text-gray-500">roberto.carlos@email.com</p>
+                          </div>
+                        </td>
+                        <td className="p-4 border-b border-gray-200">
+                          <div>
+                            <p>Milho Verde (2kg)</p>
+                            <p className="text-sm text-gray-500">Feijão (1kg)</p>
+                          </div>
+                        </td>
+                        <td className="p-4 border-b border-gray-200">AOA 2,850</td>
+                        <td className="p-4 border-b border-gray-200">
+                          <select className="px-3 py-1 border border-gray-300 rounded text-sm">
+                            <option>Pendente</option>
+                            <option>Processando</option>
+                            <option>Enviado</option>
+                            <option>Entregue</option>
+                            <option>Cancelado</option>
+                          </select>
+                        </td>
+                        <td className="p-4 border-b border-gray-200">
+                          <div>
+                            <p>2023-08-17</p>
+                            <p className="text-sm text-gray-500">14:30</p>
+                          </div>
+                        </td>
+                        <td className="p-4 border-b border-gray-200">
+                          <div className="flex space-x-2">
+                            <button className="px-3 py-1 bg-marieth text-white rounded hover:bg-green-700 transition-colors text-sm">Ver</button>
+                            <button className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm">Editar</button>
+                          </div>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="p-4 border-b border-gray-200">#1002</td>
+                        <td className="p-4 border-b border-gray-200">
+                          <div>
+                            <p className="font-medium">Ana Maria</p>
+                            <p className="text-sm text-gray-500">ana.maria@email.com</p>
+                          </div>
+                        </td>
+                        <td className="p-4 border-b border-gray-200">
+                          <div>
+                            <p>Batata Doce (3kg)</p>
+                            <p className="text-sm text-gray-500">Mandioca (2kg)</p>
+                          </div>
+                        </td>
+                        <td className="p-4 border-b border-gray-200">AOA 3,100</td>
+                        <td className="p-4 border-b border-gray-200">
+                          <select className="px-3 py-1 border border-gray-300 rounded text-sm">
+                            <option>Processando</option>
+                            <option>Pendente</option>
+                            <option>Enviado</option>
+                            <option>Entregue</option>
+                            <option>Cancelado</option>
+                          </select>
+                        </td>
+                        <td className="p-4 border-b border-gray-200">
+                          <div>
+                            <p>2023-08-17</p>
+                            <p className="text-sm text-gray-500">13:15</p>
+                          </div>
+                        </td>
+                        <td className="p-4 border-b border-gray-200">
+                          <div className="flex space-x-2">
+                            <button className="px-3 py-1 bg-marieth text-white rounded hover:bg-green-700 transition-colors text-sm">Ver</button>
+                            <button className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm">Editar</button>
+                          </div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
-                <div className="bg-white p-4 rounded-lg shadow-sm">
-                  <h3 className="text-gray-600 text-sm mb-2">Pendentes</h3>
-                  <div className="text-2xl font-bold text-yellow-600">45</div>
-                </div>
-                <div className="bg-white p-4 rounded-lg shadow-sm">
-                  <h3 className="text-gray-600 text-sm mb-2">Processando</h3>
-                  <div className="text-2xl font-bold text-blue-600">32</div>
-                </div>
-                <div className="bg-white p-4 rounded-lg shadow-sm">
-                  <h3 className="text-gray-600 text-sm mb-2">Entregues</h3>
-                  <div className="text-2xl font-bold text-green-marieth">1,157</div>
-                </div>
-                <div className="bg-white p-4 rounded-lg shadow-sm">
-                  <h3 className="text-gray-600 text-sm mb-2">Cancelados</h3>
-                  <div className="text-2xl font-bold text-red-600">23</div>
-                </div>
-              </div>
-              <div className="bg-white rounded-lg shadow-sm">
-                <div className="p-6 border-b border-gray-200">
-                  <div className="flex flex-wrap gap-4 items-center justify-between">
-                    <h2 className="text-xl font-semibold text-gray-800">Controle Detalhado de Pedidos</h2>
-                    <div className="flex space-x-2">
-                      <label htmlFor="status-filter" className="sr-only">Filtrar por status</label>
-                      <select id="status-filter" title="Filtrar por status" className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 sr-only">
-                        <option>Todos os Status</option>
-                        <option>Pendente</option>
-                        <option>Processando</option>
-                        <option>Enviado</option>
-                        <option>Entregue</option>
-                        <option>Cancelado</option>
-                      </select>
-                      <label htmlFor="period-filter" className="sr-only">Filtrar por período</label>
-                      <select id="period-filter" title="Filtrar por período" className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 sr-only">
-                        <option>Período</option>
-                        <option>Hoje</option>
-                        <option>Esta Semana</option>
-                        <option>Este Mês</option>
-                      </select>
-                      <div className="relative">
-                        <MdSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                        <input 
-                          type="search" 
-                          placeholder="Buscar por ID ou cliente..." 
-                          className="pl-10 pr-4 py-2 border border-gray-300 rounded-md w-80 focus:outline-none focus:ring-2 focus:ring-emerald-500" 
-                        />
-                      </div>
-                    </div>
+                <div className="mt-4 flex justify-between items-center">
+                  <div className="flex space-x-2">
+                    <button className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors">Aprovar Selecionados</button>
+                    <button className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors">Cancelar Selecionados</button>
                   </div>
-                </div>
-                <div className="p-6">
-                  <div className="overflow-x-auto">
-                    <table className="w-full border-collapse">
-                      <thead>
-                        <tr>
-                          <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">
-                           <label htmlFor="pedido" className='sr-only'>pedido</label>
-                            <input id='pedido' type="checkbox" className="mr-2" />
-                            ID do Pedido
-                          </th>
-                          <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Cliente</th>
-                          <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Produtos</th>
-                          <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Valor Total</th>
-                          <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Status</th>
-                          <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Data</th>
-                          <th className="p-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-700">Ações</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td className="p-4 border-b border-gray-200">#1001</td>
-                          <td className="p-4 border-b border-gray-200">
-                            <div>
-                              <p className="font-medium">Roberto Carlos</p>
-                              <p className="text-sm text-gray-500">roberto.carlos@email.com</p>
-                            </div>
-                          </td>
-                          <td className="p-4 border-b border-gray-200">
-                            <div>
-                              <p>Milho Verde (2kg)</p>
-                              <p className="text-sm text-gray-500">Feijão (1kg)</p>
-                            </div>
-                          </td>
-                          <td className="p-4 border-b border-gray-200">AOA 2,850</td>
-                          <td className="p-4 border-b border-gray-200">
-                            <label htmlFor="status1" className='sr-only'>status</label>
-                            <select id='status1' className="px-3 py-1 border border-gray-300 rounded text-sm">
-                              <option>Pendente</option>
-                              <option>Processando</option>
-                              <option>Enviado</option>
-                              <option>Entregue</option>
-                              <option>Cancelado</option>
-                            </select>
-                          </td>
-                          <td className="p-4 border-b border-gray-200">
-                            <div>
-                              <p>2023-08-17</p>
-                              <p className="text-sm text-gray-500">14:30</p>
-                            </div>
-                          </td>
-                          <td className="p-4 border-b border-gray-200">
-                            <div className="flex space-x-2">
-                              <button className="px-3 py-1 bg-marieth text-white rounded hover:bg-green-700 transition-colors text-sm">
-                                Ver
-                              </button>
-                              <button className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm">
-                                Editar
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td className="p-4 border-b border-gray-200">#1002</td>
-                          <td className="p-4 border-b border-gray-200">
-                            <div>
-                              <p className="font-medium">Ana Maria</p>
-                              <p className="text-sm text-gray-500">ana.maria@email.com</p>
-                            </div>
-                          </td>
-                          <td className="p-4 border-b border-gray-200">
-                            <div>
-                              <p>Batata Doce (3kg)</p>
-                              <p className="text-sm text-gray-500">Mandioca (2kg)</p>
-                            </div>
-                          </td>
-                          <td className="p-4 border-b border-gray-200">AOA 3,100</td>
-                          <td className="p-4 border-b border-gray-200">
-                            <label htmlFor="status">status</label>
-                            <select id='status' name='status' className="px-3 py-1 border border-gray-300 rounded text-sm">
-                              <option>Processando</option>
-                              <option>Pendente</option>
-                              <option>Enviado</option>
-                              <option>Entregue</option>
-                              <option>Cancelado</option>
-                            </select>
-                          </td>
-                          <td className="p-4 border-b border-gray-200">
-                            <div>
-                              <p>2023-08-17</p>
-                              <p className="text-sm text-gray-500">13:15</p>
-                            </div>
-                          </td>
-                          <td className="p-4 border-b border-gray-200">
-                            <div className="flex space-x-2">
-                              <button className="px-3 py-1 bg-marieth text-white rounded hover:bg-green-700 transition-colors text-sm">
-                                Ver
-                              </button>
-                              <button className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm">
-                                Editar
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                  {/* Ações em massa */}
-                  <div className="mt-4 flex justify-between items-center">
-                    <div className="flex space-x-2">
-                      <button className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors">
-                        Aprovar Selecionados
-                      </button>
-                      <button className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors">
-                        Cancelar Selecionados
-                      </button>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-sm text-gray-600">Mostrando 1-10 de 234 pedidos</span>
-                      <button className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50">Anterior</button>
-                      <button className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50">Próximo</button>
-                    </div>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm text-gray-600">Mostrando 1-10 de 234 pedidos</span>
+                    <button className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50">Anterior</button>
+                    <button className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50">Próximo</button>
                   </div>
                 </div>
               </div>
             </div>
-          )}
+          </div>
+        )}
 
-          {/* Configurações Tab */}
-          {activeTab === 'Configurações' && (
-            <div className="bg-white rounded-lg shadow-sm mb-6">
-              <div className="p-6 border-b border-gray-200">
-                <h2 className="text-xl font-semibold text-gray-800">Configurações do Sistema</h2>
+        {/* Configurações Tab */}
+        {activeTab === 'Configurações' && (
+          <div className="bg-white rounded-lg shadow-sm mb-6">
+            <div className="p-6 border-b border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-800">Configurações do Sistema</h2>
+            </div>
+            <div className="p-6 space-y-6">
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium text-gray-800">Perfil</h3>
+                <form className="space-y-4">
+                  <div>
+                    <label htmlFor="username" className="block text-sm font-medium text-gray-700">Nome de Usuário</label>
+                    <input type="text" id="username" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="Seu nome de usuário" />
+                  </div>
+                  <div>
+                    <label htmlFor="email" className="block text-sm font-medium text-gray-700">E-mail</label>
+                    <input type="email" id="email" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="Seu e-mail" />
+                  </div>
+                  <button type="submit" className="px-4 py-2 bg-marieth text-white rounded-md hover:bg-green-700 transition-colors font-medium">Salvar Alterações</button>
+                </form>
               </div>
-              <div className="p-6 space-y-6">
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium text-gray-800">Perfil</h3>
-                  <form className="space-y-4">
-                    <div>
-                      <label htmlFor="username" className="block text-sm font-medium text-gray-700">Nome de Usuário</label>
-                      <input 
-                        type="text" 
-                        id="username" 
-                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500" 
-                        placeholder="Seu nome de usuário" 
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="email" className="block text-sm font-medium text-gray-700">E-mail</label>
-                      <input 
-                        type="email" 
-                        id="email" 
-                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500" 
-                        placeholder="Seu e-mail" 
-                      />
-                    </div>
-                    <button type="submit" className="px-4 py-2 bg-marieth text-white rounded-md hover:bg-green-700 transition-colors font-medium">
-                      Salvar Alterações
-                    </button>
-                  </form>
-                </div>
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium text-gray-800">Preferências de Notificação</h3>
-                  <form className="space-y-4">
-                    <div className="flex items-center space-x-2">
-                      <input type="checkbox" id="email-notifications" className="h-4 w-4 text-green-600 border-gray-300 rounded focus:ring-verdeaceso" />
-                      <label htmlFor="email-notifications" className="text-sm text-gray-700">Notificações por E-mail</label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <input type="checkbox" id="sms-notifications" className="h-4 w-4 text-green-600 border-gray-300 rounded focus:ring-verdeaceso" />
-                      <label htmlFor="sms-notifications" className="text-sm text-gray-700">Notificações por SMS</label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <input type="checkbox" id="push-notifications" className="h-4 w-4 text-green-600 border-gray-300 rounded focus:ring-verdeaceso" />
-                      <label htmlFor="push-notifications" className="text-sm text-gray-700">Notificações Push</label>
-                    </div>
-                    <button type="submit" className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors font-medium">
-                      Salvar Preferências
-                    </button>
-                  </form>
-                </div>
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium text-gray-800">Segurança</h3>
-                  <form className="space-y-4">
-                    <div>
-                      <label htmlFor="password" className="block text-sm font-medium text-gray-700">Nova Senha</label>
-                      <input 
-                        type="password" 
-                        id="password" 
-                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500" 
-                        placeholder="Digite a nova senha" 
-                      />
-                    </div>
-                    <button type="submit" className="px-4 py-2 bg-marieth text-white rounded-md hover:bg-green-700 transition-colors font-medium">
-                      Alterar Senha
-                    </button>
-                  </form>
-                </div>
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium text-gray-800">Integrações</h3>
-                  <form className="space-y-4">
-                    <div className="flex items-center space-x-2">
-                      <input type="checkbox" id="integrate-payments" className="h-4 w-4 text-marieth border-gray-300 rounded focus:ring-verdeaceso" />
-                      <label htmlFor="integrate-payments" className="text-sm text-gray-700">Integração com Pagamentos</label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <input type="checkbox" id="integrate-shipping" className="h-4 w-4 text-marieth border-gray-300 rounded focus:ring-verdeaceso" />
-                      <label htmlFor="integrate-shipping" className="text-sm text-gray-700">Integração com Logística</label>
-                    </div>
-                    <button type="submit" className="px-4 py-2 bg-marieth text-white rounded-md hover:bg-green-700 transition-colors font-medium">
-                      Salvar Integrações
-                    </button>
-                  </form>
-                </div>
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium text-gray-800">Preferências de Notificação</h3>
+                <form className="space-y-4">
+                  <div className="flex items-center space-x-2">
+                    <input type="checkbox" id="email-notifications" className="h-4 w-4 text-green-600 border-gray-300 rounded focus:ring-verdeaceso" />
+                    <label htmlFor="email-notifications" className="text-sm text-gray-700">Notificações por E-mail</label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input type="checkbox" id="sms-notifications" className="h-4 w-4 text-green-600 border-gray-300 rounded focus:ring-verdeaceso" />
+                    <label htmlFor="sms-notifications" className="text-sm text-gray-700">Notificações por SMS</label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input type="checkbox" id="push-notifications" className="h-4 w-4 text-green-600 border-gray-300 rounded focus:ring-verdeaceso" />
+                    <label htmlFor="push-notifications" className="text-sm text-gray-700">Notificações Push</label>
+                  </div>
+                  <button type="submit" className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors font-medium">Salvar Preferências</button>
+                </form>
+              </div>
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium text-gray-800">Segurança</h3>
+                <form className="space-y-4">
+                  <div>
+                    <label htmlFor="password" className="block text-sm font-medium text-gray-700">Nova Senha</label>
+                    <input type="password" id="password" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="Digite a nova senha" />
+                  </div>
+                  <button type="submit" className="px-4 py-2 bg-marieth text-white rounded-md hover:bg-green-700 transition-colors font-medium">Alterar Senha</button>
+                </form>
+              </div>
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium text-gray-800">Integrações</h3>
+                <form className="space-y-4">
+                  <div className="flex items-center space-x-2">
+                    <input type="checkbox" id="integrate-payments" className="h-4 w-4 text-marieth border-gray-300 rounded focus:ring-verdeaceso" />
+                    <label htmlFor="integrate-payments" className="text-sm text-gray-700">Integração com Pagamentos</label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input type="checkbox" id="integrate-shipping" className="h-4 w-4 text-marieth border-gray-300 rounded focus:ring-verdeaceso" />
+                    <label htmlFor="integrate-shipping" className="text-sm text-gray-700">Integração com Logística</label>
+                  </div>
+                  <button type="submit" className="px-4 py-2 bg-marieth text-white rounded-md hover:bg-green-700 transition-colors font-medium">Salvar Integrações</button>
+                </form>
               </div>
             </div>
-          )}
+          </div>
+        )}
 
-       
+        {/* Logout Tab */}
+        {activeTab === 'Logout' ? null : null}
       </main>
     </div>
   );
-}
 }

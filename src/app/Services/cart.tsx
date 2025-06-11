@@ -126,7 +126,7 @@ export const calcularPrecoProduto = async (
 
 
 
-export const finalizarCompra = async () => {
+export const finalizarCompra = async (id_pedido: number) => {
   try {
     const response = await axios.post(
       `${API_URL}/carrinho/finalizar-compra`,

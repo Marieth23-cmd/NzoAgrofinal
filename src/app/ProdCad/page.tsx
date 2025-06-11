@@ -282,6 +282,10 @@ export default function CriarProduto() {
                                 type="text"
                                 name="nome"
                                 id="nome"
+                                placeholder="Ex: Tomate, Cenoura, Milho"
+                                autoComplete="off"
+                                autoCorrect="off"
+                                autoCapitalize="off"
                                 value={formData.nome}
                                 onChange={handleChange}
                                 required
@@ -297,6 +301,10 @@ export default function CriarProduto() {
                                     min="1"
                                     name="quantidade"
                                     id="quantidade"
+                                    placeholder="Ex: 100"
+                                    autoComplete="off"
+                                    autoCorrect="off"
+                                    autoCapitalize="off"
                                     value={formData.quantidade}
                                     onChange={handleChange}
                                     required
@@ -308,6 +316,9 @@ export default function CriarProduto() {
                                 <select
                                     name="Unidade"
                                     id="Unidade"
+                                    autoComplete="off"
+                                    autoCorrect="off"
+                                    autoCapitalize="off"
                                     value={formData.Unidade}
                                     onChange={handleChange}
                                     required
