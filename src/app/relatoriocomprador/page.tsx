@@ -6,8 +6,6 @@ import { ChartOptions } from 'chart.js';
 import { Chart as ChartJS, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from 'chart.js';
 import Navbar from "../Components/Navbar"
 import Footer from "../Components/Footer"
-import { useRouter } from 'next/navigation';
-import { getUsuarioById } from '../Services/user';
 import { 
   getRelatorioComprasComprador, 
   getEstatisticasComprasComprador, // Função correta para comprador
@@ -23,26 +21,6 @@ import {
 // Registrando os componentes necessários do Chart.js
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
 
-// Configurações do gráfico
-const options: ChartOptions<'bar'> = {
-  responsive: true,
-  maintainAspectRatio: false,
-  scales: {
-    y: {
-      beginAtZero: true
-    }
-  },
-  plugins: {
-    legend: {
-      position: 'top' as const,
-    },
-    title: {
-      display: true,
-      text: 'Histórico Mensal'
-    }
-  }
-};
-
 // Interface para os dados estatísticos de compras
 interface EstatisticasCompras {
   total_pedidos: number;
@@ -53,14 +31,6 @@ interface EstatisticasCompras {
     mes: number;
     total_mes: number;
   }>;
-}
-
-// Interface para o usuário
-interface Usuario {
-  id_usuario: number;
-  nome: string;
-  tipo_usuario: 'Comprador' | 'Agricultor' | 'Fornecedor';
-  email: string;
 }
 
 // Interface para os itens do relatório de compras
@@ -125,7 +95,7 @@ export default function Relatorios() {
   const [error, setError] = useState<string | null>(null);
   const [exportLoading, setExportLoading] = useState(false);
   const [primeiraConsulta, setPrimeiraConsulta] = useState<boolean>(false);
-  const router = useRouter();
+
   // Estados para filtros de data
   const [dataInicial, setDataInicial] = useState<string>('');
   const [dataFinal, setDataFinal] = useState<string>('');
@@ -174,122 +144,56 @@ export default function Relatorios() {
       },
     ],
   });
-const [usuario, setUsuario] = useState<Usuario | null>(null);
-  const [carregandoUsuario, setCarregandoUsuario] = useState(true);
 
+  // Função para obter tipo de usuário
+  const getTipoUsuario = (): 'Comprador' | 'Agricultor' | 'Fornecedor' => {
+  // Verificar se estamos no cliente antes de acessar localStorage
+  if (typeof window !== 'undefined') {
+    const tipoUsuario = localStorage.getItem('tipo_usuario');
+    return tipoUsuario as 'Comprador' | 'Agricultor' | 'Fornecedor' || 'Comprador';
+  }
+  // Retornar valor padrão durante o SSR
+  return 'Comprador';
+};
 
+// Verificar se pode ver vendas (também corrigida)
 const podeVerVendas = () => {
-    if (!usuario) return false;
-    return usuario.tipo_usuario === 'Agricultor' || usuario.tipo_usuario === 'Fornecedor';
-  };
-
-
-   if (carregandoUsuario) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-marieth border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Carregando...</p>
-        </div>
-      </div>
-    );
-  }
-
-
-
-const buscarUsuario = async () => {
-  try {
-    const userId = localStorage.getItem('userId');
-    const token = localStorage.getItem('token');
-    
-    if (!userId || !token) {
-      router.push('/login');
-      throw new Error('Usuário não autenticado');
-    }
-
-    const dadosUsuario = await getUsuarioById();
-    
-    if (!dadosUsuario) {
-      throw new Error('Usuário não encontrado');
-    }
-
-    setUsuario(dadosUsuario);
-    return dadosUsuario.tipo_usuario;
-  } catch (error) {
-    console.error('Erro ao buscar usuário:', error);
-    setError('Erro ao carregar dados do usuário. Por favor, faça login novamente.');
-    router.push('/login');
-    return null;
-  } finally {
-    setCarregandoUsuario(false);
-  }
+  const tipo_usuario = getTipoUsuario();
+  return tipo_usuario === 'Agricultor' || tipo_usuario === 'Fornecedor';
 };
 
-
-
-
-    useEffect(() => {
-    buscarUsuario();
-  }, []);
-
-
-
-  useEffect(() => {
-  const checkAuth = () => {
-    const token = localStorage.getItem('token');
-    const userId = localStorage.getItem('userId');
-
-    if (!token || !userId) {
-      router.push('/login');
-      return;
+  // Opções do gráfico
+  const options: ChartOptions<'bar'> = { 
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: {
+      duration: 500
+    },
+    plugins: {
+      legend: {
+        display: true,
+        position: 'top',
+      },
+      tooltip: {
+        callbacks: {
+          label: function(context) {
+            return `Total: ${formatarMoeda(context.parsed.y)}`;
+          }
+        }
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          callback: function(value) {
+            return 'kzs ' + Number(value).toLocaleString('pt-BR');
+          }
+        }
+      }
     }
   };
 
-  checkAuth();
-  buscarUsuario();
-}, []);
-
-// Modificar a função carregarDadosCompras para incluir o token
-const carregarDadosCompras = async () => {
-  setIsLoading(true);
-  setError(null);
-  
-  try {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('Token não encontrado');
-    }
-
-    const relatorioData = await getRelatorioComprasComprador(
-      dataInicial || undefined, 
-      dataFinal || undefined
-    );
-
-    if (!relatorioData) {
-      setRelatorioCompras([]);
-      return;
-    }
-
-    setRelatorioCompras(relatorioData);
-    // ...rest of the function
-  } catch (error: any) {
-    console.error("Erro ao carregar relatório:", error);
-    setError('Erro ao carregar dados. Por favor, tente novamente.');
-    if (error.response?.status === 401) {
-      router.push('/login');
-    }
-  } finally {
-    setIsLoading(false);
-  }
-};
-
-   if (carregandoUsuario) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-marieth border-t-transparent"></div>
-      </div>
-    );
-  }
   // Função para determinar cores
   const determinarCor = (valor: number) => {
     if (valor >= LIMITE_VALOR_ALTO) {
@@ -329,6 +233,66 @@ const carregarDadosCompras = async () => {
     }
   };
 
+  // Função para carregar dados de compras
+  const carregarDadosCompras = async () => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      // Buscar relatório de compras do comprador
+      const relatorioData = await getRelatorioComprasComprador(dataInicial || undefined, dataFinal || undefined);
+      setRelatorioCompras(relatorioData || []);
+      
+      try {
+        // Buscar estatísticas de compras do comprador
+        const estatisticasData = await getEstatisticasComprasComprador();
+        setEstatisticasCompras(estatisticasData);
+        
+        // Atualizar gráfico
+        if (estatisticasData?.por_mes) {
+          const dadosMensais = Array(12).fill(0);
+          const coresFundo = Array(12).fill('#E53E3E');
+          const coresBorda = Array(12).fill('#C53030');
+          
+          estatisticasData.por_mes.forEach((item: ItemMensal) => {
+            if (item.mes >= 1 && item.mes <= 12) {
+              dadosMensais[item.mes - 1] = item.total_mes;
+              
+              const cores = determinarCor(item.total_mes);
+              coresFundo[item.mes - 1] = cores.backgroundColor;
+              coresBorda[item.mes - 1] = cores.borderColor;
+            }
+          });
+          
+          setDadosGraficoCompras(prev => ({
+            ...prev,
+            datasets: [{
+              ...prev.datasets[0],
+              data: dadosMensais,
+              backgroundColor: coresFundo,
+              borderColor: coresBorda
+            }]
+          }));
+        }
+      } catch (estatisticasError) {
+        console.log("Erro ao carregar estatísticas de compras:", estatisticasError);
+      }
+      
+      setPrimeiraConsulta(true);
+      
+    } catch (error) {
+      console.log("Erro ao carregar relatório de compras:", error);
+      
+      if (error instanceof Error && error.message.includes("sem dados")) {
+        setRelatorioCompras([]);
+        setPrimeiraConsulta(true);
+      } else {
+        setError("Erro ao carregar dados de compras. Por favor, tente novamente.");
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Função para carregar dados de vendas
   const carregarDadosVendas = async () => {
