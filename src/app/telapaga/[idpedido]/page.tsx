@@ -6,7 +6,7 @@ import { gerarReferenciaPagamento } from '../../Services/pagamentos';
 import { useState, useEffect, FormEvent } from 'react'
 import { simularPagamento } from '../../Services/pagamentos';
 import { finalizarCompra } from '../../Services/cart'
-
+import { getPedidosUsuario } from '../../Services/pedidos'
 type MetodoPagamento = 'unitel_money' | 'afrimoney' | 'multicaixa'
 type StatusPagamento = 'inicial' | 'referencia_gerada' | 'processando' | 'sucesso' | 'erro'
 
@@ -351,6 +351,29 @@ export default function PagamentoPage() {
     setReferenciaInput('')
     setMensagemErro('')
   }
+
+
+  // In your component where you use getPedidosUsuario
+
+const fetchPedidos = async () => {
+  try {
+    setLoading(true);
+    const data = await getPedidosUsuario();
+    setPedido(data);
+  } catch (error: any) {
+    console.error('Erro:', error);
+    
+    // If it's an authentication error, redirect to login
+    if (error.tipo === "auth") {
+      const currentPath = window.location.pathname;
+      router.push(`/login?redirect=${encodeURIComponent(currentPath)}`);
+    }
+    
+    setErro(error.mensagem || 'Erro ao carregar pedidos');
+  } finally {
+    setLoading(false);
+  }
+};
 
   // MODAL DE PAGAMENTO
   const ModalPagamento = () => {

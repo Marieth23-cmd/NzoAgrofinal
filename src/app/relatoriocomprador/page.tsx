@@ -184,6 +184,19 @@ const podeVerVendas = () => {
   };
 
 
+   if (carregandoUsuario) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-marieth border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Carregando...</p>
+        </div>
+      </div>
+    );
+  }
+
+
+
 const buscarUsuario = async () => {
   try {
     const userId = localStorage.getItem('userId');

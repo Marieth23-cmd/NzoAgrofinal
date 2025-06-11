@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { Line, Doughnut } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, ArcElement } from 'chart.js';
 import {
-  MdMenu, MdDashboard, MdGroup, MdShield, MdShoppingCart, MdInventory, MdBarChart,
+ MdMenu, MdDashboard, MdGroup, MdShield, MdShoppingCart, MdInventory, MdBarChart,
   MdLocalShipping, MdHeadset, MdDeliveryDining, MdAssignment, MdNotifications, MdPerson,
   MdSearch, MdAttachMoney, MdEdit, MdDelete,MdLogout , MdAdd, MdSettings, MdCheck, MdClose
 } from 'react-icons/md';
@@ -176,21 +176,31 @@ const [error, setError] = useState<string | null>(null);
     fetchProdutos();
   }, []);
 
-  const fetchUsuarios = async () => {
+ const fetchUsuarios = async () => {
     try {
+      setIsLoading(true); // Iniciar carregamento
+      setError(null); // Limpar erros anteriores
+      
       const data = await getUsuarios();
+      if (!data) {
+        throw new Error('Nenhum dado recebido');
+      }
+      
       setUsuarios(data);
       console.log("Usuários carregados:", data);
     } catch (error) {
-      setUsuarios([]);
       console.error("Erro ao buscar usuários:", error);
+      setError("Erro ao carregar usuários. Tente novamente.");
+      setUsuarios([]);
+    } finally {
+      setIsLoading(false); // Finalizar carregamento independente do resultado
     }
   };
 
-  // Fetch usuarios
+
   useEffect(() => {
     fetchUsuarios();
-  }, []);
+  }, []); 
 
   const fetchPedidos = async () => {
     try {
@@ -296,78 +306,6 @@ setCategoryData({
     ReceitaMensal: 0
   });
 
-
-  useEffect(() => {
-  async function fetchCardsData() {
-    try {
-      // Contagem de usuários ativos
-      const usuariosAtivos = Array.isArray(usuarios) 
-        ? usuarios.filter(u => u.status === 'Aprovado').length 
-        : 0;
-
-      // Pedidos de hoje
-      const hoje = new Date().toISOString().split('T')[0];
-      const pedidosHoje = Array.isArray(pedidos)
-        ? pedidos.filter(p => p.data_pedido.startsWith(hoje)).length
-        : 0;
-
-      // Produtos ativos e contagem por categoria
-      const produtosAtivos = Array.isArray(produtos) ? produtos.length : 0;
-      
-      // Calcular total por categoria
-      const categorias = {
-        Frutas: 0,
-        Graos: 0,
-        Tuberculos: 0,
-        Insumos: 0,
-        Verduras: 0
-      };
-
-      produtos.forEach(produto => {
-        const normalizedCategoria = produto.categoria.normalize('NFD').replace(/[\u0300-\u036f]/g, '') as keyof typeof categorias;
-        if (normalizedCategoria in categorias) {
-          categorias[normalizedCategoria]++;
-        }
-      });
-
-      // Calcular receita mensal
-      const mesAtual = new Date().getMonth() + 1;
-      const receitaMensal = Array.isArray(pedidos)
-        ? pedidos
-            .filter(p => new Date(p.data_pedido).getMonth() + 1 === mesAtual)
-            .reduce((total, pedido) => total + pedido.valor_total, 0)
-        : 0;
-
-      setCardsData({
-        UsuariosActivo: usuariosAtivos,
-        PedidosHoje: pedidosHoje,
-        ProdutosAtivos: produtosAtivos,
-        ReceitaMensal: receitaMensal / 1000 // Converter para milhares
-      });
-
-      // Atualizar dados do gráfico de categorias
-      setCategoryData({
-        labels: ['Frutas', 'Grãos', 'Tubérculos', 'Insumos'],
-        datasets: [{
-          label: 'Produtos por Categoria',
-          data: [
-            categorias.Frutas,
-            categorias.Graos,
-            categorias.Tuberculos,
-            categorias.Insumos
-          ],
-          backgroundColor: ['#10b981', '#f59e42', '#3b82f6', '#f43f5e'],
-          borderWidth: 1,
-        }]
-      });
-
-    } catch (error) {
-      console.error("Erro ao buscar dados dos cartões:", error);
-      // ... error handling ...
-    }
-  }
-  fetchCardsData();
-}, [produtos, usuarios, pedidos]);
   const markNotificationAsRead = (id_notificacoes: number) => {
     setNotifications((prev) =>
       prev.map((n) => (n.id_notificacoes === id_notificacoes ? { ...n, is_lida: 1 } : n))
@@ -904,8 +842,8 @@ const atualizarStatusPedido = async (idPedido: number, novoStatus: string) => {
                   <input id="nif" value={formData.nif} onChange={handleInputChange} name="nif" type="text" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-marieth focus:border-transparent" placeholder="Número de Identificação Fiscal" />
                 </div>
                 <div>
-                  <label htmlFor="telefone" className="block text-sm font-medium text-gray-700">Telefone</label>
-                  <input id="telefone" value={formData.contacto} onChange={handleInputChange} name="telefone" type="text" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-marieth focus:border-transparent" placeholder="Telefone de Contato" />
+                  <label htmlFor="contacto" className="block text-sm font-medium text-gray-700">Telefone</label>
+                  <input id="contacto" value={formData.contacto} onChange={handleInputChange} name="telefone" type="text" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-marieth focus:border-transparent" placeholder="Telefone de Contato" />
                 </div>
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
