@@ -29,7 +29,7 @@ export default function Localizacao() {
 
 
   interface Pedido {
-  id_pedido: number; // O id_pedido pode ser opcional se não for retornado imediatamente
+  id_pedido?: number; // O id_pedido pode ser opcional se não for retornado imediatamente
   estado: string;
   valor_total: number;
   rua: string;
