@@ -109,7 +109,7 @@ const navegarParaPagamento = (idPedido: number) => {
   }
 
   try {
-    const url = `/telapaga/${idPedido}`;
+    const url = `/`;
     console.log('Navegando para:', url);
     router.push(url);
   } catch (error) {
