@@ -851,10 +851,11 @@ const podeVerVendas = () => {
         </div>
       )}
       
-      <Footer/>
+     
     </div>
+ <Footer/>
     </div>
   );
-}
 
 
+ } 

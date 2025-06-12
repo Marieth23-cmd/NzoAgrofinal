@@ -9,6 +9,7 @@ import { FaUser } from "react-icons/fa"
 import { GrGallery, GrUpdate } from "react-icons/gr";
 import { IoMdTrash } from "react-icons/io";
 import Head from "next/head";
+import { FaTimes } from "react-icons/fa";
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { useRouter } from "next/navigation";
 import { atualizarUsuario } from "../Services/user";
@@ -52,16 +53,17 @@ export default function PerfilComprador() {
         
         setAutenticado(true);
         
-        // Buscar dados do usuário
+        //
+        //  Buscar dados do usuário
         const dados = await getUsuarioById();
         setUsuario(dados);
-        
+
         // Verificar tipo de usuário
         if (dados && dados.tipo_usuario !== "Comprador") {
           router.push("/");
           return;
         }
-        
+
         // Definir imagem do perfil se existir
         if (dados.foto) setimagemPerfil(dados.foto);
 
@@ -202,6 +204,11 @@ type Pedido = {
   data_pedido?: string;
 };
 
+const cancelarPedido = async (pedido: Pedido) => {
+  // usar a logica aqui para cancelar o pedido
+  toast.info("Função de cancelamento ainda não implementada");
+};
+
 const confirmarEntregaPedido = async (pedido: Pedido) => {
   try {
     // Chama sua função de API existente
@@ -286,51 +293,71 @@ const confirmarEntregaPedido = async (pedido: Pedido) => {
 
             <label htmlFor="galeria" className="sr-only">galeria</label>
             <input type="file" accept="image/*" id="galeria" onChange={handleImageChange} className="hidden" ref={inputGalleryRef} />
+<div className="mt-4 lg:mt-0 w-full">
+  <div className="flex justify-between items-center mb-2">
+    <h1 className="text-[2rem] font-medium text-profile">
+      {usuario?.nome || "Carregando..."}
+    </h1>
+    
+    <div className="relative">
+      <button 
+        onClick={toggleConfig} 
+        className="text-2xl text-marieth hover:text-verdeaceso transition-colors"
+        title="Configurações"
+      >
+        <FaCog />
+      </button>
+      
+      {isConfigOpen && (
+        <div ref={configRef} className="absolute right-0 top-10 bg-white rounded-[10px] z-[1000] shadow-custom p-2 min-w-[150px]">
+          <button onClick={irParaEditarPerfil} className="flex items-center gap-2 w-full cursor-pointer border-none py-2 px-4 bg-none transition-colors duration-100 text-profile hover:bg-light text-left">
+            Editar Perfil
+          </button>
+          
+          <button onClick={handleLogout} className="flex items-center gap-2 w-full cursor-pointer border-none py-2 px-4 bg-none transition-colors duration-100 text-vermelho hover:bg-light text-left">
+            <MdOutlinePersonOff size={28} /> Terminar Sessão
+          </button>
+        </div>
+      )}
+    </div>
+  </div>
 
-            <div className="mt-4 lg:mt-0 w-full">
-              <div className="flex justify-between items-center mb-2">
-                <h1 className="text-[2rem] font-medium text-profile">
-                  {usuario?.nome || "Carregando..."}
-                </h1>
-                
-                <div className="relative">
-                  <button 
-                    onClick={toggleConfig} 
-                    className="text-2xl text-marieth hover:text-verdeaceso transition-colors"
-                    title="Configurações"
-                  >
-                    <FaCog />
-                  </button>
-                  
-                  {isConfigOpen && (
-                    <div ref={configRef} className="absolute right-0 top-10 bg-white rounded-[10px] z-[1000] shadow-custom p-2 min-w-[150px]">
-                      <button onClick={irParaEditarPerfil} className="flex items-center gap-2 w-full cursor-pointer border-none py-2 px-4 bg-none transition-colors duration-100 text-profile hover:bg-light text-left">
-                        Editar Perfil
-                      </button>
-                      
-                        <button onClick={handleLogout} className="flex items-center gap-2 w-full cursor-pointer border-none py-2 px-4 bg-none transition-colors duration-100 text-vermelho hover:bg-light text-left">
-                        <MdOutlinePersonOff size={28} /> Terminar Sessão
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
+  {/* DESCRIÇÃO MOVIDA PARA CIMA - Mais destaque */}
+  {usuario?.descricao && (
+    <div className="mb-4 p-3 bg-gray-50 rounded-lg border-l-4 border-marieth">
+      <p className="text-gray-700 text-sm italic leading-relaxed">
+        "{usuario.descricao}"
+      </p>
+    </div>
+  )}
 
-              <p className="mb-2">Membro desde:
-                {usuario?.data_criacao ? new Date(usuario.data_criacao).toLocaleDateString() : "-"}</p>
-              <p className="mb-2">Especialidade: <span className="text-marieth font-medium"> {usuario?.tipo_usuario || "Comprador"}</span></p>
+  {/* Informações básicas */}
+  <div className="mb-4 space-y-1">
+    <p className="text-sm text-gray-600">
+      Membro desde: {usuario?.data_criacao ? new Date(usuario.data_criacao).toLocaleDateString() : "-"}
+    </p>
+    <p className="text-sm text-gray-600">
+      Especialidade: <span className="text-marieth font-medium">{usuario?.tipo_usuario || "Comprador"}</span>
+    </p>
+  </div>
 
-              <div className="flex gap-4">
-                <a href={`mailto:${usuario?.email}`} className="flex items-center gap-2 py-2 px-4 rounded-[0.3125rem] text-[1rem] bg-marieth transition-colors cursor-pointer text-white hover:bg-verdeaceso">
-                  <MdEmail />Email
-                </a>
+  {/* Botões de ação por último */}
+  <div className="flex gap-4">
+    <a 
+      href={`mailto:${usuario?.email}`} 
+      className="flex items-center gap-2 py-2 px-4 rounded-[0.3125rem] text-[1rem] bg-marieth transition-colors cursor-pointer text-white hover:bg-verdeaceso"
+    >
+      <MdEmail />Email
+    </a>
 
-                <a href={`tel:${usuario?.contacto}`} className="flex items-center gap-2 py-2 px-4 rounded-[0.3125rem] text-[1rem] bg-marieth transition-colors cursor-pointer text-white hover:bg-verdeaceso">
-                  <IoCall />Ligar
-                </a>
-              </div>
-              <h2 className="mt-4"> <a href="">{usuario?.descricao}</a></h2>
-            </div>
+    <a 
+      href={`tel:${usuario?.contacto}`} 
+      className="flex items-center gap-2 py-2 px-4 rounded-[0.3125rem] text-[1rem] bg-marieth transition-colors cursor-pointer text-white hover:bg-verdeaceso"
+    >
+      <IoCall />Ligar
+    </a>
+  </div>
+</div>
           </div>
 
 
@@ -353,58 +380,79 @@ const confirmarEntregaPedido = async (pedido: Pedido) => {
       </button>
     </div>
   ) : (
-    <div className="space-y-4">
-      {pedidos.map((pedido) => (
-        <div key={pedido.id_pedido} className="bg-white rounded-lg shadow-md p-6 border">
-          <div className="flex justify-between items-start mb-4">
-            <div>
-              <p className="text-sm text-gray-500 mb-1">
-                {formatarData(pedido.data_pedido)}
-              </p>
-              <h3 className="text-lg font-semibold mb-2">
-                Pedido #{pedido.id_pedido}
-              </h3>
-            </div>
-            
-            {/* Área de confirmação de entrega */}
-            <div className="flex items-center gap-3">
-              <div className="text-right">
-                <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
-                  pedido.estado === 'Entregue' || pedido.entrega_confirmada
-                    ? 'bg-green-100 text-green-800'
-                    : pedido.estado === 'Em trânsito'
-                    ? 'bg-yellow-100 text-yellow-800'
-                    : 'bg-blue-100 text-blue-800'
-                }`}>
-                  {pedido.entrega_confirmada ? 'Entrega Confirmada' : pedido.estado}
-                </span>
-                <p className="text-lg font-bold text-gray-900 mt-1">
-                  kzs {Number(pedido.valor_total).toLocaleString()}
-                </p>
-              </div>
-              
-              {/* Botão de confirmação de entrega */}
-              {pedido.estado === 'Em trânsito' && !pedido.entrega_confirmada && (
-                <button
-                  onClick={() => confirmarEntregaPedido(pedido)}
-                  className="flex items-center justify-center w-10 h-10 bg-green-500 hover:bg-green-600 text-white rounded-full transition-colors duration-200 shadow-lg hover:shadow-xl"
-                  title="Confirmar entrega"
-                >
-                  <FaCheck size={20} />
-                </button>
-              )}
-              
-              {/* Ícone de confirmado */}
-              {(pedido.estado === 'Entregue' || pedido.entrega_confirmada) && (
-                <div className="flex items-center justify-center w-10 h-10 bg-green-500 text-white rounded-full shadow-lg">
-                  <FaCheck size={20} />
-                </div>
-              )}
-            </div>
-          </div>
+   <div className="space-y-4">
+  {pedidos.map((pedido) => (
+    <div key={pedido.id_pedido} className="bg-white rounded-lg shadow-md p-6 border">
+      <div className="flex justify-between items-start mb-4">
+        <div>
+          <p className="text-sm text-gray-500 mb-1">
+            {formatarData(pedido.data_pedido)}
+          </p>
+          <h3 className="text-lg font-semibold mb-2">
+            Pedido #{pedido.id_pedido}
+          </h3>
         </div>
-      ))}
+        
+        {/* Área de status e ações do pedido */}
+        <div className="flex items-center gap-3">
+          <div className="text-right">
+            <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
+              pedido.estado === 'Entregue' || pedido.entrega_confirmada
+                ? 'bg-green-100 text-green-800'
+                : pedido.estado === 'Cancelado'
+                ? 'bg-red-100 text-red-800'
+                : pedido.estado === 'Em trânsito'
+                ? 'bg-yellow-100 text-yellow-800'
+                : 'bg-blue-100 text-blue-800'
+            }`}>
+              {pedido.entrega_confirmada ? 'Entrega Confirmada' : 
+               pedido.estado === 'Cancelado' ? 'Cancelado' : pedido.estado}
+            </span>
+            <p className="text-lg font-bold text-gray-900 mt-1">
+              kzs {Number(pedido.valor_total).toLocaleString()}
+            </p>
+          </div>
+          
+          {/* Botões de ação para pedidos em trânsito */}
+          {pedido.estado === 'Em trânsito' && !pedido.entrega_confirmada && (
+            <div className="flex gap-2">
+              {/* Botão de cancelar pedido */}
+              <button
+                onClick={() => cancelarPedido(pedido)}
+                className="flex items-center justify-center w-10 h-10 bg-red-500 hover:bg-red-600 text-white rounded-full transition-colors duration-200 shadow-lg hover:shadow-xl"
+                title="Cancelar pedido"
+              >
+                <FaTimes size={18} />
+              </button>
+              
+              {/* Botão de confirmar entrega */}
+              <button
+                onClick={() => confirmarEntregaPedido(pedido)}
+                className="flex items-center justify-center w-10 h-10 bg-green-500 hover:bg-green-600 text-white rounded-full transition-colors duration-200 shadow-lg hover:shadow-xl"
+                title="Confirmar entrega"
+              >
+                <FaCheck size={20} />
+              </button>
+            </div>
+          )}
+          
+          {/* Ícone de status final */}
+          {(pedido.estado === 'Entregue' || pedido.entrega_confirmada) && (
+            <div className="flex items-center justify-center w-10 h-10 bg-green-500 text-white rounded-full shadow-lg">
+              <FaCheck size={20} />
+            </div>
+          )}
+          
+          {pedido.estado === 'Cancelado' && (
+            <div className="flex items-center justify-center w-10 h-10 bg-red-500 text-white rounded-full shadow-lg">
+              <FaTimes size={18} />
+            </div>
+          )}
+        </div>
+      </div>
     </div>
+  ))}
+</div>
   )}
 </div>
 

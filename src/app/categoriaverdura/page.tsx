@@ -424,7 +424,7 @@ const aplicarSugestaoTipo = async (tipo: string) => {
          <button
     onClick={aplicarFiltros}
     disabled={!isFormValid || isLoading}
-    className={`flex border-none text-white bg-marieth hover:bg-verdeaceso py-[0.8rem] px-6 rounded-[5px] text-sm sm:text-base items-center gap-2 my-4 mx-auto transition-all duration-300 ${
+    className={`flex border-none text-white bg-marieth hover:bg-verdeaceso py-[0.8rem] px-6 rounded-[5px] text-sm sm:text-base items-center gap-2 my-8 mx-auto transition-all duration-300 ${
         !isFormValid || isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105 cursor-pointer'
     }`}
 >
@@ -509,7 +509,7 @@ const aplicarSugestaoTipo = async (tipo: string) => {
         )}
 
         {/* Seção de produtos */}
-        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 mt-4">
+        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 mt-4 ">
           {filtroAtivado && produtosFiltrados.length > 0 && (
             produtosFiltrados.map((produto, index) => (
               <Link href={`/DetalhesProduto/${produto.id_produtos}`} key={index}>

@@ -15,73 +15,40 @@ export const getPedidos = async (): Promise<any> => {
   }
 };
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // Obter pedidos específicos do usuário autenticado
-// export const getPedidosUsuario = async (): Promise<any> => {
-//   try {
-//     const response = await axios.get(`${API_URL}/pedidos/especifico`, {
-//       withCredentials: true
-//     });
-//     return response.data;
-//   } catch (error: any) {
-//     console.log(error.message);
-//     throw { mensagem: "Erro ao buscar seus pedidos" };
-//   }
-// };
-
-
-
 export const getPedidosUsuario = async (): Promise<any> => {
   try {
-    // Get token from localStorage or sessionStorage
-    const token = 
-      localStorage.getItem('token') || 
-      localStorage.getItem('authToken') || 
-      sessionStorage.getItem('token') || 
-      sessionStorage.getItem('authToken');
-
-    if (!token) {
-      throw new Error('Token de autenticação não encontrado');
-    }
-
-    // Make the request with the token in headers
     const response = await axios.get(`${API_URL}/pedidos/especifico`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
       withCredentials: true
     });
-
-    if (!response.data) {
-      throw new Error('Nenhum dado retornado da API');
-    }
-
     return response.data;
-
   } catch (error: any) {
-    console.error('Erro ao buscar pedidos:', error);
-    
-    // Handle specific error cases
-    if (error.response?.status === 401) {
-      throw { 
-        mensagem: "Sessão expirada. Por favor, faça login novamente.",
-        tipo: "auth" 
-      };
-    }
-    
-    if (error.message.includes('Token')) {
-      throw { 
-        mensagem: "Por favor, faça login para ver seus pedidos",
-        tipo: "auth" 
-      };
-    }
-
-    throw { 
-      mensagem: "Erro ao buscar seus pedidos", 
-      erro: error.response?.data?.message || error.message 
-    };
+    console.log(error.message);
+    throw { mensagem: "Erro ao buscar seus pedidos" };
   }
 };
+
+
 
 
 

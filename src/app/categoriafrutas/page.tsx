@@ -42,64 +42,65 @@ export default function CategoriaFrutas() {
     tipos: [],
     mensagem: ""
   })
-const aplicarFiltros = async () => {
+
+  // Função extraída para aplicar filtros com valores específicos
+  const aplicarFiltrosComValores = async (
+    tipo: string,
+    provincia: string,
+    precoFiltro: string
+  ) => {
     setFiltroAtivado(true);
     setMostrarMensagemErro(false);
+    setIsLoading(true);
 
     let precoMin: number | undefined = undefined;
     let precoMax: number | undefined = undefined;
 
-    // Use os valores passados como parâmetros em vez do estado
-    const aplicarFiltrosComValores = async (
-        tipo: string,
-        provincia: string,
-        precoFiltro: string
-    ) => {
-        if (precoFiltro === "0-5000") {
-            precoMax = 5000;
-        } else if (precoFiltro === "5000-50000") {
-            precoMin = 5000;
-            precoMax = 50000;
-        } else if (precoFiltro === "50000-100000") {
-            precoMin = 50000;
-            precoMax = 100000;
-        } else if (precoFiltro === "100000-plus") {
-            precoMin = 100000;
-        }
-
-        try {
-            const resultado = await buscarProdutosPorCategoria("Frutas", {
-                provincia: provincia,
-                precoMin,
-                precoMax,
-            });
-
-            const nomeMatch = tipo.toLowerCase();
-            const filtrados = resultado.filter(p =>
-                tipo ? p.nome.toLowerCase().includes(nomeMatch) : true
-            );
-
-            setProdutosFiltrados(filtrados);
-
-            if (filtrados.length === 0) {
-                await gerarSugestoesContextuais();
-                setMostrarMensagemErro(true);
-            } else {
-                setMostrarMensagemErro(false);
-                setSugestoesContextuais({ provincias: [], faixasPreco: [], tipos: [], mensagem: "" });
-            }
-        } catch (error) {
-            console.log("Erro ao aplicar filtros:", error);
-            setMostrarMensagemErro(true);
-        }
-        finally {
-        setIsLoading(false);
+    if (precoFiltro === "0-5000") {
+      precoMax = 5000;
+    } else if (precoFiltro === "5000-50000") {
+      precoMin = 5000;
+      precoMax = 50000;
+    } else if (precoFiltro === "50000-100000") {
+      precoMin = 50000;
+      precoMax = 100000;
+    } else if (precoFiltro === "100000-plus") {
+      precoMin = 100000;
     }
-    };
 
-    // Chame a função com os valores atuais
+    try {
+      const resultado = await buscarProdutosPorCategoria("Frutas", {
+        provincia: provincia,
+        precoMin,
+        precoMax,
+      });
+
+      const nomeMatch = tipo.toLowerCase();
+      const filtrados = resultado.filter(p =>
+        tipo ? p.nome.toLowerCase().includes(nomeMatch) : true
+      );
+
+      setProdutosFiltrados(filtrados);
+
+      if (filtrados.length === 0) {
+        await gerarSugestoesContextuais();
+        setMostrarMensagemErro(true);
+      } else {
+        setMostrarMensagemErro(false);
+        setSugestoesContextuais({ provincias: [], faixasPreco: [], tipos: [], mensagem: "" });
+      }
+    } catch (error) {
+      console.log("Erro ao aplicar filtros:", error);
+      setMostrarMensagemErro(true);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const aplicarFiltros = async () => {
     await aplicarFiltrosComValores(tipoFiltroInput, provinciaFiltroInput, precoFiltroInput);
-};
+  };
+
   // Função para gerar sugestões contextuais mais inteligentes
   const gerarSugestoesContextuais = async () => {
     try {
@@ -283,29 +284,33 @@ const aplicarFiltros = async () => {
     }
   }
 
-  // Funções para aplicar as sugestões clicadas - Corrigidas para evitar o bug
-  // Remova os setTimeout e use async/await
-const aplicarSugestaoFaixaPreco = async (faixa: string) => {
-    await setPrecoFiltroInput(faixa);
+  // Funções para aplicar as sugestões clicadas - CORRIGIDAS
+  const aplicarSugestaoFaixaPreco = async (faixa: string) => {
+    setPrecoFiltroInput(faixa);
     setMostrarMensagemErro(false);
     setSugestoesContextuais({ provincias: [], faixasPreco: [], tipos: [], mensagem: "" });
-    await aplicarFiltros();
-}
+    
+    // Aplicar filtros com o novo valor diretamente
+    await aplicarFiltrosComValores(tipoFiltroInput, provinciaFiltroInput, faixa);
+  }
 
-const aplicarSugestaoProvincia = async (provincia: string) => {
-    await setProvinciaFiltroInput(provincia);
+  const aplicarSugestaoProvincia = async (provincia: string) => {
+    setProvinciaFiltroInput(provincia);
     setMostrarMensagemErro(false);
     setSugestoesContextuais({ provincias: [], faixasPreco: [], tipos: [], mensagem: "" });
-    await aplicarFiltros();
-}
+    
+    // Aplicar filtros com o novo valor diretamente
+    await aplicarFiltrosComValores(tipoFiltroInput, provincia, precoFiltroInput);
+  }
 
-const aplicarSugestaoTipo = async (tipo: string) => {
-    await setTipoFiltroInput(tipo);
+  const aplicarSugestaoTipo = async (tipo: string) => {
+    setTipoFiltroInput(tipo);
     setMostrarMensagemErro(false);
     setSugestoesContextuais({ provincias: [], faixasPreco: [], tipos: [], mensagem: "" });
-    await aplicarFiltros();
-}
-
+    
+    // Aplicar filtros com o novo valor diretamente
+    await aplicarFiltrosComValores(tipo, provinciaFiltroInput, precoFiltroInput);
+  }
 
   useEffect(() => {
     async function carregarProdutosParaSelects() {
@@ -428,7 +433,7 @@ const aplicarSugestaoTipo = async (tipo: string) => {
          <button
     onClick={aplicarFiltros}
     disabled={!isFormValid || isLoading}
-    className={`flex border-none text-white bg-marieth hover:bg-verdeaceso py-[0.8rem] px-6 rounded-[5px] text-sm sm:text-base items-center gap-2 my-4 mx-auto transition-all duration-300 ${
+    className={`flex border-none text-white bg-marieth hover:bg-verdeaceso py-[0.8rem] px-6 rounded-[5px] text-sm sm:text-base items-center gap-2 my-8 mx-auto transition-all duration-300 ${
         !isFormValid || isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105 cursor-pointer'
     }`}
 >

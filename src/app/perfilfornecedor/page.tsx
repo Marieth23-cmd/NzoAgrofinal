@@ -115,13 +115,13 @@ export default function PerfilFornecedor() {
         
         const avaliacaoMedia = produtos_com_avaliacoes > 0 
           ? (totalAvaliacoes / produtos_com_avaliacoes).toFixed(1) 
-          : "4.5"; // valor padrão se não houver avaliações
+          : "0"; // valar estático se não houver avaliações
         
         setCardsData({
           produtosVendidos: produtosData.reduce((total, p) => total + (p.vendas || 0), 0),
           produtosAtivos: ativos,
           avaliacaoMedia: parseFloat(avaliacaoMedia),
-          taxaResposta: 98 // Este valor pode ser estático ou calculado de outra fonte
+          taxaResposta: 0 // Este valor pode ser estático ou calculado de outra fonte
         });
       }
     } catch (error) {
@@ -385,45 +385,93 @@ export default function PerfilFornecedor() {
                   </button>
                   
                   {isConfigOpen && (
-                    <div ref={configRef} className="absolute right-0 top-10 bg-white rounded-[10px] z-[1000] shadow-custom p-2 min-w-[150px]">
-                      <button onClick={irParaEditarPerfil} className="flex items-center gap-2 w-full cursor-pointer border-none py-2 px-4 bg-none transition-colors duration-100 text-profile hover:bg-light text-left">
-                        <FiEdit /> Editar Perfil
-                      </button>
-                      
-                      <button  onClick={handleLogout} className="flex items-center gap-2 w-full cursor-pointer border-none py-2 px-4 bg-none transition-colors duration-100 text-vermelho hover:bg-light text-left">
-                        <MdOutlinePersonOff size={28}/> Terminar Sessão
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex items-center mb-2">
-                <div className="flex text-[1.2rem]">
-                  <FaStar className="text-amarela" />
-                  <FaStar className="text-amarela" />
-                  <FaStar className="text-amarela" />
-                  <FaStar className="text-amarela" />
-                  <FaRegStarHalfStroke className="text-amarela" />
-                </div>
-                <span className="text-amarela text-[1.2rem] ml-1">(4.5)</span>
-              </div>
-
-              <p className="mb-2">Membro desde:
-                {usuario?.data_criacao ? new Date(usuario.data_criacao).toLocaleDateString() : "-"}</p>
-              <p className="mb-2">Especialidade: <span className="text-marieth font-medium">{usuario?.tipo_usuario || "Agricultor"}</span></p>
-              <div className="flex gap-4">
-                <a href={`mailto:${usuario?.email}`} className="flex items-center gap-2 py-2 px-4 rounded-[0.3125rem] 
-                text-[1rem] bg-marieth 
-                transition-colors cursor-pointer text-white hover:bg-verdeaceso"><MdEmail />Email</a>
-
-                <a href={`tel:${usuario?.contacto}`} className="flex items-center gap-2 py-2 px-4 rounded-[0.3125rem] text-[1rem] bg-marieth 
-                transition-colors cursor-pointer text-white hover:bg-verdeaceso"><IoCall />Ligar</a>
-              </div>
-              {usuario?.descricao && <p className="mt-4">{usuario.descricao}</p>}
-            </div>
-          </div>
-
+                       <div className="mt-4 lg:mt-0 w-full">
+                     <div className="flex justify-between items-center mb-2">
+                       <h1 className="text-[2rem] font-medium text-profile">
+                         {usuario?.nome || "Carregando..."}
+                       </h1>
+                       
+                       <div className="relative">
+                         <button 
+                           onClick={toggleConfig} 
+                           className="text-2xl text-marieth hover:text-verdeaceso transition-colors"
+                           title="Configurações"
+                         >
+                           <FaCog />
+                         </button>
+                         
+                         {isConfigOpen && (
+                           <div ref={configRef} className="absolute right-0 top-10 bg-white rounded-[10px] z-[1000] shadow-custom p-2 min-w-[150px]">
+                             <button 
+                               onClick={() => irParaEditarPerfil()} 
+                               className="flex items-center gap-2 w-full cursor-pointer border-none py-2 px-4 bg-none transition-colors duration-100 text-profile hover:bg-light text-left"
+                             >
+                               Editar Perfil
+                             </button>
+                             
+                             <button 
+                               onClick={handleLogout} 
+                               className="flex items-center gap-2 w-full cursor-pointer border-none py-2 px-4 bg-none transition-colors duration-100 text-vermelho hover:bg-light text-left"
+                             >
+                               <MdOutlinePersonOff size={28} /> Terminar Sessão
+                             </button>
+                           </div>
+                         )}
+                       </div>
+                     </div>
+                   
+                     {/* Avaliação */}
+                     <div className="mb-4">
+                       <div className="flex items-center gap-2">
+                         <div className="flex text-yellow-400">
+                           {[...Array(5)].map((_, i) => (
+                             <span key={i} className={i < 4 ? "text-yellow-400" : "text-gray-300"}>★</span>
+                           ))}
+                         </div>
+                         <span className="text-sm text-gray-600">(4.5)</span>
+                       </div>
+                     </div>
+                   
+                     {/* DESCRIÇÃO MOVIDA PARA CIMA - Mais destaque */}
+                     {usuario?.descricao && (
+                       <div className="mb-4 p-3 bg-gray-50 rounded-lg border-l-4 border-marieth">
+                         <p className="text-gray-700 text-sm italic leading-relaxed">
+                           "{usuario.descricao}"
+                         </p>
+                       </div>
+                     )}
+                   
+                     {/* Informações básicas */}
+                     <div className="mb-4 space-y-1">
+                       <p className="text-sm text-gray-600">
+                         Membro desde: {usuario?.data_criacao ? new Date(usuario.data_criacao).toLocaleDateString() : "-"}
+                       </p>
+                       <p className="text-sm text-gray-600">
+                         Especialidade: <span className="text-marieth font-medium">{usuario?.tipo_usuario || "Fornecedor"}</span>
+                       </p>
+                     </div>
+                   
+                     {/* Botões de ação por último */}
+                     <div className="flex gap-4">
+                       <a 
+                         href={`mailto:${usuario?.email}`} 
+                         className="flex items-center gap-2 py-2 px-4 rounded-[0.3125rem] text-[1rem] bg-marieth transition-colors cursor-pointer text-white hover:bg-verdeaceso"
+                       >
+                         <MdEmail />Email
+                       </a>
+                       <a 
+                         href={`tel:${usuario?.contacto}`} 
+                         className="flex items-center gap-2 py-2 px-4 rounded-[0.3125rem] text-[1rem] bg-marieth transition-colors cursor-pointer text-white hover:bg-verdeaceso"
+                       >
+                         <IoCall />Ligar
+                       </a>
+                     </div>
+                   </div>
+                                     )}
+                                   </div>
+                                 </div>
+                               </div>
+                             </div>
           {/* Cards estatísticos - Melhorados para responsividade */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mt-8 mb-8">
             <div className="bg-white p-3 md:p-6 rounded-[10px] shadow-custom text-center  

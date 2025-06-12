@@ -128,10 +128,10 @@ export default function AdminDashboard() {
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [notifications, setNotifications] = useState<Notificacao[]>([]);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const [showLogoutModal, setShowLogoutModal] = useState(false);
+ const [isLoadingTransportadoras, setIsLoadingTransportadoras] = useState(true);
   const [autenticado, setAutenticado] = useState<boolean | null>(null);
-  const [showCadastroTransportadora, setShowCadastroTransportadora] = useState(false);
-  const [showGerenciamentoUsuarios, setShowGerenciamentoUsuarios] = useState(false);
+  const [errorTransportadoras, setErrorTransportadoras] = useState<string | null>(null);
+  const [transportadoras, setTransportadoras] = useState<any[]>([]);
   const [formData, setFormData] = useState<FormDataTransportadora>({
     nome: '',
     nif: '',
@@ -485,6 +485,29 @@ const atualizarStatusPedido = async (idPedido: number, novoStatus: string) => {
   }
 };
 
+const fetchTransportadoras = () => {
+  setIsLoadingTransportadoras(true);
+  fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/transportadoras`)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Erro ao buscar transportadoras');
+      }
+      return response.json();
+    })
+    .then(data => {
+      setIsLoadingTransportadoras(false);
+      setTransportadoras(data);
+    })
+    .catch(error => {
+      setIsLoadingTransportadoras(false);
+      setErrorTransportadoras('Erro ao buscar transportadoras');
+      console.error('Erro ao buscar transportadoras:', error);
+    });
+};
+
+useEffect(() => {
+  fetchTransportadoras();
+}, []);
 
 
   return (
@@ -511,7 +534,7 @@ const atualizarStatusPedido = async (idPedido: number, novoStatus: string) => {
           />
         </div>
         <nav className="space-y-2">
-          {(['Dashboard', 'Usuários', 'Produtos', 'Pedidos', 'Transportadoras', 'Relatórios', 'Logística', 'Suporte', 'Controle de Pedidos', 'Configurações', 'Notificações', 'Cadastrar Transportadora', 'Gerenciamento de Usuarios'] as TabType[]).map((tab) => (
+          {(['Dashboard', 'Usuários', 'Produtos', 'Pedidos', 'Transportadoras', 'Relatórios', 'Logística', 'Suporte', 'Controle de Pedidos', 'Configurações',  'Cadastrar Transportadora', 'Gerenciamento de Usuarios'] as TabType[]).map((tab) => (
             <a
               key={tab}
               href="#"
@@ -831,7 +854,7 @@ const atualizarStatusPedido = async (idPedido: number, novoStatus: string) => {
                 </div>
                 <div>
                   <label htmlFor="contacto" className="block text-sm font-medium text-gray-700">Telefone</label>
-                  <input id="contacto" value={formData.contacto} onChange={handleInputChange} name="telefone" type="text" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-marieth focus:border-transparent" placeholder="Telefone de Contato" />
+                  <input id="contacto" value={formData.contacto} onChange={handleInputChange} name="contacto" type="text" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-marieth focus:border-transparent" placeholder="Telefone de Contato" />
                 </div>
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
@@ -856,6 +879,80 @@ const atualizarStatusPedido = async (idPedido: number, novoStatus: string) => {
             </div>
           </div>
         )}
+
+{/* VER TRANSPORTADORAS*/}
+        {activeTab === 'Transportadoras' && (
+          <div className="bg-white rounded-lg shadow-sm mb-6">
+            <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+              <h2 className="text-xl font-semibold text-gray-800">Gerenciamento de Transportadoras</h2>
+              <div className="relative">
+                <input type="search" placeholder="Buscar transportadoras..." className="px-4 py-2 border border-gray-300 rounded-md w-80 focus:outline-none focus:ring-2 focus:ring-marieth focus:border-transparent" />
+              </div>
+            </div>
+            <div className="p-6">
+              {isLoadingTransportadoras ? (
+                <div className="text-center py-12">
+                  <FaSpinner className="animate-spin mx-auto h-8 w-8 text-marieth mb-4" />
+                  <p className="text-gray-600">Carregando transportadoras...</p>
+                </div>
+              ) : errorTransportadoras ? (
+                <div className="text-center py-12">
+                  <p className="text-red-600">{errorTransportadoras}</p>
+                  <button 
+                    onClick={() => fetchTransportadoras()} 
+                    className="mt-4 px-4 py-2 bg-marieth text-white rounded-md"
+                  >
+                    Tentar novamente
+                  </button>
+                </div>
+              ) : transportadoras.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className="text-gray-600">Nenhuma transportadora encontrada</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr>
+                        <th className="p-4 text-left">ID</th>
+                        <th className="p-4 text-left">Nome</th>
+                        <th className="p-4 text-left">NIF</th>
+                        <th className="p-4 text-left">Telefone</th>
+                        <th className="p-4 text-left">Email</th>
+                        <th className="p-4 text-left">Província Base</th>
+                        <th className="p-4 text-left">Ações</th>
+                      </
+tr>
+                    </thead>
+                    <tbody>
+                      {transportadoras.map((transportadora) => (
+                        <tr key={transportadora.id_transportadora} className="hover:bg-gray-50">
+                          <td className="p-4 border-b">{transportadora.id_transportadora}</td>
+                          <td className="p-4 border-b">{transportadora.nome}</td>
+                          <td className="p-4 border-b">{transportadora.nif}</td>
+                          <td className="p-4 border-b">{transportadora.telefone}</td>
+                          <td className="p-4 border-b">{transportadora.email}</td>
+                          <td className="p-4 border-b">{transportadora.provincia_base}</td>
+                          <td className="p-4 border-b">
+                            <button className="px-3 py-1 bg-marieth text-white rounded hover:bg-green-700">
+                              Detalhes
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
+        )}  
+
+
+
+
+
+
 
         {/* Pedidos Tab */}
         {activeTab === 'Pedidos' && (

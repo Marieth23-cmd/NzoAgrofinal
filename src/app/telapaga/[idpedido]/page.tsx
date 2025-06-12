@@ -1,8 +1,8 @@
-
 'use client'
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import Footer from '../../Components/Footer'
 import Navbar from '../../Components/Navbar'
+import { getPedidosUsuario } from '@/app/Services/pedidos'
 import { useState, useEffect, FormEvent } from 'react'
 
 type MetodoPagamento = 'unitel_money' | 'afrimoney' | 'multicaixa'
@@ -128,75 +128,6 @@ const extrairIdPedido = (pathname: string, searchParams: URLSearchParams): strin
   return null
 }
 
-// Função para buscar dados do pedido da API
-const buscarPedidoPagamento = async (id_pedido: number): Promise<PedidoPagamentoData> => {
-  try {
-    // Pegar o token do localStorage ou onde você armazena
-    const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken')
-    
-    if (!token) {
-      throw new Error('Token de autenticação não encontrado')
-    }
-
-    const response = await fetch(`/pedidos/${id_pedido}`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    })
-
-    if (!response.ok) {
-      if (response.status === 404) {
-        throw new Error('Pedido não encontrado')
-      }
-      if (response.status === 401) {
-        throw new Error('Não autorizado - faça login novamente')
-      }
-      throw new Error(`Erro ${response.status}: ${response.statusText}`)
-    }
-
-    const data = await response.json()
-    
-    // Transformar os dados da API para o formato esperado pelo componente
-    const pedidoFormatado: PedidoPagamentoData = {
-      id_pedido: data.id_pedido,
-      valor_total: data.valor_total,
-      estado: data.estado,
-      data_pedido: data.data_pedido,
-      rua: data.endereco?.rua,
-      bairro: data.endereco?.bairro,
-      pais: data.endereco?.pais,
-      municipio: data.endereco?.municipio,
-      referencia: data.endereco?.referencia,
-      provincia: data.endereco?.provincia,
-      numero: data.endereco?.numero,
-      itens: data.itens.map((item: any) => ({
-        id_produto: item.id_produto,
-        quantidade_comprada: item.quantidade_comprada,
-        preco: item.preco,
-        subtotal: item.subtotal,
-        nome_produto: item.nome_produto || item.nome,
-        peso_kg: item.peso_kg || 0
-      })),
-      resumo: {
-        subtotal: data.resumo?.subtotal || data.subtotalProdutos || 0,
-        frete: data.resumo?.frete || data.dados_pagamento?.frete || 0,
-        comissao: data.resumo?.comissao || data.dados_pagamento?.comissao || 0,
-        total: data.valor_total,
-        peso_total: data.resumo?.peso_total || data.dados_pagamento?.peso_total || 0,
-        quantidade_itens: data.itens.length
-      }
-    }
-
-    return pedidoFormatado
-
-  } catch (error: any) {
-    console.error('Erro ao buscar pedido:', error)
-    throw new Error(error.message || 'Erro ao carregar dados do pedido')
-  }
-}
-
 export default function PagamentoPage() {
   const [pedido, setPedido] = useState<PedidoPagamentoData | null>(null)
   const [carregando, setCarregando] = useState(true)
@@ -213,6 +144,36 @@ export default function PagamentoPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const pathname = usePathname()
+
+  const usePedidoEspecifico = (pedidoId: number | null) => {
+  const [pedido, setPedido] = useState<PedidoPagamentoData | null>(null);
+  const [carregando, setCarregando] = useState(false);
+  const [erro, setErro] = useState<string>("");
+
+  // Buscar dados do pedido específico
+  useEffect(() => {
+    if (!pedidoId) return;
+    
+    const buscarPedidoPagamento = async () => {
+      setCarregando(true);
+      try {
+        const data = await getPedidosUsuario();
+        setPedido(data);
+        console.log("Pedido carregado:", data);
+      } catch (error: any) {
+        console.error("Erro ao carregar pedido:", error);
+        setErro(error.message || "Não foi possível carregar o pedido");
+      } finally {
+        setCarregando(false);
+      }
+    };
+    
+    buscarPedidoPagamento();
+  }, [pedidoId]);
+
+  return { pedido, carregando, erro, refetch: () => pedidoId && getPedidosUsuario() };
+};
+
 
   // Buscar dados do pedido ao montar o componente
   useEffect(() => {
@@ -234,7 +195,7 @@ export default function PagamentoPage() {
 
         console.log('Carregando pedido com ID:', id_pedido) // Para debug
 
-        const dadosPedido = await buscarPedidoPagamento(id_pedido)
+        const dadosPedido = await getPedidosUsuario()
         setPedido(dadosPedido)
       } catch (error: any) {
         console.error('Erro ao carregar pedido:', error) // Para debug
