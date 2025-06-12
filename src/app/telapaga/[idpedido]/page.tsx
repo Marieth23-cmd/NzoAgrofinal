@@ -1,4 +1,3 @@
-
 'use client'
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import Footer from '../../Components/Footer'
@@ -126,6 +125,21 @@ export default function PagamentoPage() {
   const searchParams = useSearchParams()
   const pathname = usePathname()
 
+
+
+const extrairIdPedido = (pathname: string, searchParams: URLSearchParams): string | null => {
+    const idParam = searchParams.get('id_pedido')
+    if (idParam) return idParam
+
+    const pathParts = pathname.split('/')
+    const idPart = pathParts[pathParts.length - 1]
+    return /^\d+$/.test(idPart) ? idPart : null
+  }
+  
+
+
+
+
   // ÚNICO useEffect para carregar pedido
   useEffect(() => {
     const carregarPedido = async () => {
@@ -214,9 +228,12 @@ export default function PagamentoPage() {
     return valor.toString()
   }
 
-  
   const gerarReferencia = () => {
-    if (!isPedidoValid(pedido)) return
+    if (!isPedidoValid(pedido)) {
+      console.error('Pedido inválido para gerar referência')
+      setErro('Dados do pedido inválidos')
+      return
+    }
     
     const novaReferencia = `REF_${pedido.id_pedido}_${Date.now()}`
     const novoTransacaoId = `TXN_${Math.random().toString(36).slice(2, 10).toUpperCase()}`
@@ -244,6 +261,12 @@ export default function PagamentoPage() {
 
   const processarPagamento = (e: FormEvent) => {
     e.preventDefault()
+    
+    if (!isPedidoValid(pedido)) {
+      setMensagemErro('Dados do pedido inválidos')
+      return
+    }
+    
     setStatus('processando')
     setMensagemErro('')
 
@@ -283,50 +306,61 @@ export default function PagamentoPage() {
     setMensagemErro('')
   }
 
-  // Loading state
+  // Estados de loading e erro
   if (carregando) {
     return (
-      <main className="flex flex-col min-h-screen">
-        <Navbar />
-        <div className="flex-grow flex items-center justify-center">
-          <div className="text-center">
-            <div className="w-12 h-12 border-4 border-green-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-gray-600">Carregando dados do pedido...</p>
-          </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p>Carregando dados do pedido...</p>
         </div>
-        <Footer />
-      </main>
+      </div>
     )
   }
 
-  // Error state ou pedido inválido
-  if (erro || !isPedidoValid(pedido)) {
+  if (erro) {
     return (
-      <main className="flex flex-col min-h-screen">
-        <Navbar />
-        <div className="flex-grow flex items-center justify-center">
-          <div className="text-center text-red-600">
-            <svg className="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <h2 className="text-xl font-bold mb-2">Erro ao carregar pedido</h2>
-            <p className="mb-2">{erro || 'Dados do pedido incompletos ou inválidos'}</p>
-            <p className="text-sm text-gray-600 mb-4">
-              URL atual: {pathname}
-            </p>
-            <button 
-              onClick={() => router.back()} 
-              className="mt-4 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
-            >
-              Voltar
-            </button>
-          </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center text-red-600">
+          <p className="text-xl mb-4">⚠️ {erro}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          >
+            Tentar Novamente
+          </button>
         </div>
-        <Footer />
-      </main>
+      </div>
     )
   }
 
+  if (!isPedidoValid(pedido)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-xl mb-4">Pedido não encontrado ou inválido</p>
+          <button 
+            onClick={() => router.push('/pedidos')} 
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          >
+            Voltar aos Pedidos
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // Exemplo de uso seguro no JSX
+  const renderizarResumo = () => (
+    <div className="bg-gray-50 p-4 rounded-lg">
+      <h3 className="font-semibold mb-2">Resumo do Pedido</h3>
+      <div className="space-y-1">
+        <p>Pedido: #{pedido.id_pedido}</p>
+        <p>Itens: {formatarNumero(pedido.resumo.quantidade_itens)}</p>
+        <p className="font-bold">Total: {formatarValor(pedido.resumo.total)}</p>
+      </div>
+    </div>
+  )
   // MODAL DE PAGAMENTO
   const ModalPagamento = () => {
     if (!mostrarModal || !isPedidoValid(pedido)) return null
