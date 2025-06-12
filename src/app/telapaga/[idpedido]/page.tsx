@@ -114,7 +114,7 @@ const extrairIdPedido = (pathname: string, searchParams: URLSearchParams): strin
   if (idFromQuery) return idFromQuery
 
   // Depois tenta extrair da rota dinâmica /telapaga/[id]
-  const segments = pathname.split('/')
+  const segments = pathname.split('/telapaga/[id]')
   const telapagarIndex = segments.findIndex(segment => segment === 'telapaga')
   
   if (telapagarIndex !== -1 && segments.length > telapagarIndex + 1) {
@@ -252,7 +252,13 @@ export default function PagamentoPage() {
 
   const finalizarCompra = () => {
     setMostrarModal(false)
-    router.push('/confirmacao-pedido')
+    router.push('/FinalizarCompra')
+    setStatus('inicial')
+    setReferenciaPagamento('')
+    setTransacaoId('')
+    setReferenciaInput('')
+    setMensagemErro('')
+    setPedido(null)
   }
 
   const fecharModal = () => {

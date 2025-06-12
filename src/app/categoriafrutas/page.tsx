@@ -451,7 +451,7 @@ export default function CategoriaFrutas() {
 </button>
         {/* Mensagem de erro com sugestões contextuais */}
         {mostrarMensagemErro && (
-          <div className="mx-4 sm:mx-6 md:mx-9 px-4 py-6 bg-red-50 border border-red-100 rounded-lg shadow-sm">
+          <div className="mx-4 sm:mx-6 md:mx-9 px-4 py-6 bg-red-50 border border-red-100 rounded-lg shadow-sm mb-6">
             <p className="text-base sm:text-lg text-red-600 font-semibold text-center mb-4">
               Nenhum produto encontrado com os filtros aplicados.
             </p>

@@ -11,336 +11,341 @@ import { buscarProdutosPorCategoria } from "../Services/produtos"
 
 
 export default function CategoriaTuberRaiz() {
-  interface Produto {
-    id_produtos: number,
-    nome: string,
-    preco: number,
-    Unidade: string,
-    foto_produto: string,
-    provincia: string,
-    quantidade: number,
-    nome_vendedor: string
-  }
-
-  const [produtosFiltrados, setProdutosFiltrados] = useState<Produto[]>([])
-  const [produtosOriginais, setProdutosOriginais] = useState<Produto[]>([])
-  const [tipoFiltroInput, setTipoFiltroInput] = useState("")
-  const [provinciaFiltroInput, setProvinciaFiltroInput] = useState("")
-  const [precoFiltroInput, setPrecoFiltroInput] = useState("")
-  const [filtroAtivado, setFiltroAtivado] = useState(false)
-  const [mostrarMensagemErro, setMostrarMensagemErro] = useState(false)
-  const [isLoading, setIsLoading] = useState(false);
-  // States para sugestões contextuais
-  const [sugestoesContextuais, setSugestoesContextuais] = useState<{
-    provincias: string[],
-    faixasPreco: string[],
-    tipos: string[],
-    mensagem: string
-  }>({
-    provincias: [],
-    faixasPreco: [],
-    tipos: [],
-    mensagem: ""
-  })
-const aplicarFiltros = async () => {
-    setFiltroAtivado(true);
-    setMostrarMensagemErro(false);
-
-    let precoMin: number | undefined = undefined;
-    let precoMax: number | undefined = undefined;
-
-    // Use os valores passados como parâmetros em vez do estado
-    const aplicarFiltrosComValores = async (
-        tipo: string,
-        provincia: string,
-        precoFiltro: string
-    ) => {
-        if (precoFiltro === "0-5000") {
-            precoMax = 5000;
-        } else if (precoFiltro === "5000-50000") {
-            precoMin = 5000;
-            precoMax = 50000;
-        } else if (precoFiltro === "50000-100000") {
-            precoMin = 50000;
-            precoMax = 100000;
-        } else if (precoFiltro === "100000-plus") {
-            precoMin = 100000;
-        }
-
-        try {
-            const resultado = await buscarProdutosPorCategoria("Tuberculos", {
-                provincia: provincia,
-                precoMin,
-                precoMax,
-            });
-
-            const nomeMatch = tipo.toLowerCase();
-            const filtrados = resultado.filter(p =>
-                tipo ? p.nome.toLowerCase().includes(nomeMatch) : true
-            );
-
-            setProdutosFiltrados(filtrados);
-
-            if (filtrados.length === 0) {
-                await gerarSugestoesContextuais();
-                setMostrarMensagemErro(true);
-            } else {
-                setMostrarMensagemErro(false);
-                setSugestoesContextuais({ provincias: [], faixasPreco: [], tipos: [], mensagem: "" });
-            }
-        } catch (error) {
-            console.log("Erro ao aplicar filtros:", error);
-            setMostrarMensagemErro(true);
-        }
-        finally {
-        setIsLoading(false);
+    interface Produto {
+      id_produtos: number,
+      nome: string,
+      preco: number,
+      Unidade: string,
+      foto_produto: string,
+      provincia: string,
+      quantidade: number,
+      nome_vendedor: string
     }
-    };
-
-    // Chame a função com os valores atuais
-    await aplicarFiltrosComValores(tipoFiltroInput, provinciaFiltroInput, precoFiltroInput);
-};
-  // Função para gerar sugestões contextuais mais inteligentes
-  const gerarSugestoesContextuais = async () => {
-    try {
-      const todosProdutos = await buscarProdutosPorCategoria("Tuberculos", {})
-      let sugestoes = {
-        provincias: [] as string[],
-        faixasPreco: [] as string[],
-        tipos: [] as string[],
-        mensagem: ""
+  
+    const [produtosFiltrados, setProdutosFiltrados] = useState<Produto[]>([])
+    const [produtosOriginais, setProdutosOriginais] = useState<Produto[]>([])
+    const [tipoFiltroInput, setTipoFiltroInput] = useState("")
+    const [provinciaFiltroInput, setProvinciaFiltroInput] = useState("")
+    const [precoFiltroInput, setPrecoFiltroInput] = useState("")
+    const [filtroAtivado, setFiltroAtivado] = useState(false)
+    const [mostrarMensagemErro, setMostrarMensagemErro] = useState(false)
+    const [isLoading, setIsLoading] = useState(false);
+    // States para sugestões contextuais
+    const [sugestoesContextuais, setSugestoesContextuais] = useState<{
+      provincias: string[],
+      faixasPreco: string[],
+      tipos: string[],
+      mensagem: string
+    }>({
+      provincias: [],
+      faixasPreco: [],
+      tipos: [],
+      mensagem: ""
+    })
+  
+    // Função extraída para aplicar filtros com valores específicos
+    const aplicarFiltrosComValores = async (
+      tipo: string,
+      provincia: string,
+      precoFiltro: string
+    ) => {
+      setFiltroAtivado(true);
+      setMostrarMensagemErro(false);
+      setIsLoading(true);
+  
+      let precoMin: number | undefined = undefined;
+      let precoMax: number | undefined = undefined;
+  
+      if (precoFiltro === "0-5000") {
+        precoMax = 5000;
+      } else if (precoFiltro === "5000-50000") {
+        precoMin = 5000;
+        precoMax = 50000;
+      } else if (precoFiltro === "50000-100000") {
+        precoMin = 50000;
+        precoMax = 100000;
+      } else if (precoFiltro === "100000-plus") {
+        precoMin = 100000;
       }
-
-      // Cenário 1: Se o usuário selecionou um tipo específico, mas não há esse tipo na província/preço escolhido
-      if (tipoFiltroInput) {
-        const produtosPorTipo = todosProdutos.filter(p => 
-          p.nome.toLowerCase().includes(tipoFiltroInput.toLowerCase())
-        )
+  
+      try {
+        const resultado = await buscarProdutosPorCategoria("Tuberculos", {
+          provincia: provincia,
+          precoMin,
+          precoMax,
+        });
+  
+        const nomeMatch = tipo.toLowerCase();
+        const filtrados = resultado.filter(p =>
+          tipo ? p.nome.toLowerCase().includes(nomeMatch) : true
+        );
+  
+        setProdutosFiltrados(filtrados);
+  
+        if (filtrados.length === 0) {
+          await gerarSugestoesContextuais();
+          setMostrarMensagemErro(true);
+        } else {
+          setMostrarMensagemErro(false);
+          setSugestoesContextuais({ provincias: [], faixasPreco: [], tipos: [], mensagem: "" });
+        }
+      } catch (error) {
+        console.log("Erro ao aplicar filtros:", error);
+        setMostrarMensagemErro(true);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    const aplicarFiltros = async () => {
+      await aplicarFiltrosComValores(tipoFiltroInput, provinciaFiltroInput, precoFiltroInput);
+    };
+  
+    // Função para gerar sugestões contextuais mais inteligentes
+    const gerarSugestoesContextuais = async () => {
+      try {
+        const todosProdutos = await buscarProdutosPorCategoria("Tuberculos", {})
+        let sugestoes = {
+          provincias: [] as string[],
+          faixasPreco: [] as string[],
+          tipos: [] as string[],
+          mensagem: ""
+        }
+  
+        // Cenário 1: Se o usuário selecionou um tipo específico, mas não há esse tipo na província/preço escolhido
+        if (tipoFiltroInput) {
+          const produtosPorTipo = todosProdutos.filter(p => 
+            p.nome.toLowerCase().includes(tipoFiltroInput.toLowerCase())
+          )
+          
+          if (produtosPorTipo.length > 0) {
+            // Se existem produtos desse tipo, mas não na província selecionada
+            if (provinciaFiltroInput) {
+              const provinciasDisponiveis = Array.from(new Set(
+                produtosPorTipo.map(p => p.provincia)
+              )).filter(p => p !== provinciaFiltroInput)
+              
+              sugestoes.provincias = provinciasDisponiveis.slice(0, 3)
+              sugestoes.mensagem = `"${tipoFiltroInput}" está disponível nas seguintes províncias:`
+            }
+            
+            // Se existem produtos desse tipo, mas não na faixa de preço selecionada
+            if (precoFiltroInput && sugestoes.provincias.length === 0) {
+              const precosMapeados = new Set<string>()
+              
+              // Filtrar por província se selecionada
+              const produtosFiltradosPorProvincia = provinciaFiltroInput 
+                ? produtosPorTipo.filter(p => p.provincia === provinciaFiltroInput)
+                : produtosPorTipo
+              
+              produtosFiltradosPorProvincia.forEach(p => {
+                if (p.preco <= 5000) {
+                  precosMapeados.add("0-5000")
+                } else if (p.preco > 5000 && p.preco <= 50000) {
+                  precosMapeados.add("5000-50000")
+                } else if (p.preco > 50000 && p.preco <= 100000) {
+                  precosMapeados.add("50000-100000")
+                } else if (p.preco > 100000) {
+                  precosMapeados.add("100000-plus")
+                }
+              })
+              
+              sugestoes.faixasPreco = Array.from(precosMapeados).filter(f => f !== precoFiltroInput)
+              sugestoes.mensagem = `"${tipoFiltroInput}" ${provinciaFiltroInput ? `em ${provinciaFiltroInput}` : ''} está disponível nestas faixas de preço:`
+            }
+          }
+        }
         
-        if (produtosPorTipo.length > 0) {
-          // Se existem produtos desse tipo, mas não na província selecionada
-          if (provinciaFiltroInput) {
-            const provinciasDisponiveis = Array.from(new Set(
-              produtosPorTipo.map(p => p.provincia)
-            )).filter(p => p !== provinciaFiltroInput)
+        // Cenário 2: Se o usuário selecionou província mas não tipo específico
+        else if (provinciaFiltroInput) {
+          const produtosPorProvincia = todosProdutos.filter(p => p.provincia === provinciaFiltroInput)
+          
+          if (produtosPorProvincia.length > 0) {
+            // Sugerir tipos disponíveis nessa província na faixa de preço selecionada
+            let produtosFiltrados = produtosPorProvincia
+            
+            if (precoFiltroInput) {
+              let precoMin: number | undefined = undefined
+              let precoMax: number | undefined = undefined
+  
+              if (precoFiltroInput === "0-5000") {
+                precoMax = 5000
+              } else if (precoFiltroInput === "5000-50000") {
+                precoMin = 5000
+                precoMax = 50000
+              } else if (precoFiltroInput === "50000-100000") {
+                precoMin = 50000
+                precoMax = 100000
+              } else if (precoFiltroInput === "100000-plus") {
+                precoMin = 100000
+              }
+              
+              produtosFiltrados = produtosPorProvincia.filter(p => {
+                if (precoMin !== undefined && precoMax !== undefined) {
+                  return p.preco >= precoMin && p.preco <= precoMax
+                } else if (precoMax !== undefined) {
+                  return p.preco <= precoMax
+                } else if (precoMin !== undefined) {
+                  return p.preco >= precoMin
+                }
+                return true
+              })
+            }
+            
+            if (produtosFiltrados.length === 0 && precoFiltroInput) {
+              // Sugerir outras faixas de preço para essa província
+              const precosMapeados = new Set<string>()
+              
+              produtosPorProvincia.forEach(p => {
+                if (p.preco <= 5000) {
+                  precosMapeados.add("0-5000")
+                } else if (p.preco > 5000 && p.preco <= 50000) {
+                  precosMapeados.add("5000-50000")
+                } else if (p.preco > 50000 && p.preco <= 100000) {
+                  precosMapeados.add("50000-100000")
+                } else if (p.preco > 100000) {
+                  precosMapeados.add("100000-plus")
+                }
+              })
+              
+              sugestoes.faixasPreco = Array.from(precosMapeados).filter(f => f !== precoFiltroInput)
+              sugestoes.mensagem = `Em ${provinciaFiltroInput}, temos frutas nestas faixas de preço:`
+            } else if (produtosFiltrados.length > 0) {
+              const tiposDisponiveis = Array.from(new Set(produtosFiltrados.map(p => p.nome)))
+              sugestoes.tipos = tiposDisponiveis.slice(0, 3)
+              sugestoes.mensagem = `Em ${provinciaFiltroInput} ${precoFiltroInput ? `na faixa ${traduzirFaixaPreco(precoFiltroInput)}` : ''}, temos estas frutas:`
+            }
+          }
+        }
+        
+        // Cenário 3: Se o usuário só selecionou faixa de preço
+        else if (precoFiltroInput) {
+          let precoMin: number | undefined = undefined
+          let precoMax: number | undefined = undefined
+  
+          if (precoFiltroInput === "0-5000") {
+            precoMax = 5000
+          } else if (precoFiltroInput === "5000-50000") {
+            precoMin = 5000
+            precoMax = 50000
+          } else if (precoFiltroInput === "50000-100000") {
+            precoMin = 50000
+            precoMax = 100000
+          } else if (precoFiltroInput === "100000-plus") {
+            precoMin = 100000
+          }
+          
+          const produtosPorPreco = todosProdutos.filter(p => {
+            if (precoMin !== undefined && precoMax !== undefined) {
+              return p.preco >= precoMin && p.preco <= precoMax
+            } else if (precoMax !== undefined) {
+              return p.preco <= precoMax
+            } else if (precoMin !== undefined) {
+              return p.preco >= precoMin
+            }
+            return true
+          })
+          
+          if (produtosPorPreco.length > 0) {
+            const provinciasDisponiveis = Array.from(new Set(produtosPorPreco.map(p => p.provincia)))
+            const tiposDisponiveis = Array.from(new Set(produtosPorPreco.map(p => p.nome)))
             
             sugestoes.provincias = provinciasDisponiveis.slice(0, 3)
-            sugestoes.mensagem = `"${tipoFiltroInput}" está disponível nas seguintes províncias:`
-          }
-          
-          // Se existem produtos desse tipo, mas não na faixa de preço selecionada
-          if (precoFiltroInput && sugestoes.provincias.length === 0) {
-            const precosMapeados = new Set<string>()
-            
-            // Filtrar por província se selecionada
-            const produtosFiltradosPorProvincia = provinciaFiltroInput 
-              ? produtosPorTipo.filter(p => p.provincia === provinciaFiltroInput)
-              : produtosPorTipo
-            
-            produtosFiltradosPorProvincia.forEach(p => {
-              if (p.preco <= 5000) {
-                precosMapeados.add("0-5000")
-              } else if (p.preco > 5000 && p.preco <= 50000) {
-                precosMapeados.add("5000-50000")
-              } else if (p.preco > 50000 && p.preco <= 100000) {
-                precosMapeados.add("50000-100000")
-              } else if (p.preco > 100000) {
-                precosMapeados.add("100000-plus")
-              }
-            })
-            
-            sugestoes.faixasPreco = Array.from(precosMapeados).filter(f => f !== precoFiltroInput)
-            sugestoes.mensagem = `"${tipoFiltroInput}" ${provinciaFiltroInput ? `em ${provinciaFiltroInput}` : ''} está disponível nestas faixas de preço:`
-          }
-        }
-      }
-      
-      // Cenário 2: Se o usuário selecionou província mas não tipo específico
-      else if (provinciaFiltroInput) {
-        const produtosPorProvincia = todosProdutos.filter(p => p.provincia === provinciaFiltroInput)
-        
-        if (produtosPorProvincia.length > 0) {
-          // Sugerir tipos disponíveis nessa província na faixa de preço selecionada
-          let produtosFiltrados = produtosPorProvincia
-          
-          if (precoFiltroInput) {
-            let precoMin: number | undefined = undefined
-            let precoMax: number | undefined = undefined
-
-            if (precoFiltroInput === "0-5000") {
-              precoMax = 5000
-            } else if (precoFiltroInput === "5000-50000") {
-              precoMin = 5000
-              precoMax = 50000
-            } else if (precoFiltroInput === "50000-100000") {
-              precoMin = 50000
-              precoMax = 100000
-            } else if (precoFiltroInput === "100000-plus") {
-              precoMin = 100000
-            }
-            
-            produtosFiltrados = produtosPorProvincia.filter(p => {
-              if (precoMin !== undefined && precoMax !== undefined) {
-                return p.preco >= precoMin && p.preco <= precoMax
-              } else if (precoMax !== undefined) {
-                return p.preco <= precoMax
-              } else if (precoMin !== undefined) {
-                return p.preco >= precoMin
-              }
-              return true
-            })
-          }
-          
-          if (produtosFiltrados.length === 0 && precoFiltroInput) {
-            // Sugerir outras faixas de preço para essa província
-            const precosMapeados = new Set<string>()
-            
-            produtosPorProvincia.forEach(p => {
-              if (p.preco <= 5000) {
-                precosMapeados.add("0-5000")
-              } else if (p.preco > 5000 && p.preco <= 50000) {
-                precosMapeados.add("5000-50000")
-              } else if (p.preco > 50000 && p.preco <= 100000) {
-                precosMapeados.add("50000-100000")
-              } else if (p.preco > 100000) {
-                precosMapeados.add("100000-plus")
-              }
-            })
-            
-            sugestoes.faixasPreco = Array.from(precosMapeados).filter(f => f !== precoFiltroInput)
-            sugestoes.mensagem = `Em ${provinciaFiltroInput}, temos frutas nestas faixas de preço:`
-          } else if (produtosFiltrados.length > 0) {
-            const tiposDisponiveis = Array.from(new Set(produtosFiltrados.map(p => p.nome)))
             sugestoes.tipos = tiposDisponiveis.slice(0, 3)
-            sugestoes.mensagem = `Em ${provinciaFiltroInput} ${precoFiltroInput ? `na faixa ${traduzirFaixaPreco(precoFiltroInput)}` : ''}, temos estas frutas:`
+            sugestoes.mensagem = `Na faixa ${traduzirFaixaPreco(precoFiltroInput)}, temos frutas em:`
           }
         }
-      }
-      
-      // Cenário 3: Se o usuário só selecionou faixa de preço
-      else if (precoFiltroInput) {
-        let precoMin: number | undefined = undefined
-        let precoMax: number | undefined = undefined
-
-        if (precoFiltroInput === "0-5000") {
-          precoMax = 5000
-        } else if (precoFiltroInput === "5000-50000") {
-          precoMin = 5000
-          precoMax = 50000
-        } else if (precoFiltroInput === "50000-100000") {
-          precoMin = 50000
-          precoMax = 100000
-        } else if (precoFiltroInput === "100000-plus") {
-          precoMin = 100000
-        }
-        
-        const produtosPorPreco = todosProdutos.filter(p => {
-          if (precoMin !== undefined && precoMax !== undefined) {
-            return p.preco >= precoMin && p.preco <= precoMax
-          } else if (precoMax !== undefined) {
-            return p.preco <= precoMax
-          } else if (precoMin !== undefined) {
-            return p.preco >= precoMin
-          }
-          return true
-        })
-        
-        if (produtosPorPreco.length > 0) {
-          const provinciasDisponiveis = Array.from(new Set(produtosPorPreco.map(p => p.provincia)))
-          const tiposDisponiveis = Array.from(new Set(produtosPorPreco.map(p => p.nome)))
-          
-          sugestoes.provincias = provinciasDisponiveis.slice(0, 3)
-          sugestoes.tipos = tiposDisponiveis.slice(0, 3)
-          sugestoes.mensagem = `Na faixa ${traduzirFaixaPreco(precoFiltroInput)}, temos frutas em:`
-        }
-      }
-
-      setSugestoesContextuais(sugestoes)
-    } catch (error) {
-      console.log("Erro ao gerar sugestões:", error)
-    }
-  }
-
-  // Handler functions for each filter input change
-  const handleTipoChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setTipoFiltroInput(e.target.value)
-    if (filtroAtivado) {
-      setMostrarMensagemErro(false)
-    }
-  }
-
-  const handleProvinciaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setProvinciaFiltroInput(e.target.value)
-    if (filtroAtivado) {
-      setMostrarMensagemErro(false)
-    }
-  }
-
-  const handlePrecoChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setPrecoFiltroInput(e.target.value)
-    if (filtroAtivado) {
-      setMostrarMensagemErro(false)
-    }
-  }
-
-  // Funções para aplicar as sugestões clicadas - Corrigidas para evitar o bug
-  // Remova os setTimeout e use async/await
-const aplicarSugestaoFaixaPreco = async (faixa: string) => {
-    await setPrecoFiltroInput(faixa);
-    setMostrarMensagemErro(false);
-    setSugestoesContextuais({ provincias: [], faixasPreco: [], tipos: [], mensagem: "" });
-    await aplicarFiltros();
-}
-
-const aplicarSugestaoProvincia = async (provincia: string) => {
-    await setProvinciaFiltroInput(provincia);
-    setMostrarMensagemErro(false);
-    setSugestoesContextuais({ provincias: [], faixasPreco: [], tipos: [], mensagem: "" });
-    await aplicarFiltros();
-}
-
-const aplicarSugestaoTipo = async (tipo: string) => {
-    await setTipoFiltroInput(tipo);
-    setMostrarMensagemErro(false);
-    setSugestoesContextuais({ provincias: [], faixasPreco: [], tipos: [], mensagem: "" });
-    await aplicarFiltros();
-}
-
-
-  useEffect(() => {
-    async function carregarProdutosParaSelects() {
-      try {
-        const produtosRecebidos = await buscarProdutosPorCategoria("Tuberculos", {})
-        setProdutosOriginais(produtosRecebidos)
+  
+        setSugestoesContextuais(sugestoes)
       } catch (error) {
-        console.log("Erro ao carregar produtos:", error)
+        console.log("Erro ao gerar sugestões:", error)
       }
     }
-
-    if (!filtroAtivado) {
-      carregarProdutosParaSelects()
+  
+    // Handler functions for each filter input change
+    const handleTipoChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+      setTipoFiltroInput(e.target.value)
+      if (filtroAtivado) {
+        setMostrarMensagemErro(false)
+      }
     }
-  }, [filtroAtivado])
-
-  // Eliminar duplicatas de produtos baseado no nome
-  const produtosUnicosPorNome = produtosOriginais.filter(
-    (produto, index, self) => 
-      index === self.findIndex(p => p.nome === produto.nome)
-  );
-
-  const isFormValid = tipoFiltroInput && provinciaFiltroInput && precoFiltroInput
-
-  // Função para traduzir o código da faixa de preço para texto legível
-  const traduzirFaixaPreco = (codigo: string) => {
-    switch(codigo) {
-      case "0-5000": return "Até 5.000 AOA";
-      case "5000-50000": return "5.000 - 50.000 AOA";
-      case "50000-100000": return "50.000 - 100.000 AOA";
-      case "100000-plus": return "Acima de 100.000 AOA";
-      default: return codigo;
+  
+    const handleProvinciaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+      setProvinciaFiltroInput(e.target.value)
+      if (filtroAtivado) {
+        setMostrarMensagemErro(false)
+      }
     }
-  }
-
+  
+    const handlePrecoChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+      setPrecoFiltroInput(e.target.value)
+      if (filtroAtivado) {
+        setMostrarMensagemErro(false)
+      }
+    }
+  
+    // Funções para aplicar as sugestões clicadas - CORRIGIDAS
+    const aplicarSugestaoFaixaPreco = async (faixa: string) => {
+      setPrecoFiltroInput(faixa);
+      setMostrarMensagemErro(false);
+      setSugestoesContextuais({ provincias: [], faixasPreco: [], tipos: [], mensagem: "" });
+      
+      // Aplicar filtros com o novo valor diretamente
+      await aplicarFiltrosComValores(tipoFiltroInput, provinciaFiltroInput, faixa);
+    }
+  
+    const aplicarSugestaoProvincia = async (provincia: string) => {
+      setProvinciaFiltroInput(provincia);
+      setMostrarMensagemErro(false);
+      setSugestoesContextuais({ provincias: [], faixasPreco: [], tipos: [], mensagem: "" });
+      
+      // Aplicar filtros com o novo valor diretamente
+      await aplicarFiltrosComValores(tipoFiltroInput, provincia, precoFiltroInput);
+    }
+  
+    const aplicarSugestaoTipo = async (tipo: string) => {
+      setTipoFiltroInput(tipo);
+      setMostrarMensagemErro(false);
+      setSugestoesContextuais({ provincias: [], faixasPreco: [], tipos: [], mensagem: "" });
+      
+      // Aplicar filtros com o novo valor diretamente
+      await aplicarFiltrosComValores(tipo, provinciaFiltroInput, precoFiltroInput);
+    }
+  
+    useEffect(() => {
+      async function carregarProdutosParaSelects() {
+        try {
+          const produtosRecebidos = await buscarProdutosPorCategoria("Tuberculos", {})
+          setProdutosOriginais(produtosRecebidos)
+        } catch (error) {
+          console.log("Erro ao carregar produtos:", error)
+        }
+      }
+  
+      if (!filtroAtivado) {
+        carregarProdutosParaSelects()
+      }
+    }, [filtroAtivado])
+  
+    // Eliminar duplicatas de produtos baseado no nome
+    const produtosUnicosPorNome = produtosOriginais.filter(
+      (produto, index, self) => 
+        index === self.findIndex(p => p.nome === produto.nome)
+    );
+  
+    const isFormValid = tipoFiltroInput && provinciaFiltroInput && precoFiltroInput
+  
+    // Função para traduzir o código da faixa de preço para texto legível
+    const traduzirFaixaPreco = (codigo: string) => {
+      switch(codigo) {
+        case "0-5000": return "Até 5.000 AOA";
+        case "5000-50000": return "5.000 - 50.000 AOA";
+        case "50000-100000": return "50.000 - 100.000 AOA";
+        case "100000-plus": return "Acima de 100.000 AOA";
+        default: return codigo;
+      }
+    }
+  
   return (
     <main>
       <Head>
@@ -444,7 +449,7 @@ const aplicarSugestaoTipo = async (tipo: string) => {
 </button>
         {/* Mensagem de erro com sugestões contextuais */}
         {mostrarMensagemErro && (
-          <div className="mx-4 sm:mx-6 md:mx-9 px-4 py-6 bg-red-50 border border-red-100 rounded-lg shadow-sm">
+          <div className="mx-4 sm:mx-6 md:mx-9 px-4 py-6 bg-red-50 border border-red-100 rounded-lg shadow-sm mb-6">
             <p className="text-base sm:text-lg text-red-600 font-semibold text-center mb-4">
               Nenhum produto encontrado com os filtros aplicados.
             </p>

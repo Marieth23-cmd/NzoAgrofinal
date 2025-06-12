@@ -370,25 +370,7 @@ export default function PerfilAgricultor() {
               className="hidden" 
               ref={inputGalleryRef} 
             />
-
-            <div className="mt-4 lg:mt-0 w-full">
-              <div className="flex justify-between items-center mb-2">
-                <h1 className="text-xl sm:text-2xl md:text-[2rem] font-medium text-profile">
-                  {usuario?.nome || "Carregando..."}
-                </h1>
-                
-                <div className="relative">
-                  <button 
-                    onClick={toggleConfig} 
-                    className="text-2xl text-marieth hover:text-verdeaceso transition-colors"
-                    title="Configurações"
-                    aria-label="Configurações"
-                  >
-                    <FaCog />
-                  </button>
-                  
-                  {isConfigOpen && (
-                    <div className="mt-4 lg:mt-0 w-full">
+<div className="mt-4 lg:mt-0 w-full">
   <div className="flex justify-between items-center mb-2">
     <h1 className="text-[2rem] font-medium text-profile">
       {usuario?.nome || "Carregando..."}
@@ -470,12 +452,9 @@ export default function PerfilAgricultor() {
     </a>
   </div>
 </div>
-                  )}
-                </div>
-              </div>
-            </div>
           </div>
 
+        
           {/* Cards estatísticos - Melhorados para responsividade */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mt-8 mb-8">
             <div className="bg-white p-3 md:p-6 rounded-[10px] shadow-custom text-center  
