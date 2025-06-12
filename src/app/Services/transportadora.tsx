@@ -258,3 +258,32 @@ export const listarFilialsPorTransportadora = async (id_transportadora: number):
         }
     }
 };
+
+
+// função para listar transportadoras
+export const getTransportadoras = async (): Promise<any> => {
+    try {
+        const token = localStorage.getItem('token');
+        const response = await axios.get(
+            `${API_URL}/transportadoras`,
+            {
+                withCredentials: true,
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                },
+            }
+        );
+
+        console.log("✅ Transportadoras listadas:", response.data);
+        return response.data;
+
+    } catch (error: any) {
+        console.log("❌ Erro ao listar transportadoras:", error.response?.data || error.message);
+
+        if (error.response && error.response.data) {
+            throw error.response.data;
+        } else {
+            throw { mensagem: "Erro desconhecido ao listar transportadoras" };
+        }
+    }
+}

@@ -16,6 +16,7 @@ import { getPedidos } from '../Services/pedidos';
 import { cadastrarTransportadora } from '../Services/transportadora';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { getTransportadoras } from '../Services/transportadora';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, ArcElement);
 
@@ -24,16 +25,18 @@ type TabType =
   | 'Usuários'
   | 'Produtos'
   | 'Pedidos'
-  | 'Transportadoras'
   | 'Relatórios'
   | 'Logística'
   | 'Suporte'
+  | 'Transportadoras'
   | 'Controle de Pedidos'
   | 'Configurações'
-  | 'Notificações'
   | 'Cadastrar Transportadora'
   | 'Gerenciamento de Usuarios'
-  | 'Logout';
+  | 'Logout'
+  
+
+ 
 
 type UserType = 'Agricultor' | 'Comprador' | 'Fornecedor';
 type UserStatus = 'Pendente' | 'Aprovado' | 'Rejeitado';
@@ -176,19 +179,26 @@ const [error, setError] = useState<string | null>(null);
     fetchProdutos();
   }, []);
 
-  const fetchUsuarios = async () => {
-    try {
-      const data = await getUsuarios();
-      setUsuarios(data);
-      console.log("Usuários carregados:", data);
-    } catch (error) {
-      setUsuarios([]);
-      console.error("Erro ao buscar usuários:", error);
-    }
-  };
+
+
+const fetchUsuarios = async () => {
+  try {
+    const data = await getUsuarios();
+    // Se a API retorna {usuario: {...}}, extraia apenas o objeto usuario
+    // ou ajuste para o formato correto
+    const usuariosArray = Array.isArray(data) ? data : [data.usuario];
+    setUsuarios(usuariosArray);
+    console.log("Usuários carregados:", data);
+  } catch (error) {
+    setUsuarios([]);
+    console.error("Erro ao buscar usuários:", error);
+  }
+};
  useEffect(() => {
     fetchUsuarios();
   }, []); 
+
+
 
   const fetchPedidos = async () => {
     try {
@@ -319,6 +329,18 @@ setCategoryData({
     } catch (error) {
       console.error("Erro ao cadastrar transportadora:", error);
       toast.error("Erro ao cadastrar transportadora. Tente novamente mais tarde.");
+    }
+  };
+
+  //listar transportadoras
+  const fetchTransportadoras = async () => {
+    try {
+      const data = await getTransportadoras();
+      setTransportadoras(data);
+      console.log("Transportadoras carregadas:", data);
+    } catch (error) {
+      setTransportadoras([]);
+      console.error("Erro ao buscar transportadoras:", error);
     }
   };
 
@@ -485,29 +507,6 @@ const atualizarStatusPedido = async (idPedido: number, novoStatus: string) => {
   }
 };
 
-const fetchTransportadoras = () => {
-  setIsLoadingTransportadoras(true);
-  fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/transportadoras`)
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('Erro ao buscar transportadoras');
-      }
-      return response.json();
-    })
-    .then(data => {
-      setIsLoadingTransportadoras(false);
-      setTransportadoras(data);
-    })
-    .catch(error => {
-      setIsLoadingTransportadoras(false);
-      setErrorTransportadoras('Erro ao buscar transportadoras');
-      console.error('Erro ao buscar transportadoras:', error);
-    });
-};
-
-useEffect(() => {
-  fetchTransportadoras();
-}, []);
 
 
   return (
@@ -534,7 +533,7 @@ useEffect(() => {
           />
         </div>
         <nav className="space-y-2">
-          {(['Dashboard', 'Usuários', 'Produtos', 'Pedidos', 'Transportadoras', 'Relatórios', 'Logística', 'Suporte', 'Controle de Pedidos', 'Configurações',  'Cadastrar Transportadora', 'Gerenciamento de Usuarios'] as TabType[]).map((tab) => (
+          {(['Dashboard', 'Usuários', 'Produtos', 'Pedidos', 'Relatórios', 'Logística', 'Suporte', 'Controle de Pedidos', 'Configurações',  'Gerenciamento de Usuarios'] as TabType[]).map((tab) => (
             <a
               key={tab}
               href="#"
@@ -551,10 +550,10 @@ useEffect(() => {
               {tab === 'Suporte' && <MdHeadset className="mr-3" size={20} />}
               {tab === 'Controle de Pedidos' && <MdAssignment className="mr-3" size={20} />}
               {tab === 'Configurações' && <MdSettings className="mr-3" size={20} />}
-              {tab === 'Notificações' && <MdNotifications className="mr-3" size={20} />}
               {tab === 'Cadastrar Transportadora' && <MdAdd className="mr-3" size={20} />}
-                           
-              {tab}
+              {tab === 'Gerenciamento de Usuarios' && <MdGroup className="mr-3" size={20} />}
+              {tab === 'Logout' && <MdLogout className="mr-3" size={20} />}
+              
             </a>
           ))}
         </nav>
@@ -761,6 +760,8 @@ useEffect(() => {
             </div>
           </div>
         )}
+
+
 {activeTab === 'Usuários' && (
   <div className="bg-white rounded-lg shadow-sm mb-6">
     <div className="p-6 border-b border-gray-200 flex justify-between items-center">

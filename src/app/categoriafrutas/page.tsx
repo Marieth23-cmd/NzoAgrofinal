@@ -371,8 +371,8 @@ export default function CategoriaFrutas() {
                     className="w-full p-[0.8rem] rounded-[5px] text-sm sm:text-base border border-solid border-tab focus:outline-none focus:ring-2 focus:ring-marieth"
                   >
                     <option value="" disabled>Todos os tipos</option>
-                    {produtosUnicosPorNome.map((produto, index) => (
-                      <option key={index} value={produto.nome}>{produto.nome}</option>
+                    {produtosUnicosPorNome.map((produto) => (
+                      <option key={produto.nome} value={produto.nome}>{produto.nome}</option>
                     ))}
                   </select>
                 </div>
@@ -397,8 +397,8 @@ export default function CategoriaFrutas() {
                     <option value="" disabled>Todas as províncias</option>
                     {Array.from(new Set(produtosOriginais.map(p => p.provincia)))
                       .filter(Boolean)
-                      .map((prov, index) => (
-                        <option key={index} value={prov}>{prov}</option>
+                      .map((prov) => (
+                        <option key={prov} value={prov}>{prov}</option>
                       ))}
                   </select>
                 </div>
@@ -466,9 +466,9 @@ export default function CategoriaFrutas() {
                 {sugestoesContextuais.tipos.length > 0 && (
                   <div className="text-center">
                     <div className="flex flex-wrap justify-center gap-2">
-                      {sugestoesContextuais.tipos.map((tipo, index) => (
+                      {sugestoesContextuais.tipos.map((tipo) => (
                         <button
-                          key={index}
+                          key={tipo}
                           onClick={() => aplicarSugestaoTipo(tipo)}
                           className="bg-white border border-marieth text-marieth py-2 px-4 rounded-full hover:bg-marieth hover:text-white transition-colors duration-300 text-xs sm:text-sm font-medium"
                         >
@@ -483,9 +483,9 @@ export default function CategoriaFrutas() {
                 {sugestoesContextuais.provincias.length > 0 && (
                   <div className="text-center">
                     <div className="flex flex-wrap justify-center gap-2">
-                      {sugestoesContextuais.provincias.map((provincia, index) => (
+                      {sugestoesContextuais.provincias.map((provincia) => (
                         <button
-                          key={index}
+                          key={provincia}
                           onClick={() => aplicarSugestaoProvincia(provincia)}
                           className="bg-white border border-marieth text-marieth py-2 px-4 rounded-full hover:bg-marieth hover:text-white transition-colors duration-300 text-xs sm:text-sm font-medium"
                         >
@@ -520,8 +520,8 @@ export default function CategoriaFrutas() {
         {/* Seção de produtos */}
         <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 mt-8 mb-20">
           {filtroAtivado && produtosFiltrados.length > 0 && (
-            produtosFiltrados.map((produto, index) => (
-              <Link href={`/DetalhesProduto/${produto.id_produtos}`} key={index}>
+            produtosFiltrados.map((produto) => (
+              <Link href={`/DetalhesProduto/${produto.id_produtos}`} key={produto.id_produtos}>
                 <div className="p-4 sm:p-6 lg:p-8 max-w-[1200px] flex flex-row gap-6 lg:gap-4 -mt-14 lg:ml-6">
                   <div className="rounded-[10px] shadow-custom transition-transform duration-150 bg-white overflow-hidden hover:translate-y-[5px]">
                     {produto.foto_produto ? (

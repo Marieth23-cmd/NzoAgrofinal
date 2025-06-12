@@ -5,20 +5,14 @@ import { ChartOptions } from 'chart.js';
 import { Chart as ChartJS, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from 'chart.js';
 import Navbar from "../Components/Navbar"
 import Footer from "../Components/Footer"
-import { 
-  getRelatorioComprasComprador, 
-  getEstatisticasComprasComprador, // Função correta para comprador
-  exportarPDF, 
-  exportarCSV,
-  getEstatisticasVendasFornecedor, // Para fornecedores
-  getRelatorioVendasFornecedor, // Para fornecedores
-  exportarPDFVendasFornecedor,
-  exportarCSVVendasFornecedor,
-  actualizarStatusdoPedido
+import {  getRelatorioComprasComprador, getEstatisticasComprasComprador, 
+  exportarCSV,getEstatisticasVendasFornecedor, getRelatorioVendasFornecedor,// Para fornecedoresgetRelatorioVendasFornecedor, // Para fornecedores
+  exportarPDFVendasFornecedor,exportarCSVVendasFornecedor,actualizarStatusdoPedido
 } from "../Services/relatorios";
-
 // Registrando os componentes necessários do Chart.js
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
+import { exportarPDF } from '../Services/relatorios';
+import {getUsuarioById} from '../Services/user';
 
 // Interface para os dados estatísticos de compras
 interface EstatisticasCompras {
@@ -82,6 +76,15 @@ interface ItemMensal {
   total_mes: number;
 }
 
+
+interface usuario{
+  id_usuario:number;
+  nome:string ;
+  tipo_usuario?:string;
+  email?:string;
+}
+
+
 // Constantes para definir limiares de cores
 const LIMITE_VALOR_ALTO = 100000;
 const LIMITE_VALOR_MEDIO = 50000;
@@ -93,6 +96,7 @@ export default function Relatorios() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [exportLoading, setExportLoading] = useState(false);
+  const [usuarioLoading ,setusuarioLoading]= useState(false)
   const [primeiraConsulta, setPrimeiraConsulta] = useState<boolean>(false);
 
   // Estados para filtros de data
@@ -144,16 +148,47 @@ export default function Relatorios() {
     ],
   });
 
-  // Função para obter tipo de usuário
-  const getTipoUsuario = (): 'Comprador' | 'Agricultor' | 'Fornecedor' => {
-  // Verificar se estamos no cliente antes de acessar localStorage
-  if (typeof window !== 'undefined') {
-    const tipoUsuario = localStorage.getItem('tipo_usuario');
-    return tipoUsuario as 'Comprador' | 'Agricultor' | 'Fornecedor' || 'Comprador';
+
+// buscar tipo_Usuario do usuário logado
+  const [usuario, setUsuario] = useState<usuario | null>(null);
+  useEffect(() => {
+    const fetchUsuario = async () => {
+      try {
+        const usuarioData = await getUsuarioById();
+        setUsuario(usuarioData);
+      } catch (error) {
+        console.error("Erro ao buscar usuário:", error);
+      }
+    };
+    
+    fetchUsuario();
+  }, []);
+
+
+
+
+useEffect(() => {
+  // Só carrega dados depois que o usuário foi carregado
+  if (!usuarioLoading && usuario) {
+    if (tipoRelatorio === 'compras') {
+      carregarDadosCompras();
+    } else if (podeVerVendas()) {
+      carregarDadosVendas();
+    }
   }
-  // Retornar valor padrão durante o SSR
+}, [tipoRelatorio, usuarioLoading, usuario]);
+
+
+
+
+const getTipoUsuario = (): 'Comprador' | 'Agricultor' | 'Fornecedor' => {
+  if (usuario && usuario.tipo_usuario) {
+    return usuario.tipo_usuario as 'Comprador' | 'Agricultor' | 'Fornecedor';
+  }
+  // Retornar valor padrão enquanto carrega ou se não houver dados
   return 'Comprador';
 };
+
 
 // Verificar se pode ver vendas (também corrigida)
 const podeVerVendas = () => {
@@ -231,6 +266,19 @@ const podeVerVendas = () => {
       };
     }
   };
+
+  useEffect(() => {
+  // Só carrega dados depois que o usuário foi carregado
+  if (!usuarioLoading && usuario) {
+    if (tipoRelatorio === 'compras') {
+      carregarDadosCompras();
+    } else if (podeVerVendas()) {
+      carregarDadosVendas();
+    }
+  }
+}, [tipoRelatorio, usuarioLoading, usuario]); 
+
+
 
   // Função para carregar dados de compras
   const carregarDadosCompras = async () => {
@@ -371,10 +419,6 @@ const podeVerVendas = () => {
   }, [dataInicial, dataFinal]);
 
 
-
-
-
-
   // Função para aplicar filtros
   const aplicarFiltro = () => {
     if (tipoRelatorio === 'compras') {
@@ -503,6 +547,8 @@ const podeVerVendas = () => {
       window.removeEventListener('resize', ajustarTamanhoGrafico);
     };
   }, []);
+
+
 
   return (
     <div>
