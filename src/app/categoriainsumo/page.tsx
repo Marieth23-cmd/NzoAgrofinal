@@ -555,8 +555,9 @@ export default function CategoriaInsumo() {
         </section>
       </div>
 
-      <Footer />
+     
       </div>
+       <Footer />
     </main>
   )
 }     

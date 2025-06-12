@@ -355,6 +355,27 @@ const podeVerVendas = () => {
     }
   };
 
+//carregar dados ao montar o componente
+  useEffect(() => {
+    if (tipoRelatorio === 'compras') {
+      carregarDadosCompras();
+    } else {
+      carregarDadosVendas();
+    }
+  }, [tipoRelatorio]);
+
+  // Função para aplicar filtros ao carregar dados
+  useEffect(() => {
+    if (dataInicial && dataFinal) {
+      aplicarFiltro();
+    }
+  }, [dataInicial, dataFinal]);
+
+  
+
+
+
+
   // Função para aplicar filtros
   const aplicarFiltro = () => {
     if (tipoRelatorio === 'compras') {
@@ -491,7 +512,7 @@ const podeVerVendas = () => {
       <div className="flex flex-col mb-20 md:mb-20 gap-2 mt-[48%] md:[45%] md:mt-[15%] mx-4 md:mx-8 max-w-full md:max-w-[1200px] shadow-custom p-4 md:p-8 rounded-[10px]">
         
         {/* Cabeçalho e filtros */}
-        <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-centers mb-6 md:mb-8">
+        <div className="flex flex-col gap-6 sm:flex-row flex-wrap items-start sm:items-centers mb-6 md:mb-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 mb-4 sm:mb-0">
             <h1 className="text-marieth text-xl md:text-[2rem] font-bold">
               Relatório de {tipoRelatorio === 'compras' ? 'Compras' : 'Vendas'}

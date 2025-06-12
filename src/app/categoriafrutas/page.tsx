@@ -556,8 +556,9 @@ export default function CategoriaFrutas() {
         </section>
       </div>
 
-      <Footer />
+     
     </div>
+     <Footer />
     </main>
   )
 }     

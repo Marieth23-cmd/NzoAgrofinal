@@ -554,8 +554,9 @@ export default function CategoriaGraos() {
           )}
         </section>
       </div>
-      <Footer />
+      
     </div>
+    <Footer />
     </main>
   )
 }     

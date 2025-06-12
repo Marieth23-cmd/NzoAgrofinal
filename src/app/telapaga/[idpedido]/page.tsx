@@ -1,3 +1,4 @@
+
 'use client'
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import Footer from '../../Components/Footer'
@@ -146,34 +147,33 @@ export default function PagamentoPage() {
   const pathname = usePathname()
 
   const usePedidoEspecifico = (pedidoId: number | null) => {
-  const [pedido, setPedido] = useState<PedidoPagamentoData | null>(null);
-  const [carregando, setCarregando] = useState(false);
-  const [erro, setErro] = useState<string>("");
+    const [pedido, setPedido] = useState<PedidoPagamentoData | null>(null);
+    const [carregando, setCarregando] = useState(false);
+    const [erro, setErro] = useState<string>("");
 
-  // Buscar dados do pedido específico
-  useEffect(() => {
-    if (!pedidoId) return;
-    
-    const buscarPedidoPagamento = async () => {
-      setCarregando(true);
-      try {
-        const data = await getPedidosUsuario();
-        setPedido(data);
-        console.log("Pedido carregado:", data);
-      } catch (error: any) {
-        console.error("Erro ao carregar pedido:", error);
-        setErro(error.message || "Não foi possível carregar o pedido");
-      } finally {
-        setCarregando(false);
-      }
-    };
-    
-    buscarPedidoPagamento();
-  }, [pedidoId]);
+    // Buscar dados do pedido específico
+    useEffect(() => {
+      if (!pedidoId) return;
+      
+      const buscarPedidoPagamento = async () => {
+        setCarregando(true);
+        try {
+          const data = await getPedidosUsuario();
+          setPedido(data);
+          console.log("Pedido carregado:", data);
+        } catch (error: any) {
+          console.error("Erro ao carregar pedido:", error);
+          setErro(error.message || "Não foi possível carregar o pedido");
+        } finally {
+          setCarregando(false);
+        }
+      };
+      
+      buscarPedidoPagamento();
+    }, [pedidoId]);
 
-  return { pedido, carregando, erro, refetch: () => pedidoId && getPedidosUsuario() };
-};
-
+    return { pedido, carregando, erro, refetch: () => pedidoId && getPedidosUsuario() };
+  };
 
   // Buscar dados do pedido ao montar o componente
   useEffect(() => {
@@ -208,8 +208,21 @@ export default function PagamentoPage() {
     carregarPedido()
   }, [pathname, searchParams])
 
+  // Função para validar se o pedido e suas propriedades existem
+  const isPedidoValid = (pedido: PedidoPagamentoData | null): pedido is PedidoPagamentoData => {
+    return !!(
+      pedido && 
+      pedido.id_pedido && 
+      pedido.itens && 
+      Array.isArray(pedido.itens) && 
+      pedido.resumo &&
+      typeof pedido.resumo.quantidade_itens === 'number' &&
+      typeof pedido.resumo.total === 'number'
+    )
+  }
+
   const gerarReferencia = () => {
-    if (!pedido) return
+    if (!isPedidoValid(pedido)) return
     
     const novaReferencia = `REF_${pedido.id_pedido}_${Date.now()}`
     const novoTransacaoId = `TXN_${Math.random().toString(36).slice(2, 10).toUpperCase()}`
@@ -292,8 +305,8 @@ export default function PagamentoPage() {
     )
   }
 
-  // Error state
-  if (erro || !pedido) {
+  // Error state ou pedido inválido
+  if (erro || !isPedidoValid(pedido)) {
     return (
       <main className="flex flex-col min-h-screen">
         <Navbar />
@@ -303,7 +316,7 @@ export default function PagamentoPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <h2 className="text-xl font-bold mb-2">Erro ao carregar pedido</h2>
-            <p className="mb-2">{erro}</p>
+            <p className="mb-2">{erro || 'Dados do pedido incompletos ou inválidos'}</p>
             <p className="text-sm text-gray-600 mb-4">
               URL atual: {pathname}
             </p>
@@ -322,7 +335,7 @@ export default function PagamentoPage() {
 
   // MODAL DE PAGAMENTO
   const ModalPagamento = () => {
-    if (!mostrarModal) return null
+    if (!mostrarModal || !isPedidoValid(pedido)) return null
 
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -334,11 +347,10 @@ export default function PagamentoPage() {
                  status === 'sucesso' ? 'Pagamento Confirmado!' : 
                  status === 'erro' ? 'Erro no Pagamento' : 'Inserir Referência'}
               </h2>
-              <button onClick={fecharModal} className="text-gray-400 hover:text-gray-600 sr-only">
+              <button onClick={fecharModal} className="text-gray-400 hover:text-gray-600">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
-                botão
               </button>
             </div>
           </div>
@@ -506,7 +518,9 @@ export default function PagamentoPage() {
               
               {/* Itens do pedido */}
               <div className="mb-4">
-                <h4 className="font-medium text-gray-700 mb-2">Itens ({pedido.resumo.quantidade_itens}):</h4>
+                <h4 className="font-medium text-gray-700 mb-2">
+                  Itens ({pedido.resumo.quantidade_itens || pedido.itens.length}):
+                </h4>
                 {pedido.itens.map((item, index) => (
                   <div key={index} className="flex justify-between items-center py-2 border-b border-gray-200 last:border-b-0">
                     <div>
@@ -525,7 +539,7 @@ export default function PagamentoPage() {
                   <span>{pedido.resumo.subtotal.toLocaleString()} Kz</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span>Frete ({pedido.resumo.peso_total}kg):</span>
+                  <span>Frete ({pedido.resumo.peso_total || 0}kg):</span>
                   <span>{pedido.resumo.frete.toLocaleString()} Kz</span>
                 </div>
                 {pedido.resumo.comissao > 0 && (
@@ -551,7 +565,7 @@ export default function PagamentoPage() {
                 Endereço de Entrega
               </h3>
               <p className="text-sm text-gray-700">
-                {[pedido.rua, pedido.bairro, pedido.municipio, pedido.provincia].filter(Boolean).join(', ')}
+                {[pedido.rua, pedido.bairro, pedido.municipio, pedido.provincia].filter(Boolean).join(', ') || 'Endereço não especificado'}
               </p>
             </div>
 

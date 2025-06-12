@@ -554,8 +554,9 @@ export default function CategoriaTuberRaiz() {
         </section>
       </div>
 
-      <Footer />
+      
     </div>
+    <Footer />
     </main>
   )
 }     
