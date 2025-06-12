@@ -450,7 +450,7 @@ export default function CategoriaInsumo() {
 </button>
         {/* Mensagem de erro com sugestões contextuais */}
         {mostrarMensagemErro && (
-          <div className="mx-4 sm:mx-6 md:mx-9 px-4 py-6 bg-red-50 border border-red-100 rounded-lg shadow-sm mb-6">
+          <div className="mx-4 sm:mx-6 md:mx-9 px-4 py-6 bg-red-50 border border-red-100 rounded-lg shadow-sm mb-8">
             <p className="text-base sm:text-lg text-red-600 font-semibold text-center mb-4">
               Nenhum produto encontrado com os filtros aplicados.
             </p>
@@ -517,11 +517,11 @@ export default function CategoriaInsumo() {
         )}
 
         {/* Seção de produtos */}
-        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 mt-4">
+        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 mt-8 mb-20">
           {filtroAtivado && produtosFiltrados.length > 0 && (
             produtosFiltrados.map((produto, index) => (
               <Link href={`/DetalhesProduto/${produto.id_produtos}`} key={index}>
-                <div className="p-4 sm:p-6 lg:p-8 max-w-[1200px] flex flex-row gap-4 sm:gap-6 -mt-14 lg:ml-6">
+                <div className="p-4 sm:p-6 lg:p-8 max-w-[1200px] flex flex-row gap-6 lg:gap-4 -mt-14 lg:ml-6">
                   <div className="rounded-[10px] shadow-custom transition-transform duration-150 bg-white overflow-hidden hover:translate-y-[5px]">
                     {produto.foto_produto ? (
                       <Image

@@ -449,7 +449,7 @@ export default function CategoriaTuberRaiz() {
 </button>
         {/* Mensagem de erro com sugestões contextuais */}
         {mostrarMensagemErro && (
-          <div className="mx-4 sm:mx-6 md:mx-9 px-4 py-6 bg-red-50 border border-red-100 rounded-lg shadow-sm mb-6">
+          <div className="mx-4 sm:mx-6 md:mx-9 px-4 py-6 bg-red-50 border border-red-100 rounded-lg shadow-sm mb-8">
             <p className="text-base sm:text-lg text-red-600 font-semibold text-center mb-4">
               Nenhum produto encontrado com os filtros aplicados.
             </p>
@@ -516,7 +516,7 @@ export default function CategoriaTuberRaiz() {
         )}
 
         {/* Seção de produtos */}
-        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 mt-4">
+        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 mt-8 mb-20">
           {filtroAtivado && produtosFiltrados.length > 0 && (
             produtosFiltrados.map((produto, index) => (
               <Link href={`/DetalhesProduto/${produto.id_produtos}`} key={index}>

@@ -114,7 +114,7 @@ const extrairIdPedido = (pathname: string, searchParams: URLSearchParams): strin
   if (idFromQuery) return idFromQuery
 
   // Depois tenta extrair da rota dinâmica /telapaga/[id]
-  const segments = pathname.split('/telapaga/[id]')
+  const segments = pathname.split('/')
   const telapagarIndex = segments.findIndex(segment => segment === 'telapaga')
   
   if (telapagarIndex !== -1 && segments.length > telapagarIndex + 1) {
