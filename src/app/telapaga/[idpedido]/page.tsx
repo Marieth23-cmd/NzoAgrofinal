@@ -108,28 +108,8 @@ const metodos: Record<MetodoPagamento, MetodoInfo> = {
   }
 }
 
-// Função para extrair ID do pedido da URL
-const extrairIdPedido = (pathname: string, searchParams: URLSearchParams): string | null => {
-  // Primeiro tenta pegar do query parameter ?id_pedido=X
-  const idFromQuery = searchParams.get('id_pedido')
-  if (idFromQuery) return idFromQuery
-
-  // Depois tenta extrair da rota dinâmica /telapaga/[id]
-  const segments = pathname.split('/')
-  const telapagarIndex = segments.findIndex(segment => segment === 'telapaga')
-  
-  if (telapagarIndex !== -1 && segments.length > telapagarIndex + 1) {
-    const potentialId = segments[telapagarIndex + 1]
-    // Verifica se é um número válido
-    if (/^\d+$/.test(potentialId)) {
-      return potentialId
-    }
-  }
-
-  return null
-}
-
 export default function PagamentoPage() {
+  // Estados principais
   const [pedido, setPedido] = useState<PedidoPagamentoData | null>(null)
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState('')
@@ -146,36 +126,7 @@ export default function PagamentoPage() {
   const searchParams = useSearchParams()
   const pathname = usePathname()
 
-  const usePedidoEspecifico = (pedidoId: number | null) => {
-    const [pedido, setPedido] = useState<PedidoPagamentoData | null>(null);
-    const [carregando, setCarregando] = useState(false);
-    const [erro, setErro] = useState<string>("");
-
-    // Buscar dados do pedido específico
-    useEffect(() => {
-      if (!pedidoId) return;
-      
-      const buscarPedidoPagamento = async () => {
-        setCarregando(true);
-        try {
-          const data = await getPedidosUsuario();
-          setPedido(data);
-          console.log("Pedido carregado:", data);
-        } catch (error: any) {
-          console.error("Erro ao carregar pedido:", error);
-          setErro(error.message || "Não foi possível carregar o pedido");
-        } finally {
-          setCarregando(false);
-        }
-      };
-      
-      buscarPedidoPagamento();
-    }, [pedidoId]);
-
-    return { pedido, carregando, erro, refetch: () => pedidoId && getPedidosUsuario() };
-  };
-
-  // Buscar dados do pedido ao montar o componente
+  // ÚNICO useEffect para carregar pedido
   useEffect(() => {
     const carregarPedido = async () => {
       try {
@@ -183,6 +134,7 @@ export default function PagamentoPage() {
         
         if (!id_pedido_str) {
           setErro('ID do pedido não fornecido na URL')
+          setCarregando(false)
           return
         }
 
@@ -190,15 +142,36 @@ export default function PagamentoPage() {
         
         if (isNaN(id_pedido) || id_pedido <= 0) {
           setErro('ID do pedido inválido')
+          setCarregando(false)
           return
         }
 
-        console.log('Carregando pedido com ID:', id_pedido) // Para debug
+        console.log('Carregando pedido com ID:', id_pedido)
 
         const dadosPedido = await getPedidosUsuario()
-        setPedido(dadosPedido)
+        console.log('Dados recebidos:', dadosPedido) // Debug
+        
+        // Validação robusta dos dados
+        if (dadosPedido && 
+            dadosPedido.resumo && 
+            typeof dadosPedido.resumo.total === 'number' &&
+            !isNaN(dadosPedido.resumo.total) &&
+            dadosPedido.itens &&
+            Array.isArray(dadosPedido.itens)) {
+          setPedido(dadosPedido)
+          setErro('') // Limpar erros anteriores
+        } else {
+          setErro('Dados do pedido incompletos ou inválidos')
+          console.error('Dados inválidos recebidos:', {
+            temResumo: !!dadosPedido?.resumo,
+            tipoTotal: typeof dadosPedido?.resumo?.total,
+            valorTotal: dadosPedido?.resumo?.total,
+            temItens: !!dadosPedido?.itens,
+            isArrayItens: Array.isArray(dadosPedido?.itens)
+          })
+        }
       } catch (error: any) {
-        console.error('Erro ao carregar pedido:', error) // Para debug
+        console.error('Erro ao carregar pedido:', error)
         setErro(error.message || 'Erro ao carregar dados do pedido')
       } finally {
         setCarregando(false)
@@ -208,7 +181,7 @@ export default function PagamentoPage() {
     carregarPedido()
   }, [pathname, searchParams])
 
-  // Função para validar se o pedido e suas propriedades existem
+  // Função para validar pedido
   const isPedidoValid = (pedido: PedidoPagamentoData | null): pedido is PedidoPagamentoData => {
     return !!(
       pedido && 
@@ -217,10 +190,31 @@ export default function PagamentoPage() {
       Array.isArray(pedido.itens) && 
       pedido.resumo &&
       typeof pedido.resumo.quantidade_itens === 'number' &&
-      typeof pedido.resumo.total === 'number'
+      typeof pedido.resumo.total === 'number' &&
+      !isNaN(pedido.resumo.total)
     )
   }
 
+  // Função segura para formatar valores
+  const formatarValor = (valor: number | undefined | null): string => {
+    if (typeof valor !== 'number' || isNaN(valor)) {
+      return 'R$ 0,00'
+    }
+    return valor.toLocaleString('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    })
+  }
+
+  // Função segura para formatar números
+  const formatarNumero = (valor: number | undefined | null): string => {
+    if (typeof valor !== 'number' || isNaN(valor)) {
+      return '0'
+    }
+    return valor.toString()
+  }
+
+  
   const gerarReferencia = () => {
     if (!isPedidoValid(pedido)) return
     

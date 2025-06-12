@@ -553,8 +553,7 @@ useEffect(() => {
               {tab === 'Configurações' && <MdSettings className="mr-3" size={20} />}
               {tab === 'Notificações' && <MdNotifications className="mr-3" size={20} />}
               {tab === 'Cadastrar Transportadora' && <MdAdd className="mr-3" size={20} />}
-              {tab === 'Gerenciamento de Usuarios' && <MdEdit className="mr-3" size={20} />}
-              
+                           
               {tab}
             </a>
           ))}

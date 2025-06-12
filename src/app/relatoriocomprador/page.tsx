@@ -1,4 +1,3 @@
-
 "use client"
 import { useEffect, useState, useRef } from 'react';
 import { Bar } from 'react-chartjs-2';
@@ -371,7 +370,7 @@ const podeVerVendas = () => {
     }
   }, [dataInicial, dataFinal]);
 
-  
+
 
 
 
@@ -444,6 +443,7 @@ const podeVerVendas = () => {
       document.body.removeChild(a);
     } catch (error: any) {
       setError(error.mensagem || "Erro ao exportar PDF");
+      
     } finally {
       setExportLoading(false);
       setDropdownOpen(false);
@@ -486,7 +486,7 @@ const podeVerVendas = () => {
   };
 
   const formatarMoeda = (valor: number) => {
-    return `kzs ${valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+    return `kzs ${valor && valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
   };
 
   // Effect para ajustar gráfico
