@@ -327,7 +327,7 @@ export default function CategoriaFrutas() {
     }
   }, [filtroAtivado])
 
-  // Eliminar duplicatas de produtos baseado no nome
+  // Eliminar  duplicados de produtos baseado no nome
   const produtosUnicosPorNome = produtosOriginais.filter(
     (produto, index, self) => 
       index === self.findIndex(p => p.nome === produto.nome)
