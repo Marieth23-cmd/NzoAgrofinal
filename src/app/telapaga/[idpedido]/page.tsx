@@ -5,6 +5,43 @@ import Navbar from '../../Components/Navbar'
 import { buscarPedidoPagamento} from '@/app/Services/pedidos'
 import { useState, useEffect, FormEvent } from 'react'
 
+const parseNumeroSeguro = (valor: any): number => {
+  if (typeof valor === 'number') return valor;
+  if (typeof valor === 'string') {
+    const numero = parseFloat(valor);
+    return isNaN(numero) ? 0 : numero;
+  }
+  return 0;
+};
+
+// Função para normalizar os dados do pedido
+const normalizarDadosPedido = (dadosBrutos: any): PedidoPagamentoData | null => {
+  if (!dadosBrutos) return null;
+
+  return {
+    ...dadosBrutos,
+    pedido: {
+      ...dadosBrutos.pedido,
+      valor_total: parseNumeroSeguro(dadosBrutos.pedido?.valor_total),
+    },
+    itens: dadosBrutos.itens?.map((item: any) => ({
+      ...item,
+      quantidade_comprada: parseNumeroSeguro(item.quantidade_comprada),
+      preco: parseNumeroSeguro(item.preco),
+      subtotal: parseNumeroSeguro(item.subtotal),
+      peso_kg: parseNumeroSeguro(item.peso_kg),
+      id_produto: parseNumeroSeguro(item.id_produto),
+    })) || [],
+    valores: {
+      subtotal: parseNumeroSeguro(dadosBrutos.valores?.subtotal),
+      frete: parseNumeroSeguro(dadosBrutos.valores?.frete),
+      comissao: parseNumeroSeguro(dadosBrutos.valores?.comissao),
+      total: parseNumeroSeguro(dadosBrutos.valores?.total),
+      peso_total: parseNumeroSeguro(dadosBrutos.valores?.peso_total),
+    }
+  };
+};
+
 type MetodoPagamento = 'unitel_money' | 'afrimoney' | 'multicaixa'
 type StatusPagamento = 'inicial' | 'referencia_gerada' | 'processando' | 'sucesso' | 'erro'
 
@@ -151,10 +188,15 @@ export default function PagamentoPage() {
       }
 
       try {
-        console.log('Tentando buscar pedido com ID:', idPedido)
-        const dados = await buscarPedidoPagamento(Number(idPedido));
-        console.log('Dados recebidos da API:', dados)
         
+        const dadosBrutos = await buscarPedidoPagamento(Number(idPedido));
+console.log('Dados brutos recebidos da API:', dadosBrutos)
+
+// Normalizar os dados
+          const dados = normalizarDadosPedido(dadosBrutos);
+          console.log('Dados normalizados:', dados)
+
+          setPedido(dados);
         // Debug mais detalhado
         setDebugInfo(`
           ID: ${idPedido}
@@ -166,7 +208,7 @@ export default function PagamentoPage() {
           Tem valores: ${dados?.valores ? 'Sim' : 'Não'}
         `)
         
-        setPedido(dados);
+        
       } catch (error: any) {
         console.error('Erro ao buscar pedido:', error)
         setErro(error.mensagem || error.message || 'Erro ao carregar pedido');
@@ -179,57 +221,48 @@ export default function PagamentoPage() {
     carregarPedido();
   }, [pathname, searchParams]);
 
-  // Validação mais robusta e com logs
-  const isPedidoValid = (pedido: PedidoPagamentoData | null): pedido is PedidoPagamentoData => {
-    console.log('=== VALIDAÇÃO DO PEDIDO ===')
-    console.log('pedido existe:', !!pedido)
-    
-    if (!pedido) {
-      console.log('❌ Pedido é null/undefined')
-      return false
-    }
-    
-    console.log('pedido.pedido existe:', !!pedido.pedido)
-    console.log('pedido.pedido.id_pedido:', pedido.pedido?.id_pedido)
-    console.log('pedido.itens existe:', !!pedido.itens)
-    console.log('pedido.itens é array:', Array.isArray(pedido.itens))
-    console.log('pedido.valores existe:', !!pedido.valores)
-    console.log('pedido.valores.total:', pedido.valores?.total)
-    console.log('pedido.valores.total é número:', typeof pedido.valores?.total === 'number')
-    console.log('pedido.valores.total não é NaN:', !isNaN(pedido.valores?.total || NaN))
-    
-    const isValid = !!(
-      pedido && 
-      pedido.pedido?.id_pedido && 
-      pedido.itens && 
-      Array.isArray(pedido.itens) && 
-      pedido.valores &&
-      typeof pedido.valores.total === 'number' &&
-      !isNaN(pedido.valores.total)
-    );
-    
-    console.log('✅ Pedido válido:', isValid)
-    return isValid
-  };
 
-  // Função segura para formatar valores
-  const formatarValor = (valor: number | undefined | null): string => {
-    if (typeof valor !== 'number' || isNaN(valor)) {
-      return 'R$ 0,00'
-    }
-    return valor.toLocaleString('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    })
+const isPedidoValid = (pedido: PedidoPagamentoData | null): pedido is PedidoPagamentoData => {
+  console.log('=== VALIDAÇÃO DO PEDIDO ===')
+  console.log('pedido existe:', !!pedido)
+  
+  if (!pedido) {
+    console.log('❌ Pedido é null/undefined')
+    return false
   }
+  
+  console.log('pedido.pedido existe:', !!pedido.pedido)
+  console.log('pedido.pedido.id_pedido:', pedido.pedido?.id_pedido)
+  console.log('pedido.itens existe:', !!pedido.itens)
+  console.log('pedido.itens é array:', Array.isArray(pedido.itens))
+  console.log('pedido.valores existe:', !!pedido.valores)
+  console.log('pedido.valores.total:', pedido.valores?.total)
+  console.log('pedido.valores.total é número:', typeof pedido.valores?.total === 'number')
+  console.log('pedido.valores.total > 0:', pedido.valores?.total > 0)
+  
+  const isValid = !!(
+    pedido && 
+    pedido.pedido?.id_pedido && 
+    pedido.itens && 
+    Array.isArray(pedido.itens) && 
+    pedido.valores &&
+    typeof pedido.valores.total === 'number' &&
+    pedido.valores.total > 0
+  );
+  
+  console.log('✅ Pedido válido:', isValid)
+  return isValid
+};
 
-  // Função segura para formatar números
-  const formatarNumero = (valor: number | undefined | null): string => {
-    if (typeof valor !== 'number' || isNaN(valor)) {
-      return '0'
-    }
-    return valor.toString()
-  }
+const formatarNumero = (valor: any): string => {
+  const numero = parseNumeroSeguro(valor);
+  return numero.toString();
+};
+
+const formatarValor = (valor: any): string => {
+  const numero = parseNumeroSeguro(valor);
+  return numero.toLocaleString('pt-AO') + ' Kz';
+};
 
   const gerarReferencia = () => {
     if (!isPedidoValid(pedido)) {

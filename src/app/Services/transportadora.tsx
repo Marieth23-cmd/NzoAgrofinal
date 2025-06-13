@@ -8,7 +8,7 @@ console.log('API URL:', API_URL)
 interface CadastroTransportadora {
     nome: string;
     nif: string;
-    contacto: string;
+    telefone: string;
     email: string;
     senha: string;
     provincia_base?: string;

@@ -112,14 +112,15 @@ interface Pedido {
   }>;
 }
 
+
 interface FormDataTransportadora {
   nome: string;
   nif: string;
-  contacto:string;
-  email: string;
+  telefone: string; 
+  email: string;    
   senha: string;
   confirmar_senha: string;
-  provincia_base: string;
+  provincia_base: string; 
 }
 
 export default function AdminDashboard() {
@@ -138,12 +139,15 @@ export default function AdminDashboard() {
   const [formData, setFormData] = useState<FormDataTransportadora>({
     nome: '',
     nif: '',
-    contacto: '',
+    telefone: '',
     email: '',
     senha: '',
     confirmar_senha: '',
     provincia_base: ''
   });
+
+
+  
   const [termoBusca, setTermoBusca] = useState('');
   const [carregandoPedidos, setCarregandoPedidos] = useState(true);
   const [erro, setErro] = useState<string>('');
@@ -853,8 +857,8 @@ const atualizarStatusPedido = async (idPedido: number, novoStatus: string) => {
                   <input id="nif" value={formData.nif} onChange={handleInputChange} name="nif" type="text" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-marieth focus:border-transparent" placeholder="Número de Identificação Fiscal" />
                 </div>
                 <div>
-                  <label htmlFor="contacto" className="block text-sm font-medium text-gray-700">Telefone</label>
-                  <input id="contacto" value={formData.contacto} onChange={handleInputChange} name="contacto" type="text" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-marieth focus:border-transparent" placeholder="Telefone de Contato" />
+                  <label htmlFor="telefone" className="block text-sm font-medium text-gray-700">Telefone</label>
+                  <input id="telefone" value={formData.telefone} onChange={handleInputChange} name="telefone" type="text" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-marieth focus:border-transparent" placeholder="Telefone de Contato" />
                 </div>
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
