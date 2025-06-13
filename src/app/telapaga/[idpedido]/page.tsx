@@ -45,8 +45,6 @@ export interface PedidoPagamentoData {
   };
 }
 
-
-
 const metodos: Record<MetodoPagamento, MetodoInfo> = {
   unitel_money: {
     nome: 'Unitel Money',
@@ -113,6 +111,7 @@ export default function PagamentoPage() {
   const [pedido, setPedido] = useState<PedidoPagamentoData | null>(null)
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState('')
+  const [debugInfo, setDebugInfo] = useState('') // Para debug
   const [metodo, setMetodo] = useState<MetodoPagamento>('unitel_money')
   const [status, setStatus] = useState<StatusPagamento>('inicial')
   const [referenciaPagamento, setReferenciaPagamento] = useState('')
@@ -126,9 +125,7 @@ export default function PagamentoPage() {
   const searchParams = useSearchParams()
   const pathname = usePathname()
 
-
-
-const extrairIdPedido = (pathname: string, searchParams: URLSearchParams): string | null => {
+  const extrairIdPedido = (pathname: string, searchParams: URLSearchParams): string | null => {
     const idParam = searchParams.get('id_pedido')
     if (idParam) return idParam
 
@@ -137,46 +134,85 @@ const extrairIdPedido = (pathname: string, searchParams: URLSearchParams): strin
     return /^\d+$/.test(idPart) ? idPart : null
   }
 
-
-
   useEffect(() => {
-  const carregarPedido = async () => {
-    const idPedido = extrairIdPedido(pathname, searchParams);
-    
-    if (!idPedido) {
-      setErro('ID do pedido não encontrado');
-      setCarregando(false);
-      return;
-    }
+    const carregarPedido = async () => {
+      const idPedido = extrairIdPedido(pathname, searchParams);
+      
+      console.log('=== DEBUG INFORMAÇÕES ===')
+      console.log('pathname:', pathname)
+      console.log('searchParams:', searchParams.toString())
+      console.log('idPedido extraído:', idPedido)
+      
+      if (!idPedido) {
+        setErro('ID do pedido não encontrado na URL');
+        setDebugInfo(`URL: ${pathname}, Query: ${searchParams.toString()}`)
+        setCarregando(false);
+        return;
+      }
 
-    try {
-      const dados = await buscarPedidoPagamento(Number(idPedido));
-      setPedido(dados);
-    } catch (error: any) {
-      setErro(error.mensagem || 'Erro ao carregar pedido');
-    } finally {
-      setCarregando(false);
+      try {
+        console.log('Tentando buscar pedido com ID:', idPedido)
+        const dados = await buscarPedidoPagamento(Number(idPedido));
+        console.log('Dados recebidos da API:', dados)
+        
+        // Debug mais detalhado
+        setDebugInfo(`
+          ID: ${idPedido}
+          Dados recebidos: ${JSON.stringify(dados, null, 2)}
+          Tipo de dados: ${typeof dados}
+          É objeto: ${typeof dados === 'object'}
+          Tem pedido: ${dados?.pedido ? 'Sim' : 'Não'}
+          Tem itens: ${dados?.itens ? 'Sim' : 'Não'}
+          Tem valores: ${dados?.valores ? 'Sim' : 'Não'}
+        `)
+        
+        setPedido(dados);
+      } catch (error: any) {
+        console.error('Erro ao buscar pedido:', error)
+        setErro(error.mensagem || error.message || 'Erro ao carregar pedido');
+        setDebugInfo(`Erro: ${JSON.stringify(error, null, 2)}`)
+      } finally {
+        setCarregando(false);
+      }
+    };
+
+    carregarPedido();
+  }, [pathname, searchParams]);
+
+  // Validação mais robusta e com logs
+  const isPedidoValid = (pedido: PedidoPagamentoData | null): pedido is PedidoPagamentoData => {
+    console.log('=== VALIDAÇÃO DO PEDIDO ===')
+    console.log('pedido existe:', !!pedido)
+    
+    if (!pedido) {
+      console.log('❌ Pedido é null/undefined')
+      return false
     }
+    
+    console.log('pedido.pedido existe:', !!pedido.pedido)
+    console.log('pedido.pedido.id_pedido:', pedido.pedido?.id_pedido)
+    console.log('pedido.itens existe:', !!pedido.itens)
+    console.log('pedido.itens é array:', Array.isArray(pedido.itens))
+    console.log('pedido.valores existe:', !!pedido.valores)
+    console.log('pedido.valores.total:', pedido.valores?.total)
+    console.log('pedido.valores.total é número:', typeof pedido.valores?.total === 'number')
+    console.log('pedido.valores.total não é NaN:', !isNaN(pedido.valores?.total || NaN))
+    
+    const isValid = !!(
+      pedido && 
+      pedido.pedido?.id_pedido && 
+      pedido.itens && 
+      Array.isArray(pedido.itens) && 
+      pedido.valores &&
+      typeof pedido.valores.total === 'number' &&
+      !isNaN(pedido.valores.total)
+    );
+    
+    console.log('✅ Pedido válido:', isValid)
+    return isValid
   };
 
-  carregarPedido();
-}, [pathname, searchParams]);
-  
-
-const isPedidoValid = (pedido: PedidoPagamentoData | null): pedido is PedidoPagamentoData => {
-  return !!(
-    pedido && 
-    pedido.pedido?.id_pedido && 
-    pedido.itens && 
-    Array.isArray(pedido.itens) && 
-    pedido.valores &&
-    typeof pedido.valores.total === 'number' &&
-    !isNaN(pedido.valores.total)
-  );
-};
-
-
-// Função segura para formatar valores
+  // Função segura para formatar valores
   const formatarValor = (valor: number | undefined | null): string => {
     if (typeof valor !== 'number' || isNaN(valor)) {
       return 'R$ 0,00'
@@ -194,24 +230,21 @@ const isPedidoValid = (pedido: PedidoPagamentoData | null): pedido is PedidoPaga
     }
     return valor.toString()
   }
-const gerarReferencia = () => {
-  if (!isPedidoValid(pedido)) {
-    console.error('Pedido inválido para gerar referência')
-    setErro('Dados do pedido inválidos')
-    return
-  }
-  
-  // MUDE ESTA LINHA:
-  const novaReferencia = `REF_${pedido.pedido.id_pedido}_${Date.now()}`
-  // ANTES ERA: pedido.id_pedido
-  
-  const novoTransacaoId = `TXN_${Math.random().toString(36).slice(2, 10).toUpperCase()}`
-  
-  setReferenciaPagamento(novaReferencia)
-  setTransacaoId(novoTransacaoId)
-  setStatus('referencia_gerada')
-}
 
+  const gerarReferencia = () => {
+    if (!isPedidoValid(pedido)) {
+      console.error('Pedido inválido para gerar referência')
+      setErro('Dados do pedido inválidos')
+      return
+    }
+    
+    const novaReferencia = `REF_${pedido.pedido.id_pedido}_${Date.now()}`
+    const novoTransacaoId = `TXN_${Math.random().toString(36).slice(2, 10).toUpperCase()}`
+    
+    setReferenciaPagamento(novaReferencia)
+    setTransacaoId(novoTransacaoId)
+    setStatus('referencia_gerada')
+  }
 
   const copiarReferencia = async () => {
     try {
@@ -291,27 +324,57 @@ const gerarReferencia = () => {
   if (erro) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center text-red-600">
+        <div className="text-center text-red-600 max-w-2xl mx-auto p-4">
           <p className="text-xl mb-4">⚠️ {erro}</p>
-          <button 
-            onClick={() => window.location.reload()} 
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-          >
-            Tentar Novamente
-          </button>
+          
+          {/* Informações de debug */}
+          <div className="bg-gray-100 p-4 rounded-lg text-left text-sm mb-4">
+            <h3 className="font-bold mb-2">Debug Info:</h3>
+            <pre className="whitespace-pre-wrap text-xs">{debugInfo}</pre>
+          </div>
+          
+          <div className="space-x-4">
+            <button 
+              onClick={() => window.location.reload()} 
+              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            >
+              Tentar Novamente
+            </button>
+            <button 
+              onClick={() => router.push('/pedidos')} 
+              className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700"
+            >
+              Voltar aos Pedidos
+            </button>
+          </div>
         </div>
       </div>
     )
   }
 
+  // Verificação melhorada com informações de debug
   if (!isPedidoValid(pedido)) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
+        <div className="text-center max-w-2xl mx-auto p-4">
           <p className="text-xl mb-4">Pedido não encontrado ou inválido</p>
+          
+          {/* Mostrar dados recebidos para debug */}
+          <div className="bg-gray-100 p-4 rounded-lg text-left text-sm mb-4">
+            <h3 className="font-bold mb-2">Dados recebidos:</h3>
+            <pre className="whitespace-pre-wrap text-xs">
+              {pedido ? JSON.stringify(pedido, null, 2) : 'null'}
+            </pre>
+          </div>
+          
+          <div className="bg-yellow-100 p-4 rounded-lg text-left text-sm mb-4">
+            <h3 className="font-bold mb-2">Debug Info:</h3>
+            <pre className="whitespace-pre-wrap text-xs">{debugInfo}</pre>
+          </div>
+          
           <button 
             onClick={() => router.push('/pedidos')} 
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            className="bg-marieth text-white px-4 py-2 rounded hover:bg-blue-700"
           >
             Voltar aos Pedidos
           </button>
@@ -320,17 +383,6 @@ const gerarReferencia = () => {
     )
   }
 
-  // Exemplo de uso seguro no JSX
-  const renderizarResumo = () => (
-    <div className="bg-gray-50 p-4 rounded-lg">
-      <h3 className="font-semibold mb-2">Resumo do Pedido</h3>
-      <div className="space-y-1">
-        <p>Pedido: #{pedido.pedido.id_pedido}</p>
-        <p>Itens: {formatarNumero(pedido.itens.length)}</p>
-        <p className="font-bold">Total: {formatarValor(pedido.valores.total)}</p>
-      </div>
-    </div>
-  )
   // MODAL DE PAGAMENTO
   const ModalPagamento = () => {
     if (!mostrarModal || !isPedidoValid(pedido)) return null
@@ -517,7 +569,7 @@ const gerarReferencia = () => {
               {/* Itens do pedido */}
               <div className="mb-4">
                 <h4 className="font-medium text-gray-700 mb-2">
-                  Itens ({ pedido.itens.length}):
+                  Itens ({pedido.itens.length}):
                 </h4>
                 {pedido.itens.map((item, index) => (
                   <div key={index} className="flex justify-between items-center py-2 border-b border-gray-200 last:border-b-0">
@@ -534,7 +586,7 @@ const gerarReferencia = () => {
               <div className="space-y-2 border-t pt-3">
                 <div className="flex justify-between text-sm">
                   <span>Subtotal:</span> 
-                  <span>{pedido.valores.subtotal.toLocaleString()}  Kz</span>
+                  <span>{pedido.valores.subtotal.toLocaleString()} Kz</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span>Frete ({pedido.valores.peso_total || 0}kg):</span>
@@ -563,10 +615,10 @@ const gerarReferencia = () => {
                 Endereço de Entrega
               </h3>
               <p className="text-sm text-gray-700">
-               {[pedido.pedido.rua, pedido.pedido.bairro, pedido.pedido.municipio, pedido.pedido.provincia].filter(Boolean).join(', ') || 'Endereço não especificado'}
-
+                {[pedido.pedido.rua, pedido.pedido.bairro, pedido.pedido.municipio, pedido.pedido.provincia].filter(Boolean).join(', ') || 'Endereço não especificado'}
               </p>
             </div>
+
 
             {/* Métodos de Pagamento */}
             <div className="mb-6">
