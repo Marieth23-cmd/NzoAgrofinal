@@ -218,7 +218,7 @@ export default function CategoriaVerduras() {
             } else if (produtosFiltrados.length > 0) {
               const tiposDisponiveis = Array.from(new Set(produtosFiltrados.map(p => p.nome)))
               sugestoes.tipos = tiposDisponiveis.slice(0, 3)
-              sugestoes.mensagem = `Em ${provinciaFiltroInput} ${precoFiltroInput ? `na faixa ${traduzirFaixaPreco(precoFiltroInput)}` : ''}, temos estas frutas:`
+              sugestoes.mensagem = `Em ${provinciaFiltroInput} ${precoFiltroInput ? `na faixa ${traduzirFaixaPreco(precoFiltroInput)}` : ''}, temos estas Veduras:`
             }
           }
         }
@@ -257,7 +257,7 @@ export default function CategoriaVerduras() {
             
             sugestoes.provincias = provinciasDisponiveis.slice(0, 3)
             sugestoes.tipos = tiposDisponiveis.slice(0, 3)
-            sugestoes.mensagem = `Na faixa ${traduzirFaixaPreco(precoFiltroInput)}, temos frutas em:`
+            sugestoes.mensagem = `Na faixa ${traduzirFaixaPreco(precoFiltroInput)}, temos Verduras em:`
           }
         }
   
@@ -323,7 +323,7 @@ export default function CategoriaVerduras() {
 
     async function carregarProdutosParaSelects() {
       try {
-        const produtosRecebidos = await buscarProdutosPorCategoria("Frutas", {})
+        const produtosRecebidos = await buscarProdutosPorCategoria("Verduras", {})
         if (isMounted) {
           setProdutosOriginais(produtosRecebidos)
         }

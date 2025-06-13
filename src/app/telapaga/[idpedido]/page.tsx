@@ -2,7 +2,7 @@
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import Footer from '../../Components/Footer'
 import Navbar from '../../Components/Navbar'
-import { getPedidosUsuario } from '@/app/Services/pedidos'
+import { buscarPedidoPagamento} from '@/app/Services/pedidos'
 import { useState, useEffect, FormEvent } from 'react'
 
 type MetodoPagamento = 'unitel_money' | 'afrimoney' | 'multicaixa'
@@ -17,34 +17,35 @@ type MetodoInfo = {
 }
 
 export interface PedidoPagamentoData {
-  id_pedido: number
-  valor_total: number
-  estado: string
-  data_pedido: string
-  rua?: string
-  bairro?: string
-  pais?: string
-  municipio?: string
-  referencia?: string
-  provincia?: string
-  numero?: string
+  pedido: {
+    id_pedido: number;
+    valor_total: number;
+    estado: string;
+    data_pedido: string;
+    rua?: string;
+    bairro?: string;
+    municipio?: string;
+    provincia?: string;
+    numero?: string;
+  };
   itens: Array<{
-    id_produto: number
-    quantidade_comprada: number
-    preco: number
-    subtotal: number
-    nome_produto: string
-    peso_kg: number
-  }>
-  resumo: {
-    subtotal: number
-    frete: number
-    comissao: number
-    total: number
-    peso_total: number
-    quantidade_itens: number
-  }
+    id_produto: number;
+    quantidade_comprada: number;
+    preco: number;
+    subtotal: number;
+    nome_produto: string;
+    peso_kg: number;
+  }>;
+  valores: {
+    subtotal: number;
+    frete: number;
+    comissao:number;
+    total: number;
+    peso_total: number;
+  };
 }
+
+
 
 const metodos: Record<MetodoPagamento, MetodoInfo> = {
   unitel_money: {
@@ -135,81 +136,47 @@ const extrairIdPedido = (pathname: string, searchParams: URLSearchParams): strin
     const idPart = pathParts[pathParts.length - 1]
     return /^\d+$/.test(idPart) ? idPart : null
   }
-  
 
 
 
-
-  // ÚNICO useEffect para carregar pedido
   useEffect(() => {
-    const carregarPedido = async () => {
-      try {
-        const id_pedido_str = extrairIdPedido(pathname, searchParams)
-        
-        if (!id_pedido_str) {
-          setErro('ID do pedido não fornecido na URL')
-          setCarregando(false)
-          return
-        }
-
-        const id_pedido = Number(id_pedido_str)
-        
-        if (isNaN(id_pedido) || id_pedido <= 0) {
-          setErro('ID do pedido inválido')
-          setCarregando(false)
-          return
-        }
-
-        console.log('Carregando pedido com ID:', id_pedido)
-
-        const dadosPedido = await getPedidosUsuario()
-        console.log('Dados recebidos:', dadosPedido) // Debug
-        
-        // Validação robusta dos dados
-        if (dadosPedido && 
-            dadosPedido.resumo && 
-            typeof dadosPedido.resumo.total === 'number' &&
-            !isNaN(dadosPedido.resumo.total) &&
-            dadosPedido.itens &&
-            Array.isArray(dadosPedido.itens)) {
-          setPedido(dadosPedido)
-          setErro('') // Limpar erros anteriores
-        } else {
-          setErro('Dados do pedido incompletos ou inválidos')
-          console.error('Dados inválidos recebidos:', {
-            temResumo: !!dadosPedido?.resumo,
-            tipoTotal: typeof dadosPedido?.resumo?.total,
-            valorTotal: dadosPedido?.resumo?.total,
-            temItens: !!dadosPedido?.itens,
-            isArrayItens: Array.isArray(dadosPedido?.itens)
-          })
-        }
-      } catch (error: any) {
-        console.error('Erro ao carregar pedido:', error)
-        setErro(error.message || 'Erro ao carregar dados do pedido')
-      } finally {
-        setCarregando(false)
-      }
+  const carregarPedido = async () => {
+    const idPedido = extrairIdPedido(pathname, searchParams);
+    
+    if (!idPedido) {
+      setErro('ID do pedido não encontrado');
+      setCarregando(false);
+      return;
     }
 
-    carregarPedido()
-  }, [pathname, searchParams])
+    try {
+      const dados = await buscarPedidoPagamento(Number(idPedido));
+      setPedido(dados);
+    } catch (error: any) {
+      setErro(error.mensagem || 'Erro ao carregar pedido');
+    } finally {
+      setCarregando(false);
+    }
+  };
 
-  // Função para validar pedido
-  const isPedidoValid = (pedido: PedidoPagamentoData | null): pedido is PedidoPagamentoData => {
-    return !!(
-      pedido && 
-      pedido.id_pedido && 
-      pedido.itens && 
-      Array.isArray(pedido.itens) && 
-      pedido.resumo &&
-      typeof pedido.resumo.quantidade_itens === 'number' &&
-      typeof pedido.resumo.total === 'number' &&
-      !isNaN(pedido.resumo.total)
-    )
-  }
+  carregarPedido();
+}, [pathname, searchParams]);
+  
 
-  // Função segura para formatar valores
+const isPedidoValid = (pedido: PedidoPagamentoData | null): pedido is PedidoPagamentoData => {
+  return !!(
+    pedido && 
+    pedido.pedido?.id_pedido && 
+    pedido.itens && 
+    Array.isArray(pedido.itens) && 
+    pedido.valores &&
+    typeof pedido.valores.total === 'number' &&
+    !isNaN(pedido.valores.total)
+  );
+};
+
+
+// Função segura para formatar valores
   const formatarValor = (valor: number | undefined | null): string => {
     if (typeof valor !== 'number' || isNaN(valor)) {
       return 'R$ 0,00'
@@ -227,21 +194,24 @@ const extrairIdPedido = (pathname: string, searchParams: URLSearchParams): strin
     }
     return valor.toString()
   }
-
-  const gerarReferencia = () => {
-    if (!isPedidoValid(pedido)) {
-      console.error('Pedido inválido para gerar referência')
-      setErro('Dados do pedido inválidos')
-      return
-    }
-    
-    const novaReferencia = `REF_${pedido.id_pedido}_${Date.now()}`
-    const novoTransacaoId = `TXN_${Math.random().toString(36).slice(2, 10).toUpperCase()}`
-    
-    setReferenciaPagamento(novaReferencia)
-    setTransacaoId(novoTransacaoId)
-    setStatus('referencia_gerada')
+const gerarReferencia = () => {
+  if (!isPedidoValid(pedido)) {
+    console.error('Pedido inválido para gerar referência')
+    setErro('Dados do pedido inválidos')
+    return
   }
+  
+  // MUDE ESTA LINHA:
+  const novaReferencia = `REF_${pedido.pedido.id_pedido}_${Date.now()}`
+  // ANTES ERA: pedido.id_pedido
+  
+  const novoTransacaoId = `TXN_${Math.random().toString(36).slice(2, 10).toUpperCase()}`
+  
+  setReferenciaPagamento(novaReferencia)
+  setTransacaoId(novoTransacaoId)
+  setStatus('referencia_gerada')
+}
+
 
   const copiarReferencia = async () => {
     try {
@@ -311,7 +281,7 @@ const extrairIdPedido = (pathname: string, searchParams: URLSearchParams): strin
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-marieth mx-auto mb-4"></div>
           <p>Carregando dados do pedido...</p>
         </div>
       </div>
@@ -355,9 +325,9 @@ const extrairIdPedido = (pathname: string, searchParams: URLSearchParams): strin
     <div className="bg-gray-50 p-4 rounded-lg">
       <h3 className="font-semibold mb-2">Resumo do Pedido</h3>
       <div className="space-y-1">
-        <p>Pedido: #{pedido.id_pedido}</p>
-        <p>Itens: {formatarNumero(pedido.resumo.quantidade_itens)}</p>
-        <p className="font-bold">Total: {formatarValor(pedido.resumo.total)}</p>
+        <p>Pedido: #{pedido.pedido.id_pedido}</p>
+        <p>Itens: {formatarNumero(pedido.itens.length)}</p>
+        <p className="font-bold">Total: {formatarValor(pedido.valores.total)}</p>
       </div>
     </div>
   )
@@ -428,7 +398,7 @@ const extrairIdPedido = (pathname: string, searchParams: URLSearchParams): strin
                   <span className="font-semibold">{metodos[metodo].nome}</span>
                 </div>
                 <div className="text-right">
-                  <div className="text-lg font-bold">{pedido.resumo.total.toLocaleString()} Kz</div>
+                  <div className="text-lg font-bold">{pedido.valores.total.toLocaleString()} Kz</div>
                 </div>
               </div>
             </div>
@@ -532,7 +502,7 @@ const extrairIdPedido = (pathname: string, searchParams: URLSearchParams): strin
             {/* Header */}
             <div className="text-center mb-6">
               <h1 className="text-xl sm:text-2xl font-bold text-green-600">Pagamento Digital</h1>
-              <p className="text-sm sm:text-base text-gray-600">Pedido #{pedido.id_pedido}</p>
+              <p className="text-sm sm:text-base text-gray-600">Pedido #{pedido.pedido.id_pedido}</p>
             </div>
 
             {/* Resumo do Pedido */}
@@ -547,7 +517,7 @@ const extrairIdPedido = (pathname: string, searchParams: URLSearchParams): strin
               {/* Itens do pedido */}
               <div className="mb-4">
                 <h4 className="font-medium text-gray-700 mb-2">
-                  Itens ({pedido.resumo.quantidade_itens || pedido.itens.length}):
+                  Itens ({ pedido.itens.length}):
                 </h4>
                 {pedido.itens.map((item, index) => (
                   <div key={index} className="flex justify-between items-center py-2 border-b border-gray-200 last:border-b-0">
@@ -563,22 +533,22 @@ const extrairIdPedido = (pathname: string, searchParams: URLSearchParams): strin
               {/* Cálculos */}
               <div className="space-y-2 border-t pt-3">
                 <div className="flex justify-between text-sm">
-                  <span>Subtotal:</span>
-                  <span>{pedido.resumo.subtotal.toLocaleString()} Kz</span>
+                  <span>Subtotal:</span> 
+                  <span>{pedido.valores.subtotal.toLocaleString()}  Kz</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span>Frete ({pedido.resumo.peso_total || 0}kg):</span>
-                  <span>{pedido.resumo.frete.toLocaleString()} Kz</span>
+                  <span>Frete ({pedido.valores.peso_total || 0}kg):</span>
+                  <span>{pedido.valores.frete.toLocaleString()} Kz</span>
                 </div>
-                {pedido.resumo.comissao > 0 && (
+                {pedido.valores.comissao > 0 && (
                   <div className="flex justify-between text-sm text-orange-600">
                     <span>Comissão:</span>
-                    <span>{pedido.resumo.comissao.toLocaleString()} Kz</span>
+                    <span>{pedido.valores.comissao.toLocaleString()} Kz</span>
                   </div>
                 )}
                 <div className="flex justify-between border-t pt-2 font-bold text-green-600 text-lg">
                   <span>Total a Pagar:</span>
-                  <span>{pedido.resumo.total.toLocaleString()} Kz</span>
+                  <span>{pedido.valores.total.toLocaleString()} Kz</span>
                 </div>
               </div>
             </div>
@@ -593,7 +563,8 @@ const extrairIdPedido = (pathname: string, searchParams: URLSearchParams): strin
                 Endereço de Entrega
               </h3>
               <p className="text-sm text-gray-700">
-                {[pedido.rua, pedido.bairro, pedido.municipio, pedido.provincia].filter(Boolean).join(', ') || 'Endereço não especificado'}
+               {[pedido.pedido.rua, pedido.pedido.bairro, pedido.pedido.municipio, pedido.pedido.provincia].filter(Boolean).join(', ') || 'Endereço não especificado'}
+
               </p>
             </div>
 

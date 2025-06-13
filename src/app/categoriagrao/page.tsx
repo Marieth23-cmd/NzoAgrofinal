@@ -213,7 +213,7 @@ export default function CategoriaGraos() {
             } else if (produtosFiltrados.length > 0) {
               const tiposDisponiveis = Array.from(new Set(produtosFiltrados.map(p => p.nome)))
               sugestoes.tipos = tiposDisponiveis.slice(0, 3)
-              sugestoes.mensagem = `Em ${provinciaFiltroInput} ${precoFiltroInput ? `na faixa ${traduzirFaixaPreco(precoFiltroInput)}` : ''}, temos estas frutas:`
+              sugestoes.mensagem = `Em ${provinciaFiltroInput} ${precoFiltroInput ? `na faixa ${traduzirFaixaPreco(precoFiltroInput)}` : ''}, temos estas Grãos:`
             }
           }
         }
@@ -252,7 +252,7 @@ export default function CategoriaGraos() {
             
             sugestoes.provincias = provinciasDisponiveis.slice(0, 3)
             sugestoes.tipos = tiposDisponiveis.slice(0, 3)
-            sugestoes.mensagem = `Na faixa ${traduzirFaixaPreco(precoFiltroInput)}, temos frutas em:`
+            sugestoes.mensagem = `Na faixa ${traduzirFaixaPreco(precoFiltroInput)}, temos Grãos em:`
           }
         }
   
@@ -318,7 +318,7 @@ export default function CategoriaGraos() {
 
     async function carregarProdutosParaSelects() {
       try {
-        const produtosRecebidos = await buscarProdutosPorCategoria("Frutas", {})
+        const produtosRecebidos = await buscarProdutosPorCategoria("Graos", {})
         if (isMounted) {
           setProdutosOriginais(produtosRecebidos)
         }
