@@ -4,7 +4,8 @@ import Footer from '../../Components/Footer'
 import Navbar from '../../Components/Navbar'
 import { buscarPedidoPagamento} from '@/app/Services/pedidos'
 import { useState, useEffect, FormEvent } from 'react'
-
+import {gerarReferenciaPagamento} from '../../Services/pagamentos'
+ 
 const parseNumeroSeguro = (valor: any): number => {
   if (typeof valor === 'number') return valor;
   if (typeof valor === 'string') {
@@ -43,7 +44,7 @@ const normalizarDadosPedido = (dadosBrutos: any): PedidoPagamentoData | null => 
 };
 
 type MetodoPagamento = 'unitel_money' | 'afrimoney' | 'multicaixa'
-type StatusPagamento = 'inicial' | 'referencia_gerada' | 'processando' | 'sucesso' | 'erro'
+type StatusPagamento = 'inicial' | 'referencia_gerada' | 'processando' | 'sucesso' | 'erro'| 'carregando'
 
 type MetodoInfo = {
   nome: string
@@ -51,6 +52,14 @@ type MetodoInfo = {
   instrucoes: string[]
   icon: React.ReactNode
   cor: string
+}
+
+
+interface DadosPagamento {
+  tipo_pagamento: string
+  valor_total: number
+  carrinho_id?: string
+  id_vendedor?: string
 }
 
 export interface PedidoPagamentoData {
@@ -157,6 +166,7 @@ export default function PagamentoPage() {
   const [copiado, setCopiado] = useState(false)
   const [mostrarModal, setMostrarModal] = useState(false)
   const [mensagemErro, setMensagemErro] = useState('')
+  const [isCarregando, setIsCarregando] = useState(false)
   
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -264,20 +274,40 @@ const formatarValor = (valor: any): string => {
   return numero.toLocaleString('pt-AO') + ' Kz';
 };
 
-  const gerarReferencia = () => {
-    if (!isPedidoValid(pedido)) {
-      console.error('Pedido inválido para gerar referência')
-      setErro('Dados do pedido inválidos')
-      return
-    }
-    
-    const novaReferencia = `REF_${pedido.pedido.id_pedido}_${Date.now()}`
-    const novoTransacaoId = `TXN_${Math.random().toString(36).slice(2, 10).toUpperCase()}`
-    
-    setReferenciaPagamento(novaReferencia)
-    setTransacaoId(novoTransacaoId)
-    setStatus('referencia_gerada')
+const gerarReferencia = async () => {
+  if (!isPedidoValid(pedido)) {
+    console.error('Pedido inválido para gerar referência')
+    setErro('Dados do pedido inválidos')
+    return
   }
+
+  try {
+    setIsCarregando(true)
+    
+    const dadosPagamento = {
+      tipo_pagamento: metodo,
+      valor_total: pedido.valores.total, // ✅ VALOR CORRETO
+      carrinho_id: pedido.pedido.id_pedido.toString(),
+     
+    }
+
+    const resposta = await gerarReferenciaPagamento(dadosPagamento)
+    
+    if (resposta.sucesso) {
+      setReferenciaPagamento(resposta.referencia.codigo)
+      setStatus('referencia_gerada')
+    } else {
+      setErro('Erro ao gerar referência de pagamento')
+      setStatus('inicial')
+    }
+  } catch (error: any) {
+    console.error('Erro:', error)
+    setErro(error.erro || 'Erro ao gerar referência')
+    setStatus('inicial')
+  } finally {
+    setIsCarregando(false)
+  }
+}
 
   const copiarReferencia = async () => {
     try {
@@ -334,14 +364,16 @@ const formatarValor = (valor: any): string => {
     setMensagemErro('')
   }
 
+  
   const reiniciar = () => {
-    setStatus('inicial')
-    setReferenciaPagamento('')
-    setTransacaoId('')
-    setReferenciaInput('')
-    setMensagemErro('')
-  }
-
+  setStatus('inicial')
+  setReferenciaPagamento('')
+  setTransacaoId('')
+  setReferenciaInput('')
+  setMensagemErro('')
+  setErro('') // Adicionar esta linha
+  setIsCarregando(false) // Adicionar esta linha
+}
   // Estados de loading e erro
   if (carregando) {
     return (
@@ -353,6 +385,9 @@ const formatarValor = (valor: any): string => {
       </div>
     )
   }
+
+
+  
 
   if (erro) {
     return (
@@ -639,8 +674,8 @@ const formatarValor = (valor: any): string => {
             </div>
 
             {/* Endereço de entrega */}
-            <div className="bg-blue-50 rounded-lg p-4 mb-6">
-              <h3 className="font-semibold text-blue-700 mb-2 flex items-center">
+            <div className="bg-green-50 rounded-lg p-4 mb-6">
+              <h3 className="font-semibold text-marieth mb-2 flex items-center">
                 <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -688,19 +723,36 @@ const formatarValor = (valor: any): string => {
               </div>
             </div>
 
+                {erro && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-red-600 text-sm">{erro}</p>
+              </div>
+            )}
+
+
+
             {/* Botão Gerar Referência */}
-            {status === 'inicial' && (
-              <button
-                onClick={gerarReferencia}
-                className="w-full bg-green-600 hover:bg-green-700 text-white py-2 sm:py-3 rounded-lg font-semibold transition flex items-center justify-center space-x-2 mb-4"
-              >
+           {status === 'inicial' && (
+          <button
+            onClick={gerarReferencia}
+            disabled={isCarregando}
+            className={`w-full ${isCarregando ? 'bg-gray-400' : 'bg-green-600 hover:bg-green-700'} text-white py-2 sm:py-3 rounded-lg font-semibold transition flex items-center justify-center space-x-2 mb-4`}
+          >
+            {isCarregando ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                <span className="text-sm sm:text-base">Gerando...</span>
+              </>
+            ) : (
+              <>
                 <span className="text-sm sm:text-base">Gerar Referência de Pagamento</span>
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
                 </svg>
-              </button>
+              </>
             )}
-
+          </button>
+        )}
 
 
 

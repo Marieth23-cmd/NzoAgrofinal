@@ -1,5 +1,5 @@
 "use client"
-import { FaCamera, FaStar, FaCog } from "react-icons/fa";
+import { FaCamera, FaStar, FaCog ,FaShoppingCart } from "react-icons/fa";
 import Navbar from "../Components/Navbar";
 import { FaCirclePlus, FaRegStarHalfStroke } from "react-icons/fa6"
 import { IoCall } from "react-icons/io5";
@@ -194,6 +194,11 @@ export default function PerfilComprador() {
       }
     };
     
+      const criarNovoPedido=()=>{
+      router.push("/TodosProdutos")
+      }
+
+
 
 type Pedido = {
   id_pedido: number;
@@ -416,20 +421,31 @@ const solicitarReembolso = async (pedido: Pedido) => {
                   Pedido #{pedido.id_pedido}
                 </h3>
                 <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium w-fit ${
-                  pedido.estado === 'Entregue' || pedido.entrega_confirmada
+                  pedido.estado === 'entregue' && pedido.entrega_confirmada
                     ? 'bg-green-100 text-green-800'
-                    : pedido.estado === 'Cancelado'
+                    : pedido.estado === 'entregue'
+                    ? 'bg-green-50 text-green-700'
+                    : pedido.estado === 'cancelado'
                     ? 'bg-red-100 text-red-800'
-                    : pedido.estado === 'Em trânsito'
-                    ? 'bg-yellow-100 text-yellow-800'
-                    : pedido.estado === 'Pendente' || pedido.estado === 'pendente'
+                    : pedido.estado === 'enviado'
                     ? 'bg-blue-100 text-blue-800'
+                    : pedido.estado === 'processado'
+                    ? 'bg-purple-100 text-purple-800'
+                    : pedido.estado === 'confirmado'
+                    ? 'bg-teal-100 text-teal-800'
+                    : pedido.estado === 'pendente'
+                    ? 'bg-yellow-100 text-yellow-800'
                     : pedido.estado === 'expirado'
                     ? 'bg-gray-100 text-gray-800'
                     : 'bg-gray-100 text-gray-800'
                 }`}>
-                  {pedido.entrega_confirmada ? 'Recebimento Confirmado' : 
-                   pedido.estado === 'pendente' ? 'Pendente' :
+                  {pedido.entrega_confirmada && pedido.estado === 'entregue' ? 'Recebimento Confirmado' : 
+                   pedido.estado === 'pendente' ? 'Aguardando Pagamento' :
+                   pedido.estado === 'confirmado' ? 'Pagamento Confirmado' :
+                   pedido.estado === 'processado' ? 'Em Preparação' :
+                   pedido.estado === 'enviado' ? 'Em Trânsito' :
+                   pedido.estado === 'entregue' ? 'Entregue' :
+                   pedido.estado === 'cancelado' ? 'Cancelado' :
                    pedido.estado === 'expirado' ? 'Expirado' :
                    pedido.estado}
                 </span>
@@ -467,13 +483,38 @@ const solicitarReembolso = async (pedido: Pedido) => {
                         Cancelar Pedido
                       </button>
                       <p className="text-sm text-gray-600 flex items-center">
-                        Aguardando processamento...
+                        Aguardando pagamento...
                       </p>
                     </div>
                   );
 
-                case 'em trânsito':
-                case 'em transito':
+                case 'confirmado':
+                  return (
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <div className="flex items-center gap-2 text-teal-600">
+                        <FaCheck size={16} />
+                        <span className="font-medium">Pagamento confirmado</span>
+                      </div>
+                      <p className="text-sm text-gray-600 flex items-center">
+                        Seu pedido será processado em breve.
+                      </p>
+                    </div>
+                  );
+
+                case 'processado':
+                  return (
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <div className="flex items-center gap-2 text-purple-600">
+                        <FaBox size={16} />
+                        <span className="font-medium">Em preparação</span>
+                      </div>
+                      <p className="text-sm text-gray-600 flex items-center">
+                        Seu pedido está sendo preparado para envio.
+                      </p>
+                    </div>
+                  );
+
+                case 'enviado':
                   return (
                     <div className="flex flex-col sm:flex-row gap-3">
                       <button
@@ -484,11 +525,11 @@ const solicitarReembolso = async (pedido: Pedido) => {
                         Confirmar Recebimento
                       </button>
                       <button
-                        onClick={() => cancelarPedido(pedido)}
-                        className="flex items-center justify-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-md transition-colors"
+                        onClick={() => solicitarReembolso(pedido)}
+                        className="flex items-center justify-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-md transition-colors"
                       >
-                        <FaTimes size={16} />
-                        Cancelar Pedido
+                        <FaRegStarHalfStroke size={16} />
+                        Solicitar Reembolso
                       </button>
                       <p className="text-sm text-gray-600 flex items-center">
                         Produto a caminho. Confirme quando receber.
@@ -507,34 +548,18 @@ const solicitarReembolso = async (pedido: Pedido) => {
                           <FaCheck size={16} />
                           Confirmar Recebimento
                         </button>
-                        <button
-                          onClick={() => solicitarReembolso(pedido)}
-                          className="flex items-center justify-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-md transition-colors"
-                        >
-                          <FaRegStarHalfStroke size={16} />
-                          Solicitar Reembolso
-                        </button>
                         <p className="text-sm text-gray-600 flex items-center">
-                          Produto entregue. Confirme o recebimento.
+                          Produto entregue. Confirme o recebimento para finalizar.
                         </p>
                       </div>
                     );
                   } else {
                     return (
-                      <div className="flex flex-col sm:flex-row gap-3 items-start">
-                        <div className="flex items-center gap-2 text-green-600">
-                          <FaCheck size={16} />
-                          <span className="font-medium">Recebimento confirmado</span>
-                        </div>
-                        <button
-                          onClick={() => solicitarReembolso(pedido)}
-                          className="flex items-center justify-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-md transition-colors text-sm"
-                        >
-                          <FaRegStarHalfStroke size={14} />
-                          Solicitar Reembolso
-                        </button>
-                        <p className="text-sm text-gray-600">
-                          Pedido concluído com sucesso.
+                      <div className="flex items-center gap-2 text-green-600">
+                        <FaCheck size={16} />
+                        <span className="font-medium">Pedido finalizado com sucesso</span>
+                        <p className="text-sm text-gray-600 ml-4">
+                          Transação concluída.
                         </p>
                       </div>
                     );
@@ -558,25 +583,14 @@ const solicitarReembolso = async (pedido: Pedido) => {
                         <span className="font-medium">Pedido expirado</span>
                       </div>
                       <button
-                        onClick={() => solicitarReembolso(pedido)}
-                        className="flex items-center justify-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-md transition-colors text-sm"
+                        onClick={criarNovoPedido}
+                        className="flex items-center justify-center gap-2 px-4 py-2 bg-marieth hover:bg-verdeaceso text-white rounded-md transition-colors text-sm"
                       >
-                        <FaRegStarHalfStroke size={14} />
-                        Solicitar Reembolso
+                        <FaShoppingCart size={14} />
+                        Criar Novo Pedido
                       </button>
                       <p className="text-sm text-gray-600">
-                        Tempo limite excedido. Você pode solicitar reembolso.
-                      </p>
-                    </div>
-                  );
-
-                case 'reembolsado':
-                  return (
-                    <div className="flex items-center gap-2 text-blue-600">
-                      <FaRegStarHalfStroke size={16} />
-                      <span className="font-medium">Reembolso processado</span>
-                      <p className="text-sm text-gray-600 ml-4">
-                        O valor foi reembolsado.
+                        Prazo de pagamento expirado. Você pode criar um novo pedido.
                       </p>
                     </div>
                   );
@@ -592,9 +606,9 @@ const solicitarReembolso = async (pedido: Pedido) => {
           </div>
 
           {/* Informações adicionais baseadas no estado */}
-          {(pedido.estado?.toLowerCase() === 'em trânsito' || pedido.estado?.toLowerCase() === 'em transito') && (
-            <div className="mt-4 p-3 bg-yellow-50 border-l-4 border-yellow-400 rounded">
-              <p className="text-sm text-yellow-800">
+          {pedido.estado?.toLowerCase() === 'enviado' && (
+            <div className="mt-4 p-3 bg-blue-50 border-l-4 border-blue-400 rounded">
+              <p className="text-sm text-blue-800">
                 <strong>Importante:</strong> Só confirme o recebimento depois de receber e verificar o produto.
               </p>
             </div>
@@ -607,13 +621,19 @@ const solicitarReembolso = async (pedido: Pedido) => {
               </p>
             </div>
           )}
+
+          {pedido.estado?.toLowerCase() === 'expirado' && (
+            <div className="mt-4 p-3 bg-gray-50 border-l-4 border-gray-400 rounded">
+              <p className="text-sm text-gray-700">
+                <strong>Pedido expirado:</strong> O prazo de 24h para pagamento foi ultrapassado. Você pode criar um novo pedido com os mesmos produtos.
+              </p>
+            </div>
+          )}
         </div>
       ))}
     </div>
   )}
 </div>
-
-
 
 
 
