@@ -149,7 +149,7 @@ const Dashboard = () => {
                 </div>
                 
                 <div className="flex items-center gap-2">
-                  <FaPhone className="text-green-500" />
+                  <FaPhone className="text-marieth" />
                   <span className="text-sm text-gray-700">{pedido.telefone}</span>
                 </div>
 
@@ -159,7 +159,7 @@ const Dashboard = () => {
                     {pedido.itens.map((item, idx) => (
                       <p key={idx} className="text-sm text-gray-700">{item}</p>
                     ))}
-                    <p className="font-bold text-lg text-green-600 mt-1">{pedido.total}</p>
+                    <p className="font-bold text-lg text-marieth mt-1">{pedido.total}</p>
                   </div>
                 </div>
               </div>
@@ -212,7 +212,7 @@ const Dashboard = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-800">Gestão de Filiais</h2>
-        <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center gap-2">
+        <button className="bg-marieth hover:bg-verdeaceso text-white px-4 py-2 rounded-md flex items-center gap-2">
           <FaBuilding /> Nova Filial
         </button>
       </div>
@@ -221,7 +221,7 @@ const Dashboard = () => {
         {filiais.map(filial => (
           <div key={filial.id} className="bg-white p-6 rounded-lg shadow">
             <div className="flex items-center gap-3 mb-4">
-              <FaBuilding className="text-blue-600 text-xl" />
+              <FaBuilding className="text-marieth text-xl" />
               <h3 className="font-bold text-lg text-gray-800">{filial.nome}</h3>
             </div>
             <p className="text-gray-600 mb-4">{filial.endereco}</p>
@@ -229,7 +229,7 @@ const Dashboard = () => {
               <button className="bg-blue-600 text-white px-3 py-1 rounded text-sm flex-1">
                 Editar
               </button>
-              <button className="bg-green-600 text-white px-3 py-1 rounded text-sm flex-1">
+              <button className="bg-marieth  text-white px-3 py-1 rounded text-sm flex-1">
                 Ver Entregas
               </button>
             </div>
@@ -250,7 +250,7 @@ const Dashboard = () => {
             <div>
               <h3 className="text-lg font-semibold text-gray-700">Entregas Este Mês</h3>
               <p className="text-3xl font-bold text-blue-600">73</p>
-              <div className="flex items-center mt-2 text-green-600">
+              <div className="flex items-center mt-2 text-marieth">
                 <FaArrowUp className="mr-1" />
                 <span className="text-sm">+12% vs mês anterior</span>
               </div>
@@ -263,8 +263,8 @@ const Dashboard = () => {
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-lg font-semibold text-gray-700">Receita Mensal</h3>
-              <p className="text-3xl font-bold text-green-600">Kz 730K</p>
-              <div className="flex items-center mt-2 text-green-600">
+              <p className="text-3xl font-bold text-marieth">Kz 730K</p>
+              <div className="flex items-center mt-2 text-marieth">
                 <FaArrowUp className="mr-1" />
                 <span className="text-sm">+8% vs mês anterior</span>
               </div>
@@ -318,7 +318,7 @@ const Dashboard = () => {
 
         <div className="bg-white p-6 rounded-lg shadow">
           <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-            <FaMoneyBillWave className="text-green-600" />
+            <FaMoneyBillWave className="text-marieth" />
             Histórico de Receitas (Últimos 6 meses)
           </h3>
           <div className="space-y-3">
@@ -326,9 +326,9 @@ const Dashboard = () => {
               <div key={mes.mes} className="flex items-center justify-between p-3 bg-gray-50 rounded">
                 <span className="font-medium">{mes.mes}</span>
                 <div className="flex items-center gap-3">
-                  <span className="text-green-600 font-bold">Kz {(mes.receita/1000).toFixed(0)}K</span>
+                  <span className="text-marieth font-bold">Kz {(mes.receita/1000).toFixed(0)}K</span>
                   <div className={`flex items-center text-sm ${
-                    index > 0 && mes.receita > dadosGraficos[index-1].receita ? 'text-green-600' :
+                    index > 0 && mes.receita > dadosGraficos[index-1].receita ? 'text-marieth' :
                     index > 0 && mes.receita < dadosGraficos[index-1].receita ? 'text-red-600' :
                     'text-gray-600'
                   }`}>
@@ -363,7 +363,7 @@ const Dashboard = () => {
                   </div>
                   <div className="flex justify-between">
                     <span>Receita:</span>
-                    <span className="font-bold text-green-600">Kz {(receita/1000).toFixed(0)}K</span>
+                    <span className="font-bold text-marieth">Kz {(receita/1000).toFixed(0)}K</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Média/Dia:</span>
@@ -378,11 +378,17 @@ const Dashboard = () => {
     </div>
   );
 
+
+   {/* notificações */}
+
+
+
+
   return (
     <div className="grid grid-cols-[250px_1fr] min-h-screen bg-gray-100">
       {/* Sidebar */}
       <aside className="bg-white p-4 border-r border-gray-200">
-        <div className="text-center p-4 mb-8 font-bold text-xl text-blue-600">
+        <div className="text-center p-4 mb-8 font-bold text-xl text-marieth">
           Transporte NzoAgro
         </div>
         <ul className="space-y-2">
@@ -390,7 +396,7 @@ const Dashboard = () => {
             <button 
               onClick={() => setActiveTab('pedidos')}
               className={`flex items-center p-3 w-full text-left rounded-md gap-2 transition-colors ${
-                activeTab === 'pedidos' ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-gray-100'
+                activeTab === 'pedidos' ? 'bg-green-200 text-marieth' : 'text-gray-700 hover:bg-gray-100'
               }`}
             >
               <FaTruck /> Pedidos
@@ -400,7 +406,7 @@ const Dashboard = () => {
             <button 
               onClick={() => setActiveTab('filiais')}
               className={`flex items-center p-3 w-full text-left rounded-md gap-2 transition-colors ${
-                activeTab === 'filiais' ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-gray-100'
+                activeTab === 'filiais' ? 'bg-green-200 text-marieth' : 'text-gray-700 hover:bg-gray-100'
               }`}
             >
               <FaBuilding /> Filiais
@@ -410,7 +416,7 @@ const Dashboard = () => {
             <button 
               onClick={() => setActiveTab('relatorios')}
               className={`flex items-center p-3 w-full text-left rounded-md gap-2 transition-colors ${
-                activeTab === 'relatorios' ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-gray-100'
+                activeTab === 'relatorios' ? 'bg-green-200 text-marieth' : 'text-gray-700 hover:bg-gray-100'
               }`}
             >
               <FaChartBar /> Relatórios
@@ -451,6 +457,7 @@ const Dashboard = () => {
         {activeTab === 'pedidos' && renderPedidos()}
         {activeTab === 'filiais' && renderFiliais()}
         {activeTab === 'relatorios' && renderRelatorios()}
+        
       </main>
     </div>
   );

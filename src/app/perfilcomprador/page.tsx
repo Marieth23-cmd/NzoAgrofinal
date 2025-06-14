@@ -235,6 +235,30 @@ const confirmarEntregaPedido = async (pedido: Pedido) => {
 };
 
 
+const solicitarReembolso = async (pedido: Pedido) => {
+  try {
+    // Aqui você implementaria a lógica de reembolso
+    // Por exemplo, uma API call para solicitar reembolso
+    
+    toast.info("Solicitação de reembolso enviada. Aguarde análise.");
+    
+    // Atualizar o estado local se necessário
+    setPedidos(prevPedidos => 
+      prevPedidos.map(p => 
+        p.id_pedido === pedido.id_pedido 
+          ? { ...p, estado: 'Reembolso Solicitado' }
+          : p
+      )
+    );
+    
+  } catch (error: any) {
+    console.error('Erro ao solicitar reembolso:', error);
+    toast.error('Erro ao solicitar reembolso. Tente novamente.');
+  }
+};
+
+
+
 
 
   
@@ -360,101 +384,210 @@ const confirmarEntregaPedido = async (pedido: Pedido) => {
 </div>
           </div>
 
-
-                    <div>
-  <h2 className="text-2xl font-bold mb-6 text-center">Histórico de Compras</h2>
+<div className="bg-white rounded-lg shadow-custom border p-6">
+  <h2 className="text-2xl font-bold mb-6 text-profile">Histórico de Compras</h2>
+  
   {carregandoPedidos ? (
     <div className="text-center py-8">
       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-marieth mx-auto mb-4"></div>
-      Carregando histórico de pedidos...
+      <p className="text-gray-600">Carregando histórico de pedidos...</p>
     </div>
   ) : pedidos.length === 0 ? (
-    <div className="text-center py-8">
+    <div className="text-center py-12">
       <FaBox className="mx-auto h-16 w-16 text-gray-400 mb-4" />
       <p className="text-gray-600 mb-4">Você ainda não realizou nenhuma compra.</p>
       <button
         onClick={() => router.push('/TodosProdutos')}
-        className="mt-4 bg-marieth text-white py-2 px-4 rounded-md hover:bg-verdeaceso transition-colors"
+        className="bg-marieth text-white py-2 px-6 rounded-md hover:bg-verdeaceso transition-colors"
       >
         Explorar produtos
       </button>
     </div>
   ) : (
-   <div className="space-y-4">
-  {pedidos.map((pedido) => (
-    <div key={pedido.id_pedido} className="bg-white rounded-lg shadow-md p-6 border">
-      <div className="flex justify-between items-start mb-4">
-        <div>
-          <p className="text-sm text-gray-500 mb-1">
-            {formatarData(pedido.data_pedido)}
-          </p>
-          <h3 className="text-lg font-semibold mb-2">
-            Pedido #{pedido.id_pedido}
-          </h3>
-        </div>
-        
-        {/* Área de status e ações do pedido */}
-        <div className="flex items-center gap-3">
-          <div className="text-right">
-            <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
-              pedido.estado === 'Entregue' || pedido.entrega_confirmada
-                ? 'bg-green-100 text-green-800'
-                : pedido.estado === 'Cancelado'
-                ? 'bg-red-100 text-red-800'
-                : pedido.estado === 'Em trânsito'
-                ? 'bg-yellow-100 text-yellow-800'
-                : 'bg-blue-100 text-blue-800'
-            }`}>
-              {pedido.entrega_confirmada ? 'Entrega Confirmada' : 
-               pedido.estado === 'Cancelado' ? 'Cancelado' : pedido.estado}
-            </span>
-            <p className="text-lg font-bold text-gray-900 mt-1">
-              kzs {Number(pedido.valor_total).toLocaleString()}
-            </p>
-          </div>
+    <div className="space-y-6">
+      {pedidos.map((pedido) => (
+        <div key={pedido.id_pedido} className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
           
-          {/* Botões de ação para pedidos em trânsito */}
-          {pedido.estado === 'Em trânsito' && !pedido.entrega_confirmada && (
-            <div className="flex gap-2">
-              {/* Botão de cancelar pedido */}
-              <button
-                onClick={() => cancelarPedido(pedido)}
-                className="flex items-center justify-center w-10 h-10 bg-red-500 hover:bg-red-600 text-white rounded-full transition-colors duration-200 shadow-lg hover:shadow-xl"
-                title="Cancelar pedido"
-              >
-                <FaTimes size={18} />
-              </button>
+          {/* Cabeçalho do Pedido */}
+          <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start mb-4 gap-4">
+            <div className="flex-1">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:gap-4 mb-2">
+                <h3 className="text-xl font-bold text-profile">
+                  Pedido #{pedido.id_pedido}
+                </h3>
+                <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium w-fit ${
+                  pedido.estado === 'Entregue' || pedido.entrega_confirmada
+                    ? 'bg-green-100 text-green-800'
+                    : pedido.estado === 'Cancelado'
+                    ? 'bg-red-100 text-red-800'
+                    : pedido.estado === 'Em trânsito'
+                    ? 'bg-yellow-100 text-yellow-800'
+                    : pedido.estado === 'Pendente'
+                    ? 'bg-blue-100 text-blue-800'
+                    : 'bg-gray-100 text-gray-800'
+                }`}>
+                  {pedido.entrega_confirmada ? 'Entrega Confirmada' : pedido.estado}
+                </span>
+              </div>
               
-              {/* Botão de confirmar entrega */}
-              <button
-                onClick={() => confirmarEntregaPedido(pedido)}
-                className="flex items-center justify-center w-10 h-10 bg-green-500 hover:bg-green-600 text-white rounded-full transition-colors duration-200 shadow-lg hover:shadow-xl"
-                title="Confirmar entrega"
-              >
-                <FaCheck size={20} />
-              </button>
+              <div className="text-sm text-gray-600 space-y-1">
+                <p>Data do pedido: {formatarData(pedido.data_pedido)}</p>
+                {pedido.transacao_id && (
+                  <p>ID da transação: #{pedido.transacao_id}</p>
+                )}
+              </div>
+            </div>
+            
+            <div className="text-right">
+              <p className="text-2xl font-bold text-profile">
+                {Number(pedido.valor_total).toLocaleString()} kzs
+              </p>
+            </div>
+          </div>
+
+          {/* Ações do Pedido */}
+          <div className="border-t pt-4">
+            {(() => {
+              switch (pedido.estado) {
+                case 'Pendente':
+                  return (
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <button
+                        onClick={() => cancelarPedido(pedido)}
+                        className="flex items-center justify-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-md transition-colors"
+                      >
+                        <FaTimes size={16} />
+                        Cancelar Pedido
+                      </button>
+                      <p className="text-sm text-gray-600 flex items-center">
+                        Aguardando processamento...
+                      </p>
+                    </div>
+                  );
+
+                case 'Em trânsito':
+                  return (
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <button
+                        onClick={() => confirmarEntregaPedido(pedido)}
+                        className="flex items-center justify-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-md transition-colors"
+                      >
+                        <FaCheck size={16} />
+                        Confirmar Recebimento
+                      </button>
+                      <button
+                        onClick={() => cancelarPedido(pedido)}
+                        className="flex items-center justify-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-md transition-colors"
+                      >
+                        <FaTimes size={16} />
+                        Cancelar Pedido
+                      </button>
+                      <p className="text-sm text-gray-600 flex items-center">
+                        Produto a caminho. Confirme quando receber.
+                      </p>
+                    </div>
+                  );
+
+                case 'Entregue':
+                  if (!pedido.entrega_confirmada) {
+                    return (
+                      <div className="flex flex-col sm:flex-row gap-3">
+                        <button
+                          onClick={() => confirmarEntregaPedido(pedido)}
+                          className="flex items-center justify-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-md transition-colors"
+                        >
+                          <FaCheck size={16} />
+                          Confirmar Recebimento
+                        </button>
+                        <button
+                          onClick={() => solicitarReembolso(pedido)}
+                          className="flex items-center justify-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-md transition-colors"
+                        >
+                          <FaRegStarHalfStroke size={16} />
+                          Solicitar Reembolso
+                        </button>
+                        <p className="text-sm text-gray-600 flex items-center">
+                          Produto entregue. Confirme o recebimento.
+                        </p>
+                      </div>
+                    );
+                  } else {
+                    return (
+                      <div className="flex flex-col sm:flex-row gap-3 items-start">
+                        <div className="flex items-center gap-2 text-green-600">
+                          <FaCheck size={16} />
+                          <span className="font-medium">Recebimento confirmado</span>
+                        </div>
+                        <button
+                          onClick={() => solicitarReembolso(pedido)}
+                          className="flex items-center justify-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-md transition-colors text-sm"
+                        >
+                          <FaRegStarHalfStroke size={14} />
+                          Solicitar Reembolso
+                        </button>
+                        <p className="text-sm text-gray-600">
+                          Pedido concluído com sucesso.
+                        </p>
+                      </div>
+                    );
+                  }
+
+                case 'Cancelado':
+                  return (
+                    <div className="flex items-center gap-2 text-red-600">
+                      <FaTimes size={16} />
+                      <span className="font-medium">Pedido cancelado</span>
+                      <p className="text-sm text-gray-600 ml-4">
+                        Este pedido foi cancelado.
+                      </p>
+                    </div>
+                  );
+
+                case 'Reembolsado':
+                  return (
+                    <div className="flex items-center gap-2 text-blue-600">
+                      <FaRegStarHalfStroke size={16} />
+                      <span className="font-medium">Reembolso processado</span>
+                      <p className="text-sm text-gray-600 ml-4">
+                        O valor foi reembolsado.
+                      </p>
+                    </div>
+                  );
+
+                default:
+                  return (
+                    <div className="flex items-center gap-2 text-gray-600">
+                      <span>Status: {pedido.estado}</span>
+                    </div>
+                  );
+              }
+            })()}
+          </div>
+
+          {/* Informações adicionais baseadas no estado */}
+          {pedido.estado === 'Em trânsito' && (
+            <div className="mt-4 p-3 bg-yellow-50 border-l-4 border-yellow-400 rounded">
+              <p className="text-sm text-yellow-800">
+                <strong>Importante:</strong> Só confirme o recebimento depois de receber e verificar o produto.
+              </p>
             </div>
           )}
-          
-          {/* Ícone de status final */}
-          {(pedido.estado === 'Entregue' || pedido.entrega_confirmada) && (
-            <div className="flex items-center justify-center w-10 h-10 bg-green-500 text-white rounded-full shadow-lg">
-              <FaCheck size={20} />
-            </div>
-          )}
-          
-          {pedido.estado === 'Cancelado' && (
-            <div className="flex items-center justify-center w-10 h-10 bg-red-500 text-white rounded-full shadow-lg">
-              <FaTimes size={18} />
+
+          {pedido.estado === 'Entregue' && !pedido.entrega_confirmada && (
+            <div className="mt-4 p-3 bg-green-50 border-l-4 border-green-400 rounded">
+              <p className="text-sm text-green-800">
+                <strong>Produto entregue!</strong> Confirme o recebimento para finalizar seu pedido.
+              </p>
             </div>
           )}
         </div>
-      </div>
+      ))}
     </div>
-  ))}
-</div>
   )}
 </div>
+
+
+
 
 
         </main>

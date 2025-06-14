@@ -10,6 +10,7 @@ import { useRouter } from 'next/navigation';
     };
 
     return (
+        
         <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
             <h1 className="text-4xl font-bold mb-4">Compra Finalizada!</h1>
             <p className="text-lg mb-6">Obrigado por sua compra!</p>
