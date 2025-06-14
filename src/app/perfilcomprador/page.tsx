@@ -382,7 +382,7 @@ const solicitarReembolso = async (pedido: Pedido) => {
     </a>
   </div>
 </div>
-          </div>
+ </div>
 
 <div className="bg-white rounded-lg shadow-custom border p-6">
   <h2 className="text-2xl font-bold mb-6 text-profile">Histórico de Compras</h2>
@@ -422,11 +422,16 @@ const solicitarReembolso = async (pedido: Pedido) => {
                     ? 'bg-red-100 text-red-800'
                     : pedido.estado === 'Em trânsito'
                     ? 'bg-yellow-100 text-yellow-800'
-                    : pedido.estado === 'Pendente'
+                    : pedido.estado === 'Pendente' || pedido.estado === 'pendente'
                     ? 'bg-blue-100 text-blue-800'
+                    : pedido.estado === 'expirado'
+                    ? 'bg-gray-100 text-gray-800'
                     : 'bg-gray-100 text-gray-800'
                 }`}>
-                  {pedido.entrega_confirmada ? 'Entrega Confirmada' : pedido.estado}
+                  {pedido.entrega_confirmada ? 'Recebimento Confirmado' : 
+                   pedido.estado === 'pendente' ? 'Pendente' :
+                   pedido.estado === 'expirado' ? 'Expirado' :
+                   pedido.estado}
                 </span>
               </div>
               
@@ -439,7 +444,7 @@ const solicitarReembolso = async (pedido: Pedido) => {
             </div>
             
             <div className="text-right">
-              <p className="text-2xl font-bold text-profile">
+              <p className="text-2xl font-bold text-marieth">
                 {Number(pedido.valor_total).toLocaleString()} kzs
               </p>
             </div>
@@ -448,8 +453,10 @@ const solicitarReembolso = async (pedido: Pedido) => {
           {/* Ações do Pedido */}
           <div className="border-t pt-4">
             {(() => {
-              switch (pedido.estado) {
-                case 'Pendente':
+              const estado = pedido.estado?.toLowerCase();
+              
+              switch (estado) {
+                case 'pendente':
                   return (
                     <div className="flex flex-col sm:flex-row gap-3">
                       <button
@@ -465,7 +472,8 @@ const solicitarReembolso = async (pedido: Pedido) => {
                     </div>
                   );
 
-                case 'Em trânsito':
+                case 'em trânsito':
+                case 'em transito':
                   return (
                     <div className="flex flex-col sm:flex-row gap-3">
                       <button
@@ -488,7 +496,7 @@ const solicitarReembolso = async (pedido: Pedido) => {
                     </div>
                   );
 
-                case 'Entregue':
+                case 'entregue':
                   if (!pedido.entrega_confirmada) {
                     return (
                       <div className="flex flex-col sm:flex-row gap-3">
@@ -532,7 +540,7 @@ const solicitarReembolso = async (pedido: Pedido) => {
                     );
                   }
 
-                case 'Cancelado':
+                case 'cancelado':
                   return (
                     <div className="flex items-center gap-2 text-red-600">
                       <FaTimes size={16} />
@@ -543,7 +551,26 @@ const solicitarReembolso = async (pedido: Pedido) => {
                     </div>
                   );
 
-                case 'Reembolsado':
+                case 'expirado':
+                  return (
+                    <div className="flex flex-col sm:flex-row gap-3 items-start">
+                      <div className="flex items-center gap-2 text-gray-600">
+                        <span className="font-medium">Pedido expirado</span>
+                      </div>
+                      <button
+                        onClick={() => solicitarReembolso(pedido)}
+                        className="flex items-center justify-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-md transition-colors text-sm"
+                      >
+                        <FaRegStarHalfStroke size={14} />
+                        Solicitar Reembolso
+                      </button>
+                      <p className="text-sm text-gray-600">
+                        Tempo limite excedido. Você pode solicitar reembolso.
+                      </p>
+                    </div>
+                  );
+
+                case 'reembolsado':
                   return (
                     <div className="flex items-center gap-2 text-blue-600">
                       <FaRegStarHalfStroke size={16} />
@@ -565,7 +592,7 @@ const solicitarReembolso = async (pedido: Pedido) => {
           </div>
 
           {/* Informações adicionais baseadas no estado */}
-          {pedido.estado === 'Em trânsito' && (
+          {(pedido.estado?.toLowerCase() === 'em trânsito' || pedido.estado?.toLowerCase() === 'em transito') && (
             <div className="mt-4 p-3 bg-yellow-50 border-l-4 border-yellow-400 rounded">
               <p className="text-sm text-yellow-800">
                 <strong>Importante:</strong> Só confirme o recebimento depois de receber e verificar o produto.
@@ -573,7 +600,7 @@ const solicitarReembolso = async (pedido: Pedido) => {
             </div>
           )}
 
-          {pedido.estado === 'Entregue' && !pedido.entrega_confirmada && (
+          {pedido.estado?.toLowerCase() === 'entregue' && !pedido.entrega_confirmada && (
             <div className="mt-4 p-3 bg-green-50 border-l-4 border-green-400 rounded">
               <p className="text-sm text-green-800">
                 <strong>Produto entregue!</strong> Confirme o recebimento para finalizar seu pedido.
