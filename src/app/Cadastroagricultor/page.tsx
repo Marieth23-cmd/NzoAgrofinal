@@ -405,7 +405,7 @@ export default function CadastroAgricultodor() {
                                     </div>
                             
                                     <div className="mb-4">
-                                        <label htmlFor="descricao" className="mb-2 font-medium block text-profile">Descreve as Principais culturas(opcional)</label>
+                                        <label htmlFor="descricao" className="mb-2 font-medium block text-profile">Descreve as Principais culturas</label>
                                         <textarea 
                                             id="descricao" 
                                             name="descricao"

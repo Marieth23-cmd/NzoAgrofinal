@@ -503,7 +503,7 @@ const handlefinalizarCompra = async () => {
     
     // ✅ CORREÇÃO AQUI
     const dadosFinalizacao = {
-      id_pedido: pedido.pedido.id_pedido, // ✅ Apenas o ID numérico!
+      id_pedido: pedido.pedido.id_pedido,
       pagamento_confirmado: true, 
       referencia_pagamento: transacaoId || referenciaInput 
     }
@@ -633,10 +633,10 @@ const handlefinalizarCompra = async () => {
           </div>
           
           <button 
-            onClick={() => router.push('/pedidos')} 
+            onClick={() => router.push('/')} 
             className="bg-marieth text-white px-4 py-2 rounded hover:bg-marieth"
           >
-            Voltar aos Pedidos
+            Voltar ao inicio
           </button>
         </div>
       </div>
