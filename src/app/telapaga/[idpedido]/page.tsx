@@ -492,26 +492,26 @@ const processarPagamento = async (e: any) => {
 
 const handlefinalizarCompra = async () => {
   try {
-    setStatus('processando')
+     setStatus('processando')
     
     console.log('🎉 Finalizando compra...')
     
     // Verificar se temos os dados necessários
-    if (!pedido?.pedido) {
+    if (!pedido?.pedido?.id_pedido) {
       throw { message: 'ID do pedido não encontrado' }
     }
     
-    // Preparar dados para a API
+    // ✅ CORREÇÃO AQUI
     const dadosFinalizacao = {
-      id_pedido: pedido.pedido,
+      id_pedido: pedido.pedido.id_pedido, // ✅ Apenas o ID numérico!
       pagamento_confirmado: true, 
       referencia_pagamento: transacaoId || referenciaInput 
     }
     
     console.log('📦 Dados para finalização:', dadosFinalizacao)
     
-    // Chamar a API real de finalização
-    const resultado = await apiFinalizarCompra (dadosFinalizacao)
+    
+    const resultado = await apiFinalizarCompra(dadosFinalizacao)
     
     console.log('✅ Compra finalizada com sucesso:', resultado)
     
