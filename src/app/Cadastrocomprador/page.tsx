@@ -335,7 +335,7 @@ export default function CadastroComprador() {
                     
                                     <span 
                                         className="absolute inset-y-0 right-3 flex items-center cursor-pointer text-gray-500"
-                                        onClick={() => setConfirmarSenhaVisivel(!confirmarSenhaVisível)}
+                                        onClick={() => setConfirmarSenhaVisivel(!confirmarSenhaVisivel)}
                                     >
                                         {confirmarSenhaVisivel ? (
                                             <FiEyeOff className="w-5 h-5" />

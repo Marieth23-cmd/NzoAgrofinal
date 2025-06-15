@@ -92,6 +92,55 @@ export interface PedidoPagamentoData {
   };
 }
 
+
+interface ContaVirtual {
+  id: number;
+  transportadora_id: number;
+  tipo_conta: string;
+  numero_africell: string;
+  numero_unitel: string;
+  operadora: string;
+  saldo_anterior: number;
+  saldo_atual: number;
+}
+
+interface DadosSimulacao {
+  metodo_pagamento: string;
+  telefone_simulado: string;
+  operadora_usada: string;
+  tempo_processamento: string;
+  codigo_confirmacao: string;
+  hash_transacao: string;
+}
+
+interface DivisaoValores {
+  valor_total: number;
+  taxa_percentual: number;
+  taxa_valor: number;
+  valor_liquido_vendedor: number;
+  taxa_total: number;
+}
+
+interface DadosTransacao {
+  referencia: string;
+  valor_original: number;
+  valor_pago: number;
+  valor_recebido: number;
+  taxa_aplicada: number;
+  transacao_id: string;
+  status: string;
+  processado_em: string;
+  conta_virtual: ContaVirtual;
+  simulacao: DadosSimulacao;
+  divisao_valores: DivisaoValores | null;
+  modo: string;
+  timestamp: string;
+  mensagem: string;
+  proximos_passos: string[];
+}
+
+
+
 const metodos: Record<MetodoPagamento, MetodoInfo> = {
   unitel_money: {
     nome: 'Unitel Money',
@@ -168,6 +217,8 @@ export default function PagamentoPage() {
   const [mostrarModal, setMostrarModal] = useState(false)
   const [mensagemErro, setMensagemErro] = useState('')
   const [isCarregando, setIsCarregando] = useState(false)
+ const [dadosTransacao, setDadosTransacao] = useState<DadosTransacao | null>(null)
+  const [mensagemSucesso, setMensagemSucesso] = useState<string>('')
 
 
   const router = useRouter()
@@ -328,69 +379,114 @@ const gerarReferencia = async () => {
   }
 
 
-  const processarPagamento = async (e:any) => {
-  e.preventDefault()
-  
-  if (!referenciaInput.trim()) {
-    setMensagemErro('Por favor, digite a referência de pagamento')
-    return
-  }
 
-  // Limpar erros anteriores
-  setMensagemErro('')
-  setStatus('processando')
-
-  try {
-    console.log(`🧪 Iniciando simulação de pagamento com referência: ${referenciaInput}`)
+const processarPagamento = async (e: any) => {
+    e.preventDefault()
     
-    // Chamar a API de simulação
-    const resultado = await simularPagamento(referenciaInput.trim())
-    
-    console.log('✅ Resposta da simulação:', resultado)
+    if (!referenciaInput.trim()) {
+      setMensagemErro('Por favor, digite a referência de pagamento')
+      return
+    }
 
-    // Verificar se a simulação foi bem-sucedida
-    if (resultado.sucesso) {
-      // Salvar dados da transação
-      setTransacaoId(resultado.pagamento.referencia)
-      setStatus('sucesso')
+    setMensagemErro('')
+    setStatus('processando')
+
+    try {
+      console.log(`🧪 Iniciando simulação de pagamento com referência: ${referenciaInput}`)
       
-      // Opcional: Salvar dados detalhados para uso posterior
-      const dadosTransacao = {
-        referencia: resultado.pagamento.referencia,
-        valor_pago: resultado.pagamento.valor_pago,
-        valor_recebido: resultado.pagamento.valor_recebido,
-        taxa_aplicada: resultado.pagamento.taxa_aplicada,
-        conta_virtual: resultado.pagamento.conta_virtual,
-        processado_em: resultado.pagamento.processado_em
+      const resultado = await simularPagamento(referenciaInput.trim())
+      console.log('✅ Resposta completa da simulação:', resultado)
+
+      if (resultado.sucesso) {
+        // ✅ DADOS TIPADOS CORRETAMENTE
+        const dadosCompletos: DadosTransacao = {
+          // Dados básicos da transação
+          referencia: resultado.pagamento.referencia,
+          valor_original: resultado.pagamento.valor_original,
+          valor_pago: resultado.pagamento.valor_pago,
+          valor_recebido: resultado.pagamento.valor_recebido,
+          taxa_aplicada: resultado.pagamento.taxa_aplicada,
+          transacao_id: resultado.pagamento.transacao_id,
+          status: resultado.pagamento.status,
+          processado_em: resultado.pagamento.processado_em,
+          
+          // Dados da conta virtual
+          conta_virtual: {
+            id: resultado.pagamento.conta_virtual.id,
+            transportadora_id: resultado.pagamento.conta_virtual.transportadora_id,
+            tipo_conta: resultado.pagamento.conta_virtual.tipo_conta,
+            numero_africell: resultado.pagamento.conta_virtual.numero_africell,
+            numero_unitel: resultado.pagamento.conta_virtual.numero_unitel,
+            operadora: resultado.pagamento.conta_virtual.operadora,
+            saldo_anterior: resultado.pagamento.conta_virtual.saldo_anterior,
+            saldo_atual: resultado.pagamento.conta_virtual.saldo_atual
+          },
+          
+          // Dados da simulação
+          simulacao: {
+            metodo_pagamento: resultado.pagamento.dados_simulacao.metodo_pagamento,
+            telefone_simulado: resultado.pagamento.dados_simulacao.telefone_simulado,
+            operadora_usada: resultado.pagamento.dados_simulacao.operadora_usada,
+            tempo_processamento: resultado.pagamento.dados_simulacao.tempo_processamento,
+            codigo_confirmacao: resultado.pagamento.dados_simulacao.codigo_confirmacao,
+            hash_transacao: resultado.pagamento.dados_simulacao.hash_transacao
+          },
+          
+          // Divisão de valores
+          divisao_valores: resultado.pagamento.divisao_valores,
+          
+          // Informações gerais
+          modo: resultado.MODO,
+          timestamp: resultado.timestamp,
+          mensagem: resultado.mensagem,
+          proximos_passos: resultado.proximos_passos
+        }
+        
+        // ✅ AGORA PODE ATRIBUIR SEM ERRO
+        setDadosTransacao(dadosCompletos)
+        setTransacaoId(dadosCompletos.referencia)
+        setStatus('sucesso')
+        
+        console.log('💰 Dados completos da simulação processados:', dadosCompletos)
+        
+        // Mensagem de sucesso
+        const mensagemSucesso = `Pagamento simulado com sucesso! ` +
+          `Valor de ${dadosCompletos.valor_recebido} AOA creditado na conta ${dadosCompletos.conta_virtual.numero_unitel}. ` +
+          `Código de confirmação: ${dadosCompletos.simulacao.codigo_confirmacao}`
+        
+        setMensagemSucesso(mensagemSucesso)
+        
+      } else {
+        setStatus('erro')
+        setMensagemErro('Falha na simulação do pagamento')
+        console.error('❌ Simulação não indicou sucesso:', resultado)
       }
-      
-      console.log('💰 Pagamento simulado com sucesso:', dadosTransacao)
-      
-      
-    } else {
-      // Caso a resposta não indique sucesso
-      setStatus('erro')
-      setMensagemErro('Falha na simulação do pagamento')
-    }
 
-  } catch (error:any) {
-    console.error('❌ Erro ao processar pagamento:', error)
-    setStatus('erro')
-    
-    // Tratar diferentes tipos de erro
-    if (error.codigo === 'REF_NAO_ENCONTRADA') {
-      setMensagemErro('Referência não encontrada ou já foi utilizada')
-    } else if (error.codigo === 'REF_EXPIRADA') {
-      setMensagemErro('Referência expirada. Gere uma nova referência para continuar')
-    } else if (error.codigo === 'REF_OBRIGATORIA') {
-      setMensagemErro('Referência é obrigatória')
-    } else if (error.erro) {
-      setMensagemErro(error.erro)
-    } else {
-      setMensagemErro('Erro ao processar pagamento. Tente novamente')
+    } catch (error: any) {
+      console.error('❌ Erro ao processar pagamento:', error)
+      setStatus('erro')
+      
+      // Tratamento de erros
+      if (error.codigo === 'REF_NAO_ENCONTRADA') {
+        setMensagemErro('Referência não encontrada ou já foi utilizada')
+      } else if (error.codigo === 'REF_EXPIRADA') {
+        setMensagemErro('Referência expirada. Gere uma nova referência para continuar')
+      } else if (error.codigo === 'REF_OBRIGATORIA') {
+        setMensagemErro('Referência é obrigatória')
+      } else if (error.codigo === 'ERRO_SIMULACAO') {
+        setMensagemErro('Erro interno na simulação. Tente novamente em alguns instantes')
+      } else if (error.erro) {
+        setMensagemErro(error.erro)
+      } else if (error.message) {
+        setMensagemErro(`Erro: ${error.message}`)
+      } else {
+        setMensagemErro('Erro ao processar pagamento. Tente novamente')
+      }
     }
+  
   }
-}
+
+
 
 
 
