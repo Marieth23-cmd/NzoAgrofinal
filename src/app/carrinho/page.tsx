@@ -10,7 +10,6 @@ import {
   listarProdutosDoCarrinho, 
   atualizarQuantidadeProduto, 
   removerProdutoDoCarrinho, 
-  finalizarCompra, 
   calcularPrecoProduto, 
   esvaziarCarrinho,
   iniciarCheckout

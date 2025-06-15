@@ -4,7 +4,8 @@ import Footer from '../../Components/Footer'
 import Navbar from '../../Components/Navbar'
 import { buscarPedidoPagamento} from '@/app/Services/pedidos'
 import { useState, useEffect, FormEvent } from 'react'
-import {gerarReferenciaPagamento} from '../../Services/pagamentos'
+import {apiFinalizarCompra } from '../../Services/cart'
+import {gerarReferenciaPagamento , simularPagamento } from '../../Services/pagamentos'
  
 const parseNumeroSeguro = (valor: any): number => {
   if (typeof valor === 'number') return valor;
@@ -167,7 +168,8 @@ export default function PagamentoPage() {
   const [mostrarModal, setMostrarModal] = useState(false)
   const [mensagemErro, setMensagemErro] = useState('')
   const [isCarregando, setIsCarregando] = useState(false)
-  
+
+
   const router = useRouter()
   const searchParams = useSearchParams()
   const pathname = usePathname()
@@ -325,37 +327,130 @@ const gerarReferencia = async () => {
     setMensagemErro('')
   }
 
-  const processarPagamento = (e: FormEvent) => {
-    e.preventDefault()
-    
-    if (!isPedidoValid(pedido)) {
-      setMensagemErro('Dados do pedido inválidos')
-      return
-    }
-    
-    setStatus('processando')
-    setMensagemErro('')
 
-    setTimeout(() => {
-      if (referenciaInput.trim() === referenciaPagamento) {
-        setStatus('sucesso')
-      } else {
-        setStatus('erro')
-        setMensagemErro('Referência inválida. Verifique e tente novamente.')
-      }
-    }, 2000)
+  const processarPagamento = async (e:any) => {
+  e.preventDefault()
+  
+  if (!referenciaInput.trim()) {
+    setMensagemErro('Por favor, digite a referência de pagamento')
+    return
   }
 
-  const finalizarCompra = () => {
+  // Limpar erros anteriores
+  setMensagemErro('')
+  setStatus('processando')
+
+  try {
+    console.log(`🧪 Iniciando simulação de pagamento com referência: ${referenciaInput}`)
+    
+    // Chamar a API de simulação
+    const resultado = await simularPagamento(referenciaInput.trim())
+    
+    console.log('✅ Resposta da simulação:', resultado)
+
+    // Verificar se a simulação foi bem-sucedida
+    if (resultado.sucesso) {
+      // Salvar dados da transação
+      setTransacaoId(resultado.pagamento.referencia)
+      setStatus('sucesso')
+      
+      // Opcional: Salvar dados detalhados para uso posterior
+      const dadosTransacao = {
+        referencia: resultado.pagamento.referencia,
+        valor_pago: resultado.pagamento.valor_pago,
+        valor_recebido: resultado.pagamento.valor_recebido,
+        taxa_aplicada: resultado.pagamento.taxa_aplicada,
+        conta_virtual: resultado.pagamento.conta_virtual,
+        processado_em: resultado.pagamento.processado_em
+      }
+      
+      console.log('💰 Pagamento simulado com sucesso:', dadosTransacao)
+      
+      
+    } else {
+      // Caso a resposta não indique sucesso
+      setStatus('erro')
+      setMensagemErro('Falha na simulação do pagamento')
+    }
+
+  } catch (error:any) {
+    console.error('❌ Erro ao processar pagamento:', error)
+    setStatus('erro')
+    
+    // Tratar diferentes tipos de erro
+    if (error.codigo === 'REF_NAO_ENCONTRADA') {
+      setMensagemErro('Referência não encontrada ou já foi utilizada')
+    } else if (error.codigo === 'REF_EXPIRADA') {
+      setMensagemErro('Referência expirada. Gere uma nova referência para continuar')
+    } else if (error.codigo === 'REF_OBRIGATORIA') {
+      setMensagemErro('Referência é obrigatória')
+    } else if (error.erro) {
+      setMensagemErro(error.erro)
+    } else {
+      setMensagemErro('Erro ao processar pagamento. Tente novamente')
+    }
+  }
+}
+
+
+
+const handlefinalizarCompra = async () => {
+  try {
+    setStatus('processando')
+    
+    console.log('🎉 Finalizando compra...')
+    
+    // Verificar se temos os dados necessários
+    if (!pedido?.pedido) {
+      throw { message: 'ID do pedido não encontrado' }
+    }
+    
+    // Preparar dados para a API
+    const dadosFinalizacao = {
+      id_pedido: pedido.pedido,
+      pagamento_confirmado: true, 
+      referencia_pagamento: transacaoId || referenciaInput 
+    }
+    
+    console.log('📦 Dados para finalização:', dadosFinalizacao)
+    
+    // Chamar a API real de finalização
+    const resultado = await apiFinalizarCompra (dadosFinalizacao)
+    
+    console.log('✅ Compra finalizada com sucesso:', resultado)
+    
+    // Limpar estados e fechar modal
     setMostrarModal(false)
-    router.push('/FinalizarCompra')
     setStatus('inicial')
     setReferenciaPagamento('')
     setTransacaoId('')
     setReferenciaInput('')
     setMensagemErro('')
     setPedido(null)
+    
+    // Redirecionar para página de finalização/sucesso
+    router.push('/FinalizarCompra')
+    
+    
+  } catch (error:any) {
+    console.error('❌ Erro ao finalizar compra:', error)
+    setStatus('erro')
+    
+    // Tratar diferentes tipos de erro da API
+    if (error.message) {
+      setMensagemErro(error.message)
+    } else if (error.mensagem) {
+      setMensagemErro(error.mensagem)
+    } else if (error.erro) {
+      setMensagemErro(error.erro)
+    } else {
+      setMensagemErro('Erro ao finalizar compra. Tente novamente')
+    }
   }
+}
+
+
+
 
   const fecharModal = () => {
     setMostrarModal(false)
@@ -420,6 +515,7 @@ const gerarReferencia = async () => {
     )
   }
 
+
   // Verificação melhorada com informações de debug
   if (!isPedidoValid(pedido)) {
     return (
@@ -442,7 +538,7 @@ const gerarReferencia = async () => {
           
           <button 
             onClick={() => router.push('/pedidos')} 
-            className="bg-marieth text-white px-4 py-2 rounded hover:bg-blue-700"
+            className="bg-marieth text-white px-4 py-2 rounded hover:bg-marieth"
           >
             Voltar aos Pedidos
           </button>
@@ -574,8 +670,8 @@ const gerarReferencia = async () => {
               
               {status === 'sucesso' && (
                 <button
-                  onClick={finalizarCompra}
-                  className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-semibold transition"
+                  onClick={handlefinalizarCompra}
+                  className="w-full bg-marieth hover:bg-green-700 text-white py-3 rounded-lg font-semibold transition"
                 >
                   Finalizar Compra
                 </button>
@@ -590,12 +686,6 @@ const gerarReferencia = async () => {
                 </button>
               )}
 
-              <button
-                onClick={fecharModal}
-                className="w-full bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 rounded-lg transition"
-              >
-                {status === 'sucesso' ? 'Fechar' : 'Cancelar'}
-              </button>
             </div>
 
             {transacaoId && (

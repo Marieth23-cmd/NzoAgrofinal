@@ -14,12 +14,12 @@
   },
   "icons": [
     {
-      "src": "/icons/icon-72x72.png",
-      "sizes": "80x80",
+      "src": "/icons/icon-85x85.png",
+      "sizes": "85x85",
       "type": "image/png"
     },
     {
-      "src": "/icons/icon-96x96.png",
+      "src": "/icons/icon-98x98.png",
       "sizes": "98x98",
       "type": "image/png"
     },
