@@ -6,8 +6,10 @@ import { useRouter } from "next/navigation";
 import { criarUsuario } from "../Services/user"
 import { FiEye, FiEyeOff } from "react-icons/fi";
 
-export default function CadastroFornecedor() {
+
+export default function CadastroAgricultodor() {
     const [tipoUsuario] = useState("Agricultor"); 
+     const [etapa, setEtapa] = useState(1);
     const [formData, setFormData] = useState({
         nome: "",
         email: "",
@@ -20,11 +22,13 @@ export default function CadastroFornecedor() {
         municipio: "",
         provincia: "",
     });
+
     const [senhaVisivel, setSenhaVisivel] = useState(false)
     const [confirmarSenhaVisivel, setConfirmarSenhaVisivel] = useState(false);
     const [loading, setLoading] = useState(false);
     const [sucesso, setSucesso] = useState(false);
-     
+
+    
     interface Erros {
         nome?: string;
         email?: string;
@@ -41,19 +45,25 @@ export default function CadastroFornecedor() {
 
     const [erros, setErros] = useState<Erros>({});
     const router = useRouter();
-    const [etapa, setEtapa] = useState(1);
 
-    // Validação em tempo real
-    useEffect(() => {
-        validateForm();
-    }, [formData]);
+    console.log("🚀 Componente CadastroComprador renderizado");
+    console.log("📋 FormData atual:", formData);
+    console.log("❌ Erros atuais:", erros);
+    console.log("⏳ Loading:", loading);
+
+    // Remover validação em tempo real que pode estar causando problemas
+    // useEffect(() => {
+    //     validateForm();
+    // }, [formData]);
 
     const validateForm = () => {
+        console.log("🔍 Iniciando validação do formulário");
         const newErros: Erros = {};
 
         // Validação do nome
         if (formData.nome && formData.nome.trim().length < 2) {
             newErros.nome = "O nome deve ter pelo menos 2 caracteres";
+            console.log("❌ Erro no nome:", newErros.nome);
         }
 
         // Validação do email
@@ -61,6 +71,7 @@ export default function CadastroFornecedor() {
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(formData.email)) {
                 newErros.email = "Email inválido";
+                console.log("❌ Erro no email:", newErros.email);
             }
         }
 
@@ -68,12 +79,14 @@ export default function CadastroFornecedor() {
         if (formData.senha) {
             if (formData.senha.length < 6 || formData.senha.length > 12) {
                 newErros.senha = "A senha deve ter entre 6 e 12 caracteres";
+                console.log("❌ Erro na senha:", newErros.senha);
             }
         }
 
         // Validação de confirmar senha
         if (formData.confirmarSenha && formData.senha !== formData.confirmarSenha) {
             newErros.confirmarSenha = "As senhas não coincidem";
+            console.log("❌ Erro na confirmação de senha:", newErros.confirmarSenha);
         }
 
         // Validação do contacto
@@ -82,38 +95,23 @@ export default function CadastroFornecedor() {
             const numeroAngola = /^9\d{8}$/;
             if (contactoLimpo && !numeroAngola.test(contactoLimpo)) {
                 newErros.contacto = "O contacto deve ter 9 dígitos e começar com 9";
+                console.log("❌ Erro no contacto:", newErros.contacto);
             }
         }
 
         // Validação da descrição
         if (formData.descricao && formData.descricao.trim().length < 10) {
             newErros.descricao = "A descrição deve ter pelo menos 10 caracteres";
+            console.log("❌ Erro na descrição:", newErros.descricao);
         }
 
-        // Validações da etapa 2 (endereço)
-        if (etapa === 2) {
-            if (formData.provincia && formData.provincia.trim().length < 1) {
-                newErros.provincia = "Selecione uma província";
-            }
-
-            if (formData.municipio && formData.municipio.trim().length < 2) {
-                newErros.municipio = "O município deve ter pelo menos 2 caracteres";
-            }
-
-            if (formData.bairro && formData.bairro.trim().length < 2) {
-                newErros.bairro = "O bairro deve ter pelo menos 2 caracteres";
-            }
-
-            if (formData.rua && formData.rua.trim().length < 3) {
-                newErros.rua = "A rua deve ter pelo menos 3 caracteres";
-            }
-        }
-
-        setErros(newErros);
+        console.log("✅ Validação concluída. Erros encontrados:", newErros);
+        return newErros;
     };
    
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
+        console.log(`📝 Input alterado - ${name}:`, value);
         
         if (name === "contacto") {
             let somenteNumeros = value.replace(/\D/g, "");
@@ -123,11 +121,14 @@ export default function CadastroFornecedor() {
             }
     
             const numeroFormatado = `244|${somenteNumeros.slice(0, 9)}`;
+            console.log("📞 Contacto formatado:", numeroFormatado);
             setFormData((prev) => ({ ...prev, contacto: numeroFormatado }));
         } else {
             setFormData({ ...formData, [name]: value });
         }
     };
+
+
     
     const handleNext = () => {
         // Verificar se há erros de validação na etapa 1
@@ -146,47 +147,92 @@ export default function CadastroFornecedor() {
         setEtapa(2);
     }
 
+
+
+
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+
+        console.log("🚀 INICIANDO PROCESSO DE CADASTRO");
+        console.log("📋 Dados do formulário no submit:", formData);
         
-        // Forçar validação completa
-        validateForm();
+        // Validar formulário
+        const validationErrors = validateForm();
+        setErros(validationErrors);
         
-        // Verificar se há erros de validação
-        const hasValidationErrors = Object.keys(erros).some(key => key !== 'geral' && erros[key as keyof Erros]);
+        console.log("🔍 Erros de validação:", validationErrors);
         
-        // Verificar campos obrigatórios da etapa 2
-        if (hasValidationErrors || !formData.provincia || !formData.municipio || !formData.bairro || !formData.rua) {
-            setErros(prev => ({ ...prev, geral: "Por favor, corrija os erros antes de continuar." }));
+        // Verificar se há erros de validação (exceto erro geral)
+        const hasValidationErrors = Object.keys(validationErrors).length > 0;
+        console.log("❓ Tem erros de validação?", hasValidationErrors);
+        
+        // Verificar campos obrigatórios
+        const camposObrigatorios = {
+            nome: formData.nome.trim(),
+            email: formData.email.trim(), 
+            senha: formData.senha,
+            confirmarSenha: formData.confirmarSenha,
+            descricao: formData.descricao.trim(),
+             rua:formData.rua.trim(),
+            bairro:formData.bairro.trim(),
+            municipio:formData.municipio,
+            provincia:formData.provincia,
+
+        };
+        
+        console.log("📋 Campos obrigatórios:", camposObrigatorios);
+        
+        const camposFaltando = Object.entries(camposObrigatorios)
+            .filter(([key, value]) => !value)
+            .map(([key]) => key);
+            
+        console.log("❌ Campos faltando:", camposFaltando);
+
+        if (hasValidationErrors || camposFaltando.length > 0) {
+            const mensagemErro = "Por favor, corrija os erros antes de continuar.";
+            console.log("🛑 PARANDO EXECUÇÃO - Erros encontrados:", mensagemErro);
+            setErros(prev => ({ ...prev, geral: mensagemErro }));
             return;
         }
 
+        console.log("✅ Validações OK - Prosseguindo com o cadastro");
         setErros({});
         setLoading(true);
-    
+
         const contactoLimpo = formData.contacto.replace("244|", "");
-    
+        console.log("📞 Contacto limpo:", contactoLimpo);
+
+        const dadosParaEnvio = {
+            nome: formData.nome.trim(),
+            email: formData.email.trim(),
+            senha: formData.senha,
+            descricao: formData.descricao.trim(),
+            contacto: contactoLimpo, 
+            tipo_usuario: tipoUsuario,
+             rua:formData.rua.trim(),
+            bairro:formData.bairro.trim(),
+            municipio:formData.municipio,
+            provincia:formData.provincia,
+        };
+        
+        console.log("📤 Dados que serão enviados para API:", dadosParaEnvio);
+
         try {
-            const resposta = await criarUsuario({
-                nome: formData.nome.trim(),
-                email: formData.email.trim(),
-                senha: formData.senha,
-                descricao: formData.descricao,
-                contacto: contactoLimpo, 
-                tipo_usuario: tipoUsuario,
-                rua: formData.rua || "",
-                bairro: formData.bairro || "",
-                municipio: formData.municipio || "",
-                provincia: formData.provincia || ""
-            });
-    
-            console.log("Usuário criado com sucesso:", resposta);
+            console.log("🌐 Chamando API criarUsuario...");
+            const resposta = await criarUsuario(dadosParaEnvio);
+
+            console.log("✅ Usuário criado com sucesso:", resposta);
             setSucesso(true);
+            
             setTimeout(() => {
+                console.log("🔄 Redirecionando para página inicial...");
                 router.push("/");
             }, 1000);
         } catch (error: any) {
-            console.log("Erro ao criar conta:", error);
+            console.log("❌ ERRO ao criar conta:", error);
+            console.log("❌ Tipo do erro:", typeof error);
+            console.log("❌ Status do erro:", error?.status);
+            console.log("❌ Mensagem do erro:", error?.message);
             
             if (error.status === 409) {
                 setErros({ geral: error.message || "Este email já está em uso." });
@@ -194,19 +240,33 @@ export default function CadastroFornecedor() {
                 setErros({ geral: error.message || "Erro ao criar conta. Por favor, tente novamente." });
             }
         } finally {
+            console.log("🏁 Finalizando processo de cadastro");
             setLoading(false);
         }
     };
     
     React.useEffect(() => {
         if (sucesso) {
+            console.log("🎉 Sucesso! Configurando redirecionamento...");
             const timer = setTimeout(() => {
+                console.log("🔄 Executando redirecionamento...");
                 router.push("/");
             }, 3000);
             
             return () => clearTimeout(timer);
         }
     }, [sucesso, router]);
+
+
+
+
+
+
+
+
+
+
+
 
     return (
         <main>
