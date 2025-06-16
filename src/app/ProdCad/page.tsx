@@ -283,9 +283,6 @@ export default function CriarProduto() {
                                 name="nome"
                                 id="nome"
                                 placeholder="Ex: Tomate, Cenoura, Milho"
-                                autoComplete="off"
-                                autoCorrect="off"
-                                autoCapitalize="off"
                                 value={formData.nome}
                                 onChange={handleChange}
                                 required
@@ -301,10 +298,6 @@ export default function CriarProduto() {
                                     min="1"
                                     name="quantidade"
                                     id="quantidade"
-                                    placeholder="Ex: 100"
-                                    autoComplete="off"
-                                    autoCorrect="off"
-                                    autoCapitalize="off"
                                     value={formData.quantidade}
                                     onChange={handleChange}
                                     required
@@ -316,17 +309,13 @@ export default function CriarProduto() {
                                 <select
                                     name="Unidade"
                                     id="Unidade"
-                                    autoComplete="off"
-                                    autoCorrect="off"
-                                    autoCapitalize="off"
                                     value={formData.Unidade}
                                     onChange={handleChange}
                                     required
                                     className="w-full p-[0.8rem] border-[1px] border-solid border-tab rounded-[10px] text-base transition-colors duration-150 cursor-pointer font-medium text-profile"
                                 >
                                     <option value="kg">Kilograma (kg)</option>
-                                    <option value="Tonelada">Tonelada (1000Kg)</option>
-                                </select>
+                                                                    </select>
                             </div>
                         </div>
 

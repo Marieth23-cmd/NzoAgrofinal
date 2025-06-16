@@ -552,7 +552,7 @@ export default function DetalhesProduto(){
                       onChange={(e) => setUnidadeSelecionada(e.target.value)}
                       className="text-4 p-2 border-[1px] border-solid border-tab rounded-[5px] w-full" 
                     >
-                      <option value="Tonelada">Toneladas</option>
+                      
                       <option value="kg">Kilograma(kg)</option>
                     </select>
                   </label>

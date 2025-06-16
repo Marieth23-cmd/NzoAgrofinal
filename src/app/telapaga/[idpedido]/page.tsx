@@ -445,6 +445,7 @@ const processarPagamento = async (e: any) => {
         // ✅ AGORA PODE ATRIBUIR SEM ERRO
         setDadosTransacao(dadosCompletos)
         setTransacaoId(dadosCompletos.referencia)
+        
         setStatus('sucesso')
         
         console.log('💰 Dados completos da simulação processados:', dadosCompletos)
@@ -524,8 +525,12 @@ const handlefinalizarCompra = async () => {
     setMensagemErro('')
     setPedido(null)
     
+
+    setTimeout(()=>{
+      router.push('/FinalizarCompra')
+    }, 3000)
     // Redirecionar para página de finalização/sucesso
-    router.push('/FinalizarCompra')
+    
     
     
   } catch (error:any) {
@@ -657,10 +662,11 @@ const handlefinalizarCompra = async () => {
                  status === 'sucesso' ? 'Pagamento Confirmado!' : 
                  status === 'erro' ? 'Erro no Pagamento' : 'Inserir Referência'}
               </h2>
-              <button onClick={fecharModal} className="text-gray-400 hover:text-gray-600">
+              <button onClick={fecharModal} className="text-gray-400 hover:text-gray-600 sr-only">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
+                oi
               </button>
             </div>
           </div>
@@ -696,8 +702,10 @@ const handlefinalizarCompra = async () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                       </svg>
                     </div>
-                    <p className="text-red-600 text-sm font-semibold">Falha no pagamento</p>
-                  </div>
+                    {mensagemErro && (
+                  <p className="text-red-600 text-sm mt-2">Falha no pagamento:{mensagemErro}</p>
+                )}
+              </div>
                 )}
               </div>
             )}
@@ -773,14 +781,20 @@ const handlefinalizarCompra = async () => {
                 </button>
               )}
 
+              {mensagemErro && (
+                  <p className="text-red-600 text-sm mt-2">{mensagemErro}</p>
+                )}
               {status === 'erro' && (
+                
                 <button
                   onClick={() => {setStatus('referencia_gerada'); setMensagemErro(''); setReferenciaInput('')}}
                   className="w-full bg-yellow-600 hover:bg-yellow-700 text-white py-3 rounded-lg font-semibold transition"
                 >
+                  
                   Tentar Novamente
                 </button>
               )}
+             
 
             </div>
 

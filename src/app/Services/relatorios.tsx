@@ -187,6 +187,7 @@ export const exportarPDFVendasFornecedor = async (): Promise<Blob> => {
 export const exportarCSV = async (): Promise<Blob> => {
     try {
         const response = await axios.get(`${API_URL}/relatorios/exportar/compras/comprador/csv`, {
+            
             withCredentials: true,
             responseType: "blob",
         });

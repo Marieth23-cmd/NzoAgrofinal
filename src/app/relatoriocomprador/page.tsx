@@ -105,11 +105,23 @@ export default function Relatorios() {
 
   // Estados para dados de compras
   const [relatorioCompras, setRelatorioCompras] = useState<RelatorioComprasItem[]>([]);
-  const [estatisticasCompras, setEstatisticasCompras] = useState<EstatisticasCompras | null>(null);
+  // const [estatisticasCompras, setEstatisticasCompras] = useState<EstatisticasCompras | null>(null);
 
   // Estados para dados de vendas
   const [relatorioVendas, setRelatorioVendas] = useState<RelatorioVendasItem[]>([]);
   const [estatisticasVendas, setEstatisticasVendas] = useState<EstatisticasVendas | null>(null);
+
+
+    const [estatisticasCompras, setEstatisticasCompras] = useState<EstatisticasCompras>({
+  total_gasto: 0,
+  total_pedidos: 0,
+  media_por_pedido: 0,
+  total_produtores: 0,
+  por_mes: []
+});
+
+
+
 
   // Referências
   const chartContainerRef = useRef<HTMLDivElement>(null);
@@ -767,7 +779,7 @@ const podeVerVendas = () => {
                           <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Vendedor</th>
                           <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Qtd</th>
                           <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Preço Unit.</th>
-                          <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Total</th>
+                        
                           <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Pagamento</th>
                           <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Estado</th>
                         </tr>
@@ -787,7 +799,6 @@ const podeVerVendas = () => {
                             </td>
                             <td className="border border-gray-300 px-4 py-3 text-sm">{item.Quantidade_Comprada}</td>
                             <td className="border border-gray-300 px-4 py-3 text-sm">{formatarMoeda(parseFloat(item.Preco_Unitario))}</td>
-                            <td className="border border-gray-300 px-4 py-3 text-sm font-semibold">{formatarMoeda(parseFloat(item.Valor_Total))}</td>
                             <td className="border border-gray-300 px-4 py-3 text-sm">
                               <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusComCor(item.Status_Pagamento).cor}`}>
                                 {getStatusComCor(item.Status_Pagamento).texto}
@@ -820,53 +831,53 @@ const podeVerVendas = () => {
                       </thead>
                       <tbody>
                         {relatorioVendas.map((item, index) => (
-                          <tr key={index} className="hover:bg-gray-50">
-                            <td className="border border-gray-300 px-4 py-3 text-sm">{item.Numero_Pedido}</td>
-                            <td className="border border-gray-300 px-4 py-3 text-sm">{formatarData(item.Data_Pedido)}</td>
-                            <td className="border border-gray-300 px-4 py-3 text-sm">
-                              <div>
-                                <div className="font-medium">{item.Nome_Comprador}</div>
-                                <div className="text-gray-500 text-xs">{item.Email_Comprador}</div>
-                                {item.Telefone_Comprador && (
-                                  <div className="text-gray-500 text-xs">{item.Telefone_Comprador}</div>
-                                )}
-                              </div>
-                            </td>
-                            <td className="border border-gray-300 px-4 py-3 text-sm">{item.Nome_Produto}</td>
-                            <td className="border border-gray-300 px-4 py-3 text-sm">{item.Quantidade_Total}</td>
-                            <td className="border border-gray-300 px-4 py-3 text-sm">{formatarMoeda(item.Preco_Unitario)}</td>
-                            <td className="border border-gray-300 px-4 py-3 text-sm font-semibold">{formatarMoeda(item.Valor_Total)}</td>
-                            <td className="border border-gray-300 px-4 py-3 text-sm">
-                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusComCor(item.Status_Pedido).cor}`}>
-                                {getStatusComCor(item.Status_Pedido).texto}
-                              </span>
-                            </td>
-                            <td className="border border-gray-300 px-4 py-3 text-sm">
-                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusComCor(item.status_pagamentos).cor}`}>
-                                {getStatusComCor(item.status_pagamentos).texto}
-                              </span>
-                            </td>
-                            <td className="border border-gray-300 px-4 py-3 text-sm">
-                              {item.Status_Pedido !== 'entregue' && item.Status_Pedido !== 'cancelado' && (
-                                <label htmlFor={`status-${item.Numero_Pedido}`} className="sr-only">Atualizar Status
-                                <select
-                                  id={`status-${item.Numero_Pedido}`}
-                                  className="text-xs border rounded px-2 py-1"
-                                  value={item.Status_Pedido}
-                                  onChange={(e) => handleAtualizarStatus(item.Numero_Pedido, e.target.value)}
-                                >
-                                  <option value="pendente">Pendente</option>
-                                  <option value="aceito">Aceito</option>
-                                  <option value="pronto">Pronto</option>
-                                  <option value="entregue">Entregue</option>
-                                  <option value="cancelado">Cancelado</option>
-
-                                </select>
-                                </label>
-                              )}
-                            </td>
-                          </tr>
-                        ))}
+  <tr key={index} className="hover:bg-gray-50">
+    <td className="border border-gray-300 px-4 py-3 text-sm">{item.Numero_Pedido}</td>
+    <td className="border border-gray-300 px-4 py-3 text-sm">{formatarData(item.Data_Pedido)}</td>
+    <td className="border border-gray-300 px-4 py-3 text-sm">
+      <div>
+        <div className="font-medium">{item.Nome_Comprador}</div>
+        <div className="text-gray-500 text-xs">{item.Email_Comprador}</div>
+        {item.Telefone_Comprador && (
+          <div className="text-gray-500 text-xs">{item.Telefone_Comprador}</div>
+        )}
+      </div>
+    </td>
+    <td className="border border-gray-300 px-4 py-3 text-sm">{item.Nome_Produto}</td>
+    <td className="border border-gray-300 px-4 py-3 text-sm">{item.Quantidade_Total}</td>
+    <td className="border border-gray-300 px-4 py-3 text-sm">{formatarMoeda(item.Preco_Unitario)}</td>
+    <td className="border border-gray-300 px-4 py-3 text-sm">
+      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusComCor(item.Status_Pedido).cor}`}>
+        {getStatusComCor(item.Status_Pedido).texto}
+      </span>
+    </td>
+    <td className="border border-gray-300 px-4 py-3 text-sm">
+      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusComCor(item.status_pagamentos).cor}`}>
+        {getStatusComCor(item.status_pagamentos).texto}
+      </span>
+    </td>
+    <td className="border border-gray-300 px-4 py-3 text-sm">
+      {item.Status_Pedido !== 'entregue' && item.Status_Pedido !== 'cancelado' && (
+        <div>
+          <label htmlFor={`status-${item.Numero_Pedido}`} className="sr-only">
+            Atualizar Status
+          </label>
+          <select
+            id={`status-${item.Numero_Pedido}`}
+            className="text-xs border rounded px-2 py-1 w-full"
+            value={item.Status_Pedido}
+            onChange={(e) => handleAtualizarStatus(item.Numero_Pedido, e.target.value)}
+          >
+            <option value="aceito">Aceito</option>
+            <option value="pronto">Pronto</option>
+            <option value="entregue">Entregue</option>
+            <option value="cancelado">Cancelado</option>
+          </select>
+        </div>
+      )}
+    </td>
+  </tr>
+))}
                       </tbody>
                     </table>
                   )}
