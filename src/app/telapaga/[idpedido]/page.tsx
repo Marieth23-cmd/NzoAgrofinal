@@ -44,7 +44,7 @@ const normalizarDadosPedido = (dadosBrutos: any): PedidoPagamentoData | null => 
   };
 };
 
-type MetodoPagamento = 'unitel_money' | 'afrimoney' | 'multicaixa'
+type MetodoPagamento = 'unitel_money' | 'africell_money' | 'multicaixa_express'
 type StatusPagamento = 'inicial' | 'referencia_gerada' | 'processando' | 'sucesso' | 'erro'| 'carregando'
 
 type MetodoInfo = {
@@ -161,7 +161,7 @@ const metodos: Record<MetodoPagamento, MetodoInfo> = {
       </svg>
     )
   },
-  afrimoney: {
+  africell_money: {
     nome: 'Afrimoney',
     taxa: 0,
     instrucoes: [
@@ -179,7 +179,7 @@ const metodos: Record<MetodoPagamento, MetodoInfo> = {
       </svg>
     )
   },
-  multicaixa: {
+  multicaixa_express: {
     nome: 'Multicaixa Express',
     taxa: 0,
     instrucoes: [
