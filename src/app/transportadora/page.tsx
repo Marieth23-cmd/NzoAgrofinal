@@ -396,7 +396,7 @@ const Dashboard = () => {
             <button 
               onClick={() => setActiveTab('pedidos')}
               className={`flex items-center p-3 w-full text-left rounded-md gap-2 transition-colors ${
-                activeTab === 'pedidos' ? 'bg-green-200 text-marieth' : 'text-gray-700 hover:bg-gray-100'
+                activeTab === 'pedidos' ? 'bg-green-50 text-marieth' : 'text-gray-700 hover:bg-gray-100'
               }`}
             >
               <FaTruck /> Pedidos

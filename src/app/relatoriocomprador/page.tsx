@@ -823,9 +823,7 @@ const podeVerVendas = () => {
                           <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Produto</th>
                           <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Qtd</th>
                           <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Preço Unit.</th>
-                          <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Total</th>
                           <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Status</th>
-                          <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Pagamento</th>
                           <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Ações</th>
                         </tr>
                       </thead>

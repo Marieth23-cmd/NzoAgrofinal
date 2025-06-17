@@ -271,8 +271,8 @@ export default function Carrinho() {
                   </p>
                   <p>Quantidade desejada: <span className="font-semibold">{item.quantidade_desejada} {item.Unidade || "unidades"}</span></p>
                   <p>Estoque disponível: <span className="font-semibold">{item.quantidade_cadastrada} {item.Unidade || "unidades"}</span></p>
-                  <p>Subtotal proporcional: <span className="font-bold">Kzs {item.subtotal_produto.toFixed(2)}</span></p>
-                  <p>Peso proporcional: <span className="font-bold">{item.peso_final.toFixed(2)} kg</span></p>
+                  <p>Subtotal proporcional: <span className="font-bold">Kzs {Number(item.subtotal_produto).toFixed(2)}</span></p>
+                  <p>Peso proporcional: <span className="font-bold">{Number(item.peso_final).toFixed(2)} kg</span></p>
                   <FaTrash
                     onClick={() => handleRemover(item.id_produtos)}
                     className="absolute top-2 right-2 text-vermelho text-[1.2rem] cursor-pointer hover:text-red-700"
@@ -293,28 +293,28 @@ export default function Carrinho() {
             <div className="mt-8 p-4 bg-white rounded-[10px] shadow-custom">
               <div className="flex justify-between border-b-[1px] border-solid border-tab py-2 px-0">
                 <span>Subtotal dos produtos:</span>
-                <span>Kzs {calculoCarrinho.resumo.subtotalProdutos.toFixed(2)}</span>
+                <span>Kzs {Number(calculoCarrinho.resumo.subtotalProdutos).toFixed(2)}</span>
               </div>
               <div className="flex justify-between border-b-[1px] border-solid border-tab py-2 px-0">
                 <span>Frete:</span>
-                <span>Kzs {calculoCarrinho.resumo.frete.toFixed(2)}</span>
+                <span>Kzs {Number(calculoCarrinho.resumo.frete).toFixed(2)}</span>
               </div>
               <div className="flex justify-between border-b-[1px] border-solid border-tab py-2 px-0">
                 <span>Comissão:</span>
-                <span>Kzs {calculoCarrinho.resumo.comissao.toFixed(2)}</span>
+                <span>Kzs {Number(calculoCarrinho.resumo.comissao).toFixed(2)}</span>
               </div>
               <div className="flex justify-between border-b-[1px] border-solid border-tab py-2 px-0">
                 <span>Peso total:</span>
-                <span>{calculoCarrinho.resumo.pesoTotal.toFixed(2)} kg</span>
+                <span>{Number(calculoCarrinho.resumo.pesoTotal).toFixed(2)} kg</span>
               </div>
               <div className="flex justify-between border-b-[1px] border-solid mt-[1rem] border-tab py-2 px-0">
                 <span className="text-marieth text-[1.2rem] font-bold">Total a pagar:</span>
-                <span className="text-[1.2rem] font-bold">Kzs {calculoCarrinho.resumo.totalFinal.toFixed(2)}</span>
+                <span className="text-[1.2rem] font-bold">Kzs {Number(calculoCarrinho.resumo.totalFinal).toFixed(2)}</span>
               </div>
               {calculoCarrinho.resumo.pesoTotal < 10 && (
                 <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded my-4">
                   <p><strong>Atenção:</strong> O peso total mínimo para efetivar a compra é de 10kg.
-                     Peso atual: {calculoCarrinho.resumo.pesoTotal.toFixed(2)}kg. Adicione mais produtos para continuar.</p>
+                     Peso atual: {Number(calculoCarrinho.resumo.pesoTotal).toFixed(2)}kg. Adicione mais produtos para continuar.</p>
                 </div>
               )}
               <button 
