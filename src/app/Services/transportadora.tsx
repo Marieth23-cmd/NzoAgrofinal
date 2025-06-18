@@ -287,3 +287,132 @@ export const getTransportadoras = async (): Promise<any> => {
         }
     }
 }
+
+
+// ===== FUNÇÕES QUE FALTAM NO ARQUIVO DA API =====
+
+// 1. Buscar filiais para select
+export const buscarFiliaisSelect = async (): Promise<any> => {
+    try {
+        const token = localStorage.getItem('token');
+        const response = await axios.get(
+            `${API_URL}/transportadoras/filiais-select`,
+            {
+                withCredentials: true,
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                },
+            }
+        );
+
+        console.log("✅ Filiais para select carregadas:", response.data);
+        return response.data;
+
+    } catch (error: any) {
+        console.log("❌ Erro ao carregar filiais para select:", error.response?.data || error.message);
+
+        if (error.response && error.response.data) {
+            throw error.response.data;
+        } else {
+            throw { mensagem: "Erro desconhecido ao carregar filiais para select" };
+        }
+    }
+};
+
+// 2. Aceitar pedido e notificar cliente
+interface AceitarPedidoNotificar {
+    pedidos_id: number;
+    filial_retirada_id: number;
+    observacoes?: string;
+}
+
+export const aceitarPedidoNotificar = async (dados: AceitarPedidoNotificar): Promise<any> => {
+    try {
+        const token = localStorage.getItem('token');
+        const response = await axios.post(
+            `${API_URL}/transportadoras/aceitar-pedido-notificar`,
+            dados,
+            {
+                withCredentials: true,
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`,
+                },
+            }
+        );
+
+        console.log("✅ Pedido aceito e cliente notificado:", response.data);
+        return response.data;
+
+    } catch (error: any) {
+        console.log("❌ Erro ao aceitar pedido e notificar:", error.response?.data || error.message);
+
+        if (error.response && error.response.data) {
+            throw error.response.data;
+        } else {
+            throw { mensagem: "Erro desconhecido ao aceitar pedido e notificar" };
+        }
+    }
+};
+
+// 3. Finalizar entrega
+interface FinalizarEntrega {
+    observacoes_finais?: string;
+}
+
+export const finalizarEntrega = async (pedido_id: number, dados: FinalizarEntrega): Promise<any> => {
+    try {
+        const token = localStorage.getItem('token');
+        const response = await axios.put(
+            `${API_URL}/transportadoras/finalizar-entrega/${pedido_id}`,
+            dados,
+            {
+                withCredentials: true,
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`,
+                },
+            }
+        );
+
+        console.log("✅ Entrega finalizada:", response.data);
+        return response.data;
+
+    } catch (error: any) {
+        console.log("❌ Erro ao finalizar entrega:", error.response?.data || error.message);
+
+        if (error.response && error.response.data) {
+            throw error.response.data;
+        } else {
+            throw { mensagem: "Erro desconhecido ao finalizar entrega" };
+        }
+    }
+};
+
+// 4. Buscar notificações (para clientes)
+export const buscarMinhasNotificacoes = async (): Promise<any> => {
+    try {
+        const token = localStorage.getItem('token');
+        const response = await axios.get(
+            `${API_URL}/transportadoras/minhas-notificacoes`,
+            {
+                withCredentials: true,
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                },
+            }
+        );
+
+        console.log("✅ Notificações carregadas:", response.data);
+        return response.data;
+
+    } catch (error: any) {
+        console.log("❌ Erro ao carregar notificações:", error.response?.data || error.message);
+
+        if (error.response && error.response.data) {
+            throw error.response.data;
+        } else {
+            throw { mensagem: "Erro desconhecido ao carregar notificações" };
+        }
+    }
+};

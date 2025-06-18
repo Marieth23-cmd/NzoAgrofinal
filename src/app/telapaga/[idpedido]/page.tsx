@@ -111,7 +111,6 @@ interface DadosSimulacao {
   tempo_processamento: string;
   codigo_confirmacao: string;
   hash_transacao: string;
-  
 }
 
 interface DivisaoValores {
@@ -395,7 +394,7 @@ const processarPagamento = async (e: any) => {
     try {
       console.log(`🧪 Iniciando simulação de pagamento com referência: ${referenciaInput}`)
       
-      const resultado = await simularPagamento(referenciaInput.trim(), metodo )
+      const resultado = await simularPagamento(referenciaInput.trim() , metodo)
       console.log('✅ Resposta completa da simulação:', resultado)
 
       if (resultado.sucesso) {
@@ -530,8 +529,6 @@ const handlefinalizarCompra = async () => {
     setTimeout(()=>{
       router.push('/FinalizarCompra')
     }, 3000)
-    // Redirecionar para página de finalização/sucesso
-    
     
     
   } catch (error:any) {
@@ -734,7 +731,7 @@ const handlefinalizarCompra = async () => {
                   type="text"
                   value={referenciaInput}
                   onChange={(e) => setReferenciaInput(e.target.value)}
-                  placeholder="Ex: UM123456789"
+                  placeholder="Ex: REF_1234567890"
                   className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-green-600 focus:outline-none font-mono"
                   required
                 />
