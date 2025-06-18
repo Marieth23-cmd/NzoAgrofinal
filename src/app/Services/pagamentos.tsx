@@ -379,11 +379,11 @@ export const gerarReferenciaPagamento = async (dadosPagamento: {
 };
 
 // Função para simular pagamento
-export const simularPagamento = async (referencia: string) => {
+export const simularPagamento = async (referencia: string , metodo_pagamento:string) => {
     try {
         const response = await axios.post(
             `${API_URL}/pagamentos/simular-pagamento`,
-            { referencia },
+            { referencia, metodo_pagamento },
             {
                 withCredentials: true,
                 headers: { "Content-Type": "application/json" },

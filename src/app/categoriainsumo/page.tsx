@@ -551,7 +551,7 @@ export default function CategoriaInsumo() {
                     <div className="p-4">
                       <h3 className="text-[0.95rem] sm:text-[1.1rem] mb-[0.5rem] font-bold">{produto.nome}</h3>
                       <h3 className="text-[1rem] sm:text-[1.2rem] text-marieth font-bold">
-                        {produto.preco.toLocaleString('pt-AO')} Kz/{produto.quantidade}{produto.Unidade}
+                        {Number(produto.preco).toLocaleString('pt-AO')}Kz/{produto.quantidade}{produto.Unidade}
                       </h3>
                       <h3 className="text-[0.8rem] sm:text-[0.9rem] text-cortexto">Vendido por: {produto.nome_vendedor}</h3>
                       <p className="text-[0.75rem] sm:text-[0.85rem] text-gray-500 mt-1">

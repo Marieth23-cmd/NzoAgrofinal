@@ -639,25 +639,25 @@ const podeVerVendas = () => {
               <div className="p-4 md:p-6 rounded-[10px] text-center shadow-custom bg-white">
                 <h3 className="m-0 text-cortexto text-base md:text-[1.17rem]">Total Gasto</h3>
                 <p className="text-marieth font-bold p-2 md:p-4 my-2 mx-0 text-xl md:text-[2rem]">
-                  {estatisticasCompras ? formatarMoeda(estatisticasCompras.total_gasto) : 'kzs 0'}
+                  0
                 </p>
               </div>
               <div className="p-4 md:p-6 rounded-[10px] text-center shadow-custom bg-white">
                 <h3 className="m-0 text-cortexto text-base md:text-[1.17rem]">Quantidade de Pedidos</h3>
                 <p className="text-marieth font-bold p-2 md:p-4 my-2 mx-0 text-xl md:text-[2rem]">
-                  {estatisticasCompras ? estatisticasCompras.total_pedidos : '0'}
+                  0
                 </p>
               </div>
               <div className="p-4 md:p-6 rounded-[10px] text-center shadow-custom bg-white">
                 <h3 className="m-0 text-cortexto text-base md:text-[1.17rem]">Média por Pedido</h3>
                 <p className="text-marieth font-bold p-2 md:p-4 my-2 mx-0 text-xl md:text-[2rem]">
-                  {estatisticasCompras ? formatarMoeda(estatisticasCompras.media_por_pedido) : 'kzs 0'}
+                 0
                 </p>
               </div>
               <div className="p-4 md:p-6 rounded-[10px] text-center shadow-custom bg-white">
                 <h3 className="m-0 text-cortexto text-base md:text-[1.17rem]">Fornecedores</h3>
                 <p className="text-marieth font-bold p-2 md:p-4 my-2 mx-0 text-xl md:text-[2rem]">
-                  {estatisticasCompras ? estatisticasCompras.total_produtores : '0'}
+                  0
                 </p>
               </div>
             </>
@@ -666,25 +666,25 @@ const podeVerVendas = () => {
               <div className="p-4 md:p-6 rounded-[10px] text-center shadow-custom bg-white">
                 <h3 className="m-0 text-cortexto text-base md:text-[1.17rem]">Total Vendido</h3>
                 <p className="text-green-600 font-bold p-2 md:p-4 my-2 mx-0 text-xl md:text-[2rem]">
-                  {estatisticasVendas ? formatarMoeda(estatisticasVendas.total_vendas) : 'kzs 0'}
+                 kzs 0
                 </p>
               </div>
               <div className="p-4 md:p-6 rounded-[10px] text-center shadow-custom bg-white">
                 <h3 className="m-0 text-cortexto text-base md:text-[1.17rem]">Pedidos Atendidos</h3>
                 <p className="text-green-600 font-bold p-2 md:p-4 my-2 mx-0 text-xl md:text-[2rem]">
-                  {estatisticasVendas ? estatisticasVendas.total_pedidos : '0'}
+                  
                 </p>
               </div>
               <div className="p-4 md:p-6 rounded-[10px] text-center shadow-custom bg-white">
                 <h3 className="m-0 text-cortexto text-base md:text-[1.17rem]">Pedidos Pendentes</h3>
                 <p className="text-yellow-600 font-bold p-2 md:p-4 my-2 mx-0 text-xl md:text-[2rem]">
-                  {estatisticasVendas ? estatisticasVendas.pedidos_pendentes : '0'}
+                  0
                 </p>
               </div>
               <div className="p-4 md:p-6 rounded-[10px] text-center shadow-custom bg-white">
                 <h3 className="m-0 text-cortexto text-base md:text-[1.17rem]">Pedidos Prontos</h3>
                 <p className="text-blue-600 font-bold p-2 md:p-4 my-2 mx-0 text-xl md:text-[2rem]">
-                  {estatisticasVendas ? estatisticasVendas.pedidos_prontos : '0'}
+                  0
                 </p>
               </div>
             </>
@@ -769,116 +769,117 @@ const podeVerVendas = () => {
               ) : (
                 <div className="overflow-x-auto">
                   {tipoRelatorio === 'compras' ? (
-                    <table className="w-full border-collapse">
-                      <thead>
-                        <tr className="bg-gray-50">
-                          <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Nº Pedido</th>
-                          <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Data</th>
-                          <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Produto</th>
-                          <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Categoria</th>
-                          <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Vendedor</th>
-                          <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Qtd</th>
-                          <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Preço Unit.</th>
-                        
-                          <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Pagamento</th>
-                          <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Estado</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {relatorioCompras.map((item, index) => (
-                          <tr key={index} className="hover:bg-gray-50">
-                            <td className="border border-gray-300 px-4 py-3 text-sm">{item.Numero_Pedido}</td>
-                            <td className="border border-gray-300 px-4 py-3 text-sm">{formatarData(item.Data_Pedido)}</td>
-                            <td className="border border-gray-300 px-4 py-3 text-sm">{item.Nome_Produto}</td>
-                            <td className="border border-gray-300 px-4 py-3 text-sm">{item.Categoria_Produto}</td>
-                            <td className="border border-gray-300 px-4 py-3 text-sm">
-                              <div>
-                                <div className="font-medium">{item.Nome_Vendedor}</div>
-                                <div className="text-gray-500 text-xs">{item.Email_Vendedor}</div>
-                              </div>
-                            </td>
-                            <td className="border border-gray-300 px-4 py-3 text-sm">{item.Quantidade_Comprada}</td>
-                            <td className="border border-gray-300 px-4 py-3 text-sm">{formatarMoeda(parseFloat(item.Preco_Unitario))}</td>
-                            <td className="border border-gray-300 px-4 py-3 text-sm">
-                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusComCor(item.Status_Pagamento).cor}`}>
-                                {getStatusComCor(item.Status_Pagamento).texto}
-                              </span>
-                            </td>
-                            <td className="border border-gray-300 px-4 py-3 text-sm">
-                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusComCor(item.Estado).cor}`}>
-                                {getStatusComCor(item.Estado).texto}
-                              </span>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  ) : (
-                    <table className="w-full border-collapse">
-                      <thead>
-                        <tr className="bg-gray-50">
-                          <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Nº Pedido</th>
-                          <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Data</th>
-                          <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Comprador</th>
-                          <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Produto</th>
-                          <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Qtd</th>
-                          <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Preço Unit.</th>
-                          <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Status</th>
-                          <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Ações</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {relatorioVendas.map((item, index) => (
-  <tr key={index} className="hover:bg-gray-50">
-    <td className="border border-gray-300 px-4 py-3 text-sm">{item.Numero_Pedido}</td>
-    <td className="border border-gray-300 px-4 py-3 text-sm">{formatarData(item.Data_Pedido)}</td>
-    <td className="border border-gray-300 px-4 py-3 text-sm">
-      <div>
-        <div className="font-medium">{item.Nome_Comprador}</div>
-        <div className="text-gray-500 text-xs">{item.Email_Comprador}</div>
-        {item.Telefone_Comprador && (
-          <div className="text-gray-500 text-xs">{item.Telefone_Comprador}</div>
-        )}
-      </div>
-    </td>
-    <td className="border border-gray-300 px-4 py-3 text-sm">{item.Nome_Produto}</td>
-    <td className="border border-gray-300 px-4 py-3 text-sm">{item.Quantidade_Total}</td>
-    <td className="border border-gray-300 px-4 py-3 text-sm">{formatarMoeda(item.Preco_Unitario)}</td>
-    <td className="border border-gray-300 px-4 py-3 text-sm">
-      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusComCor(item.Status_Pedido).cor}`}>
-        {getStatusComCor(item.Status_Pedido).texto}
-      </span>
-    </td>
-    <td className="border border-gray-300 px-4 py-3 text-sm">
-      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusComCor(item.status_pagamentos).cor}`}>
-        {getStatusComCor(item.status_pagamentos).texto}
-      </span>
-    </td>
-    <td className="border border-gray-300 px-4 py-3 text-sm">
-      {item.Status_Pedido !== 'entregue' && item.Status_Pedido !== 'cancelado' && (
-        <div>
-          <label htmlFor={`status-${item.Numero_Pedido}`} className="sr-only">
-            Atualizar Status
-          </label>
-          <select
-            id={`status-${item.Numero_Pedido}`}
-            className="text-xs border rounded px-2 py-1 w-full"
-            value={item.Status_Pedido}
-            onChange={(e) => handleAtualizarStatus(item.Numero_Pedido, e.target.value)}
-          >
-            <option value="aceito">Aceito</option>
-            <option value="pronto">Pronto</option>
-            <option value="entregue">Entregue</option>
-            <option value="cancelado">Cancelado</option>
-          </select>
-        </div>
-      )}
-    </td>
-  </tr>
-))}
-                      </tbody>
-                    </table>
-                  )}
+  <table className="w-full border-collapse">
+    <thead>
+      <tr className="bg-gray-50">
+        <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Nº Pedido</th>
+        <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Data</th>
+        <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Produto</th>
+        <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Categoria</th>
+        <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Vendedor</th>
+        <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Qtd</th>
+        <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Preço Unit.</th>
+        <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Status Pagamento</th>
+        <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Estado</th>
+      </tr>
+    </thead>
+    <tbody>
+      {relatorioCompras.map((item, index) => (
+        <tr key={index} className="hover:bg-gray-50">
+          <td className="border border-gray-300 px-4 py-3 text-sm">{item.Numero_Pedido}</td>
+          <td className="border border-gray-300 px-4 py-3 text-sm">{formatarData(item.Data_Pedido)}</td>
+          <td className="border border-gray-300 px-4 py-3 text-sm">{item.Nome_Produto}</td>
+          <td className="border border-gray-300 px-4 py-3 text-sm">{item.Categoria_Produto}</td>
+          <td className="border border-gray-300 px-4 py-3 text-sm">
+            <div>
+              <div className="font-medium">{item.Nome_Vendedor}</div>
+              <div className="text-gray-500 text-xs">{item.Email_Vendedor}</div>
+            </div>
+          </td>
+          <td className="border border-gray-300 px-4 py-3 text-sm">{item.Quantidade_Comprada}</td>
+          <td className="border border-gray-300 px-4 py-3 text-sm">{formatarMoeda(parseFloat(item.Preco_Unitario))}</td>
+          <td className="border border-gray-300 px-4 py-3 text-sm">
+            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusComCor(item.Status_Pagamento).cor}`}>
+              {getStatusComCor(item.Status_Pagamento).texto}
+            </span>
+          </td>
+          <td className="border border-gray-300 px-4 py-3 text-sm">
+            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusComCor(item.Estado).cor}`}>
+              {getStatusComCor(item.Estado).texto}
+            </span>
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+) : (
+  <table className="w-full border-collapse">
+    <thead>
+      <tr className="bg-gray-50">
+        <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Nº Pedido</th>
+        <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Data</th>
+        <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Comprador</th>
+        <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Produto</th>
+        <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Qtd</th>
+        <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Preço Unit.</th>
+        <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Status Pedido</th>
+        <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Status Pagamento</th>
+        <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold text-gray-700">Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      {relatorioVendas.map((item, index) => (
+        <tr key={index} className="hover:bg-gray-50">
+          <td className="border border-gray-300 px-4 py-3 text-sm">{item.Numero_Pedido}</td>
+          <td className="border border-gray-300 px-4 py-3 text-sm">{formatarData(item.Data_Pedido)}</td>
+          <td className="border border-gray-300 px-4 py-3 text-sm">
+            <div>
+              <div className="font-medium">{item.Nome_Comprador}</div>
+              <div className="text-gray-500 text-xs">{item.Email_Comprador}</div>
+              {item.Telefone_Comprador && (
+                <div className="text-gray-500 text-xs">{item.Telefone_Comprador}</div>
+              )}
+            </div>
+          </td>
+          <td className="border border-gray-300 px-4 py-3 text-sm">{item.Nome_Produto}</td>
+          <td className="border border-gray-300 px-4 py-3 text-sm">{item.Quantidade_Total}</td>
+          <td className="border border-gray-300 px-4 py-3 text-sm">{formatarMoeda(item.Preco_Unitario)}</td>
+          <td className="border border-gray-300 px-4 py-3 text-sm">
+            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusComCor(item.Status_Pedido).cor}`}>
+              {getStatusComCor(item.Status_Pedido).texto}
+            </span>
+          </td>
+          <td className="border border-gray-300 px-4 py-3 text-sm">
+            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusComCor(item.status_pagamentos).cor}`}>
+              {getStatusComCor(item.status_pagamentos).texto}
+            </span>
+          </td>
+          <td className="border border-gray-300 px-4 py-3 text-sm">
+            {item.Status_Pedido !== 'entregue' && item.Status_Pedido !== 'cancelado' && (
+              <div>
+                <label htmlFor={`status-${item.Numero_Pedido}`} className="sr-only">
+                  Atualizar Status
+                </label>
+                <select
+                  id={`status-${item.Numero_Pedido}`}
+                  className="text-xs border rounded px-2 py-1 w-full"
+                  value={item.Status_Pedido}
+                  onChange={(e) => handleAtualizarStatus(item.Numero_Pedido, e.target.value)}
+                >
+                  <option value="aceito">Aceito</option>
+                  <option value="pronto">Pronto</option>
+                  <option value="entregue">Entregue</option>
+                  <option value="cancelado">Cancelado</option>
+                </select>
+              </div>
+            )}
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+)}
+                     
                 </div>
               )}
             </div>
