@@ -6,12 +6,11 @@ import {
   FaMoneyBillWave,FaSpinner} from 'react-icons/fa';
 import {listarEntregasPendentes,listarMinhasEntregas,listarMinhasFiliais,aceitarPedidoNotificar,
   atualizarStatusEntrega,cadastrarFilial,buscarMinhasNotificacoes} from '../Services/transportadora';
+import {logout} from '../Services/auth'
+import { useRouter } from 'next/navigation';
+import { ToastContainer, toast } from 'react-toastify';
+import { MdLogout } from 'react-icons/md';
 
-const Dashboard = () => {
-  const [activeTab, setActiveTab] = useState('pedidos');
-  const [selectedFilial, setSelectedFilial] = useState<Record<string, number>>({});
-  const [loading, setLoading] = useState(false);
-  
 
 
 interface Entrega {
@@ -54,6 +53,25 @@ interface Stats {
   receitaMensal: number;
 }
 
+
+
+const Dashboard = () => {
+  const [activeTab, setActiveTab] = useState('pedidos');
+  const [selectedFilial, setSelectedFilial] = useState<Record<string, number>>({});
+  const [loading, setLoading] = useState(false);
+  const [auntenticado , setAutenticado]=useState<boolean | null>(null)
+  const router =useRouter()
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      setAutenticado(false);
+      router.push("/login");
+    } catch (error) {
+      console.log("Erro ao terminar sessão:", error);
+    }
+  };
+
   // Estados para dados da API - Tipados corretamente
   const [pedidosPendentes, setPedidosPendentes] = useState<Pedido[]>([]);
   const [minhasEntregas, setMinhasEntregas] = useState<Entrega[]>([]);
@@ -75,27 +93,57 @@ interface Stats {
   });
   const [showNovaFilialForm, setShowNovaFilialForm] = useState(false);
 
-  // Carregar dados iniciais
+  // useEffects individuais para carregar dados
+  // 1. useEffect para carregar pedidos pendentes
   useEffect(() => {
-    carregarDados();
+    carregarPedidosPendentes();
   }, []);
 
-  const carregarDados = async () => {
-    setLoading(true);
-    try {
-      await Promise.all([
-        carregarPedidosPendentes(),
-        carregarMinhasEntregas(),
-        carregarMinhasFiliais(),
-        carregarNotificacoes()
-      ]);
-    } catch (error) {
-      console.error('Erro ao carregar dados:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // 2. useEffect para carregar minhas entregas
+  useEffect(() => {
+    carregarMinhasEntregas();
+  }, []);
 
+  // 3. useEffect para carregar filiais
+  useEffect(() => {
+    carregarMinhasFiliais();
+  }, []);
+
+  // 4. useEffect para carregar notificações
+  useEffect(() => {
+    carregarNotificacoes();
+  }, []);
+
+  // 5. useEffect para atualizar stats quando os dados mudarem
+  useEffect(() => {
+    if (minhasEntregas.length > 0 || pedidosPendentes.length > 0) {
+      const hoje = new Date().toDateString();
+      const entreguesHoje = minhasEntregas.filter((e: Entrega) => 
+        e.estado_entrega === 'entregue' && 
+        e.data_entrega && new Date(e.data_entrega).toDateString() === hoje
+      ).length;
+      
+      const emTransito = minhasEntregas.filter((e: Entrega) => 
+        e.estado_entrega === 'em_transito'
+      ).length;
+
+      const receitaMensal = minhasEntregas
+        .filter((e: Entrega) => e.estado_entrega === 'entregue')
+        .reduce((total: number, e: Entrega) => {
+          const valorEntrega = Number(e.valor_total) || 0;
+          return total + valorEntrega;
+        }, 0);
+
+      setStats({
+        pedidosPendentes: pedidosPendentes.length,
+        entreguesHoje,
+        emTransito,
+        receitaMensal
+      });
+    }
+  }, [minhasEntregas, pedidosPendentes]);
+
+  // Funções para carregar dados individuais
   const carregarPedidosPendentes = async () => {
     try {
       const response = await listarEntregasPendentes();
@@ -113,32 +161,7 @@ interface Stats {
       if (response.sucesso) {
         const entregas: Entrega[] = response.dados || [];
         setMinhasEntregas(entregas);
-        
-        // Calcular estatísticas
-        const hoje = new Date().toDateString();
-        const entreguesHoje = entregas.filter((e: Entrega) => 
-          e.estado_entrega === 'entregue' && 
-          e.data_entrega && new Date(e.data_entrega).toDateString() === hoje
-        ).length;
-        
-        const emTransito = entregas.filter((e: Entrega) => 
-          e.estado_entrega === 'em_transito'
-        ).length;
-
-        // Calcular receita mensal (exemplo simplificado)
-        const receitaMensal = entregas
-          .filter((e: Entrega) => e.estado_entrega === 'entregue')
-          .reduce((total: number, e: Entrega) => {
-            const valorEntrega = Number(e.valor_total) || 0;
-            return total + valorEntrega;
-          }, 0);
-
-        setStats(prev => ({
-          ...prev,
-          entreguesHoje,
-          emTransito,
-          receitaMensal
-        }));
+        // Stats são calculadas no useEffect específico
       }
     } catch (error) {
       console.error('Erro ao carregar minhas entregas:', error);
@@ -167,6 +190,23 @@ interface Stats {
     }
   };
 
+  // Nova função para recarregar todos os dados (para botão "Atualizar")
+  const recarregarTodosDados = async () => {
+    setLoading(true);
+    try {
+      await Promise.all([
+        carregarPedidosPendentes(),
+        carregarMinhasEntregas(),
+        carregarMinhasFiliais(),
+        carregarNotificacoes()
+      ]);
+    } catch (error) {
+      console.error('Erro ao recarregar dados:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleFilialSelect = (pedidoId: string, filialId: number) => {
     setSelectedFilial({ ...selectedFilial, [pedidoId]: filialId });
   };
@@ -174,7 +214,7 @@ interface Stats {
   const aceitarPedido = async (pedido: Pedido) => {
     const filialId = selectedFilial[pedido.id];
     if (!filialId) {
-      alert('Selecione uma filial primeiro!');
+      toast.warn('Selecione uma filial primeiro!');
       return;
     }
 
@@ -187,14 +227,16 @@ interface Stats {
       });
 
       if (response.sucesso) {
-        alert('Pedido aceito com sucesso!');
-        await carregarDados(); // Recarregar dados
+        toast.success('Pedido aceito com sucesso!');
+        // Recarregar apenas os dados necessários
+        await carregarPedidosPendentes(); // Remove o pedido aceito da lista
+        await carregarMinhasEntregas();   // Adiciona à lista de entregas
       } else {
-        alert(response.mensagem || 'Erro ao aceitar pedido');
+        toast.error(response.mensagem || 'Erro ao aceitar pedido');
       }
     } catch (error: any) {
       console.error('Erro ao aceitar pedido:', error);
-      alert(error.mensagem || 'Erro ao aceitar pedido');
+      toast.error(error.mensagem || 'Erro ao aceitar pedido');
     } finally {
       setLoading(false);
     }
@@ -206,13 +248,13 @@ interface Stats {
       const response = await atualizarStatusEntrega(entregaId, novoStatus);
       if (response.sucesso) {
         alert('Status atualizado com sucesso!');
-        await carregarMinhasEntregas();
+        await carregarMinhasEntregas(); // Recarrega apenas as entregas
       } else {
-        alert(response.mensagem || 'Erro ao atualizar status');
+        toast.error(response.mensagem || 'Erro ao atualizar status');
       }
     } catch (error: any) {
       console.error('Erro ao atualizar status:', error);
-      alert(error.mensagem || 'Erro ao atualizar status');
+      toast.error(error.mensagem || 'Erro ao atualizar status');
     } finally {
       setLoading(false);
     }
@@ -228,16 +270,16 @@ interface Stats {
     try {
       const response = await cadastrarFilial(novaFilial);
       if (response.sucesso) {
-        alert('Filial cadastrada com sucesso!');
+        toast.success('Filial cadastrada com sucesso!');
         setShowNovaFilialForm(false);
         setNovaFilial({ provincia: '', bairro: '', descricao: '' });
-        await carregarMinhasFiliais();
+        await carregarMinhasFiliais(); // Recarrega apenas as filiais
       } else {
-        alert(response.mensagem || 'Erro ao cadastrar filial');
+        toast.error(response.mensagem || 'Erro ao cadastrar filial');
       }
     } catch (error: any) {
       console.error('Erro ao cadastrar filial:', error);
-      alert(error.mensagem || 'Erro ao cadastrar filial');
+      toast.error(error.mensagem || 'Erro ao cadastrar filial');
     } finally {
       setLoading(false);
     }
@@ -636,7 +678,9 @@ interface Stats {
   }
 
   return (
+    
     <div className="grid grid-cols-[250px_1fr] min-h-screen bg-gray-100">
+      <ToastContainer position="top-right" autoClose={4000} />
       {/* Sidebar */}
       <aside className="bg-white p-4 border-r border-gray-200">
         <div className="text-center p-4 mb-8 font-bold text-xl text-marieth">
@@ -667,7 +711,7 @@ interface Stats {
             <button 
               onClick={() => setActiveTab('relatorios')}
               className={`flex items-center p-3 w-full text-left rounded-md gap-2 transition-colors ${
-                activeTab === 'relatorios' ? 'bg-green-50 text-marieth' : 'text-gray-700 hover:bg-gray-100'
+                activeTab === 'relatorios' ? 'bg-green-50 text-green-600' : 'text-gray-700 hover:bg-gray-100'
               }`}
             >
               <FaChartBar /> Relatórios
@@ -681,7 +725,7 @@ interface Stats {
               <FaBell /> 
               Notificações 
               {notificacoes.length > 0 && (
-                <span className="bg-red-500 text-white text-xs rounded-full px-2 py-1 ml-auto">
+                <span className="bg-green-600 text-white text-xs rounded-full px-2 py-1 ml-auto">
                   {notificacoes.length}
                 </span>
               )}
@@ -696,7 +740,7 @@ interface Stats {
       </aside>
 
       {/* Main Content */}
-       <main className="p-8 overflow-y-auto">
+       <main className="p-8 overflow-y-auto ">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-gray-800">
             {activeTab === 'pedidos' ? 'Painel de Pedidos' :
@@ -705,16 +749,25 @@ interface Stats {
           </h1>
           <div className="flex items-center gap-4">
             <button 
-              onClick={carregarDados}
+              onClick={recarregarTodosDados}
               disabled={loading}
               className="bg-marieth hover:bg-verdeaceso text-white px-4 py-2 rounded-md flex items-center gap-2 disabled:opacity-50"
             >
               {loading ? <FaSpinner className="animate-spin" /> : <FaArrowUp />}
               Atualizar
             </button>
+
             <div className="text-sm text-gray-600">
               Última atualização: {new Date().toLocaleString('pt-AO')}
             </div>
+              <div>
+                 <button 
+                 onClick={handleLogout}
+                className="text-gray-600 hover:text-red-600 transition-colors sr-only"
+                >terminar <MdLogout size={24} /></button>
+                                
+              </div>
+           
           </div>
         </div>
 

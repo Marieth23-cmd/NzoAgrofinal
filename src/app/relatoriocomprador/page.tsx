@@ -6,13 +6,14 @@ import { Chart as ChartJS, BarElement, CategoryScale, LinearScale, Tooltip, Lege
 import Navbar from "../Components/Navbar"
 import Footer from "../Components/Footer"
 import {  getRelatorioComprasComprador, getEstatisticasComprasComprador, 
-  exportarCSV,getEstatisticasVendasFornecedor, getRelatorioVendasFornecedor,// Para fornecedoresgetRelatorioVendasFornecedor, // Para fornecedores
+  exportarCSV,getEstatisticasVendasFornecedor, getRelatorioVendasFornecedor,
   exportarPDFVendasFornecedor,exportarCSVVendasFornecedor,actualizarStatusdoPedido
 } from "../Services/relatorios";
-// Registrando os componentes necessários do Chart.js
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
 import { exportarPDF } from '../Services/relatorios';
 import {getUsuarioById} from '../Services/user';
+import { marcarPedidoPronto, cancelarPedido } from '../Services/pedidos'; 
+
 
 // Interface para os dados estatísticos de compras
 interface EstatisticasCompras {
@@ -98,6 +99,11 @@ export default function Relatorios() {
   const [exportLoading, setExportLoading] = useState(false);
   const [usuarioLoading ,setusuarioLoading]= useState(false)
   const [primeiraConsulta, setPrimeiraConsulta] = useState<boolean>(false);
+        const [modalAberto, setModalAberto] = useState(false);
+      const [pedidoSelecionado, setPedidoSelecionado] = useState<number | null>(null);
+      const [acaoSelecionada, setAcaoSelecionada] = useState<string>('');
+      const [observacoes, setObservacoes] = useState('');
+      const [motivo, setMotivo] = useState('');
 
   // Estados para filtros de data
   const [dataInicial, setDataInicial] = useState<string>('');
@@ -119,6 +125,47 @@ export default function Relatorios() {
   total_produtores: 0,
   por_mes: []
 });
+
+
+
+const handleAtualizarStatusComModal = (numeroPedido: number, novoStatus: string) => {
+  if (novoStatus === 'pronto' || novoStatus === 'cancelado') {
+    setPedidoSelecionado(numeroPedido);
+    setAcaoSelecionada(novoStatus);
+    setModalAberto(true);
+  } else if (novoStatus === 'aceito') {
+   
+    // handleAceitarPedido(numeroPedido);
+  }
+};
+
+const confirmarAtualizacao = async () => {
+  if (!pedidoSelecionado) return;
+  
+  try {
+    if (acaoSelecionada === 'pronto') {
+      await marcarPedidoPronto(pedidoSelecionado, observacoes || undefined);
+      alert('Pedido marcado como pronto!');
+    } else if (acaoSelecionada === 'cancelado') {
+      if (!motivo.trim()) {
+        alert('É necessário informar o motivo do cancelamento.');
+        return;
+      }
+      await cancelarPedido(pedidoSelecionado, motivo);
+      alert('Pedido cancelado com sucesso!');
+    }
+    
+    // Fechar modal e limpar estados
+    setModalAberto(false);
+    setPedidoSelecionado(null);
+    setObservacoes('');
+    setMotivo('');
+    
+  } catch (error: any) {
+    console.error('Erro:', error);
+    alert(error.mensagem || 'Erro ao atualizar pedido');
+  }
+};
 
 
 
@@ -856,23 +903,22 @@ const podeVerVendas = () => {
           </td>
           <td className="border border-gray-300 px-4 py-3 text-sm">
             {item.Status_Pedido !== 'entregue' && item.Status_Pedido !== 'cancelado' && (
-              <div>
-                <label htmlFor={`status-${item.Numero_Pedido}`} className="sr-only">
-                  Atualizar Status
-                </label>
-                <select
-                  id={`status-${item.Numero_Pedido}`}
-                  className="text-xs border rounded px-2 py-1 w-full"
-                  value={item.Status_Pedido}
-                  onChange={(e) => handleAtualizarStatus(item.Numero_Pedido, e.target.value)}
-                >
-                  <option value="aceito">Aceito</option>
-                  <option value="pronto">Pronto</option>
-                  <option value="entregue">Entregue</option>
-                  <option value="cancelado">Cancelado</option>
-                </select>
-              </div>
-            )}
+                          <div>
+              <label htmlFor={`status-${item.Numero_Pedido}`} className="sr-only">
+                Atualizar Status
+              </label>
+              <select
+                id={`status-${item.Numero_Pedido}`}
+                className="text-xs border rounded px-2 py-1 w-full"
+                value={item.Status_Pedido}
+                onChange={(e) => handleAtualizarStatusComModal(item.Numero_Pedido, e.target.value)}
+              >
+                <option value="aceito">Aceito</option>
+                <option value="pronto">Pronto</option>
+                <option value="cancelado">Cancelado</option>
+              </select>
+            </div>
+                        )}
           </td>
         </tr>
       ))}
@@ -885,6 +931,71 @@ const podeVerVendas = () => {
             </div>
           </div>
         )}
+
+
+
+
+
+
+{modalAberto && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
+      <h3 className="text-lg font-semibold mb-4">
+        {acaoSelecionada === 'pronto' ? 'Marcar como Pronto' : 'Cancelar Pedido'}
+      </h3>
+      
+      {acaoSelecionada === 'pronto' ? (
+        <div>
+          <label className="block text-sm font-medium mb-2">
+            Observações (opcional):
+          </label>
+          <textarea
+            className="w-full border rounded px-3 py-2 mb-4"
+            rows={3}
+            value={observacoes}
+            onChange={(e) => setObservacoes(e.target.value)}
+            placeholder="Ex: Produtos embalados e prontos para coleta..."
+          />
+        </div>
+      ) : (
+        <div>
+          <label className="block text-sm font-medium mb-2">
+            Motivo do cancelamento: <span className="text-red-500">*</span>
+          </label>
+          <textarea
+            className="w-full border rounded px-3 py-2 mb-4"
+            rows={3}
+            value={motivo}
+            onChange={(e) => setMotivo(e.target.value)}
+            placeholder="Ex: Produto não disponível..."
+            required
+          />
+        </div>
+      )}
+      
+      <div className="flex gap-3 justify-end">
+        <button
+          onClick={() => {
+            setModalAberto(false);
+            setPedidoSelecionado(null);
+            setObservacoes('');
+            setMotivo('');
+          }}
+          className="px-4 py-2 border rounded hover:bg-gray-50"
+        >
+          Cancelar
+        </button>
+        <button
+          onClick={confirmarAtualizacao}
+          className="px-4 py-2 bg-marieth text-white rounded hover:bg-verdeaceso"
+        >
+          Confirmar
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
 
 
 

@@ -216,3 +216,36 @@ export const confirmarPagamento = async (dadosPagamento: {
     throw { mensagem: error.response?.data?.message || "Erro ao confirmar pagamento" };
   }
 };
+
+
+
+
+
+export const marcarPedidoPronto = async (id_pedido: number, observacoes?: string): Promise<any> => {
+  try {
+    const response = await axios.put(`${API_URL}/pedidos/marcar-pronto/${id_pedido}`, {
+      observacoes: observacoes || null
+    }, {
+      withCredentials: true
+    });
+    return response.data;
+  } catch (error: any) {
+    console.log(error.response?.data || error.message);
+    throw { mensagem: "Erro ao marcar pedido como pronto" };
+  }
+};
+
+// Cancelar pedido
+export const cancelarPedido = async (id_pedido: number, motivo_cancelamento?: string): Promise<any> => {
+  try {
+    const response = await axios.put(`${API_URL}/pedidos/cancelar/${id_pedido}`, {
+      motivo_cancelamento: motivo_cancelamento || null
+    }, {
+      withCredentials: true
+    });
+    return response.data;
+  } catch (error: any) {
+    console.log(error.response?.data || error.message);
+    throw { mensagem: "Erro ao cancelar o pedido" };
+  }
+};

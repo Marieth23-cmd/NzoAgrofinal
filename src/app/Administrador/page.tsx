@@ -5,8 +5,8 @@ import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement
 import {
  MdMenu, MdDashboard, MdGroup, MdShield, MdShoppingCart, MdInventory, MdBarChart,
   MdLocalShipping, MdHeadset, MdDeliveryDining, MdAssignment, MdNotifications, MdPerson,
-  MdSearch, MdAttachMoney, MdEdit, MdDelete,MdLogout , MdAdd, MdSettings, MdCheck, MdClose
-} from 'react-icons/md';
+  MdSearch, MdAttachMoney, MdEdit, MdDelete,MdLogout , MdAdd, MdSettings, MdCheck, MdClose,
+  MdLocalOffer,MdPayment} from 'react-icons/md';
 import { FaChartBar, FaUsers, FaBox, FaMoneyBillWave, FaSearch, FaSpinner } from 'react-icons/fa';
 import { getProdutos, deletarProduto } from '../Services/produtos';
 import { logout } from '../Services/auth';
@@ -17,6 +17,7 @@ import { cadastrarTransportadora } from '../Services/transportadora';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { getTransportadoras } from '../Services/transportadora';
+import {listarNotificacoes} from '../Services/notificacoes'
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, ArcElement);
 
@@ -40,7 +41,6 @@ type TabType =
 
 type UserType = 'Agricultor' | 'Comprador' | 'Fornecedor';
 type UserStatus = 'Pendente' | 'Aprovado' | 'Rejeitado';
-type NotificationType = 'info' | 'warning' | 'success' | 'error';
 interface Produto {
   id_produtos: number;
   nome: string;
@@ -70,6 +70,10 @@ interface Notificacao {
   is_lida: number;
   type?: NotificationType;
 }
+
+
+type NotificationType = 'pedido' | 'pagamento' | 'sistema' | 'promocao';
+
 
 interface ItemPedido {
   id_produto: number;
@@ -151,20 +155,36 @@ export default function AdminDashboard() {
   const [termoBusca, setTermoBusca] = useState('');
   const [carregandoPedidos, setCarregandoPedidos] = useState(true);
   const [erro, setErro] = useState<string>('');
+  const [notificacoes, setNotificacoes] = useState<Notificacao[]>([]);
+    const [abaSelecionada, setAbaSelecionada] = useState<"todas" | "nao-lidas">("todas");
+    const [carregando, setCarregando] = useState(true);
+    
   // No início do seu componente
 const [isLoading, setIsLoading] = useState(true);
 const [error, setError] = useState<string | null>(null);
 
   // Initial notifications data
-  useEffect(() => {
-    setNotifications([
-      { id_notificacoes: 1, titulo: 'Novo Usuário', mensagem: 'João Silva solicitou cadastro como Agricultor', data_legivel: '5 min atrás', is_lida: 0 },
-      { id_notificacoes: 2, titulo: 'Produto Esgotado', mensagem: 'Tomate - estoque zerado', data_legivel: '1 hora atrás', is_lida: 0 },
-      { id_notificacoes: 3, titulo: 'Pedido Entregue', mensagem: 'Pedido #12343 foi entregue com sucesso', data_legivel: '2 horas atrás', is_lida: 1 },
-      { id_notificacoes: 4, titulo: 'Problema de Pagamento', mensagem: 'Erro no pagamento do pedido #12340', data_legivel: '3 horas atrás', is_lida: 0 },
-      { id_notificacoes: 5, titulo: 'Nova Transportadora', mensagem: 'TransRápido solicitou parceria', data_legivel: '1 dia atrás', is_lida: 1 }
-    ]);
-  }, []);
+ const carregarNotificacoes = async () => {
+  setCarregando(true);
+  try {
+    const resposta = await listarNotificacoes();
+    const listaCompleta: Notificacao[] = resposta.notificacoes || [];
+    // Limita para mostrar no máximo 30 notificações (as mais recentes)
+    const ultimas30 = listaCompleta.slice(0, 30);
+    setNotificacoes(ultimas30);
+  } catch (error) {
+    console.log("Erro ao carregar notificações:", error);
+    setNotificacoes([]);
+  } finally {
+    setCarregando(false);
+  }
+};
+
+
+ 
+   useEffect(() => {
+     carregarNotificacoes();
+   }, []);
 
   // Fetch produtos
   useEffect(() => {
@@ -378,20 +398,22 @@ setCategoryData({
     pedido.estado?.toLowerCase().includes(termoBusca.toLowerCase())
   );
 
-  const getNotificationIcon = (type?: NotificationType) => {
-    switch (type) {
-      case 'info':
-        return <MdNotifications className="text-blue-500" size={20} />;
-      case 'warning':
-        return <MdNotifications className="text-yellow-500" size={20} />;
-      case 'success':
-        return <MdNotifications className="text-green-500" size={20} />;
-      case 'error':
-        return <MdNotifications className="text-red-500" size={20} />;
-      default:
-        return <MdNotifications size={20} />;
-    }
-  };
+
+const getNotificationIcon = (type?: NotificationType) => {
+  switch (type) {
+    case 'pedido':
+      return <MdShoppingCart className="text-blue-500" size={20} />;
+    case 'pagamento':
+      return <MdPayment className="text-green-500" size={20} />;
+    case 'sistema':
+      return <MdSettings className="text-gray-500" size={20} />;
+    case 'promocao':
+      return <MdLocalOffer className="text-red-500" size={20} />;
+    default:
+      return <MdNotifications className="text-gray-500" size={20} />;
+  }
+};
+
 
   const handleLogout = async () => {
     try {
@@ -518,9 +540,9 @@ const atualizarStatusPedido = async (idPedido: number, novoStatus: string) => {
       <ToastContainer position="top-right" autoClose={4000} />
       {/* Menu Toggle Button */}
       <button
-        className="menu-toggle md:hidden fixed top-4 left-4 z-50 bg-marieth text-white p-2 rounded-md"
+        className=" sr-only menu-toggle md:hidden fixed top-4 left-4 z-50 bg-marieth text-white p-2 rounded-md"
         onClick={handleMenuToggle}
-      >
+      >menu
         <MdMenu size={24} />
       </button>
 
@@ -544,7 +566,7 @@ const atualizarStatusPedido = async (idPedido: number, novoStatus: string) => {
               className={`flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === tab ? 'bg-marieth text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-marieth'}`}
               onClick={(e) => { e.preventDefault(); handleTabChange(tab); }}
             >
-              {tab === 'Dashboard' && <MdDashboard className="mr-3" size={20} />}
+              {tab === 'Dashboard' && <MdDashboard className="mr-3" size={20} />}Dashboard
               {tab === 'Usuários' && <MdGroup className="mr-3" size={20} />}
               {tab === 'Produtos' && <MdInventory className="mr-3" size={20} />}
               {tab === 'Pedidos' && <MdShoppingCart className="mr-3" size={20} />}
@@ -575,40 +597,91 @@ const atualizarStatusPedido = async (idPedido: number, novoStatus: string) => {
             />
           </div>
         </div>
+
         <div className="flex items-center space-x-4 relative">
-          <div className="relative">
-            <MdNotifications className="text-gray-600 cursor-pointer" size={24} onClick={() => setNotificationsOpen(!notificationsOpen)} />
-            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">{notifications.filter(n => n.is_lida === 0).length}</span>
-            {notificationsOpen && (
-              <div className="notifications-dropdown absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-200 z-50">
-                <div className="p-4 border-b border-gray-200">
-                  <h3 className="font-semibold text-gray-800">Notificações</h3>
-                </div>
-                <div className="max-h-96 overflow-y-auto">
-                  {notifications.map((notificacao) => (
-                    <div
-                      key={notificacao.id_notificacoes}
-                      className={`p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer ${notificacao.is_lida === 0 ? 'bg-blue-50' : ''}`}
-                      onClick={() => markNotificationAsRead(notificacao.id_notificacoes)}
-                    >
-                      <div className="flex items-start space-x-3">
-                        <div className="flex-shrink-0 mt-1">{getNotificationIcon(notificacao.type)}</div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900">{notificacao.titulo}</p>
-                          <p className="text-sm text-gray-500 mt-1">{notificacao.mensagem}</p>
-                          <p className="text-xs text-gray-400 mt-1">{notificacao.data_legivel}</p>
-                        </div>
-                        {notificacao.is_lida === 0 && <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-2"></div>}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div className="p-4 border-t border-gray-200">
-                  <button className="text-sm text-marieth hover:text-green-700 font-medium">Ver todas as notificações</button>
+  <div className="relative">
+    <MdNotifications 
+      className="text-gray-600 cursor-pointer" 
+      size={24} 
+      onClick={() => setNotificationsOpen(!notificationsOpen)} 
+    />
+    {/* ✅ CORREÇÃO: usar `notificacoes` em vez de `notifications` */}
+    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+      {notificacoes.filter(n => n.is_lida === 0).length}
+    </span>
+    
+    {notificationsOpen && (
+      <div className="notifications-dropdown absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-200 z-50">
+        <div className="p-4 border-b border-gray-200">
+          <h3 className="font-semibold text-gray-800">Notificações</h3>
+        </div>
+        
+        <div className="max-h-96 overflow-y-auto">
+          {carregando ? (
+            <div className="p-4 text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-marieth mx-auto"></div>
+              <p className="text-sm text-gray-500 mt-2">Carregando...</p>
+            </div>
+          ) : notificacoes.length === 0 ? (
+            <div className="p-4 text-center text-gray-500">
+              <MdNotifications size={32} className="mx-auto mb-2 text-gray-300" />
+              <p className="text-sm">Nenhuma notificação</p>
+            </div>
+          ) : (
+            /* ✅ CORREÇÃO: usar `notificacoes` em vez de `notifications` */
+            notificacoes.map((notificacao) => (
+              <div
+                key={notificacao.id_notificacoes}
+                className={`p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors ${
+                  notificacao.is_lida === 0 ? 'bg-blue-50' : ''
+                }`}
+                onClick={() => markNotificationAsRead(notificacao.id_notificacoes)}
+              >
+                <div className="flex items-start space-x-3">
+                  <div className="flex-shrink-0 mt-1">
+                    {getNotificationIcon(notificacao.type)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900">
+                      {notificacao.titulo}
+                    </p>
+                    <p className="text-sm text-gray-500 mt-1">
+                      {notificacao.mensagem}
+                    </p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      {notificacao.data_legivel}
+                    </p>
+                  </div>
+                  {notificacao.is_lida === 0 && (
+                    <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-2"></div>
+                  )}
                 </div>
               </div>
-            )}
-          </div>
+            ))
+          )}
+        </div>
+        
+        <div className="p-4 border-t border-gray-200">
+          <button 
+            className="text-sm text-marieth hover:text-green-700 font-medium transition-colors"
+            onClick={() => {
+              // Navegar para página de notificações completa
+              setNotificationsOpen(false);
+              // router.push('/notificacoes');
+            }}
+          >
+            Ver todas as notificações
+          </button>
+        </div>
+      </div>
+    )}
+  </div>
+
+
+
+
+
+
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-marieth rounded-full flex items-center justify-center">
               <MdPerson className="text-white" size={20} />
@@ -616,10 +689,10 @@ const atualizarStatusPedido = async (idPedido: number, novoStatus: string) => {
             <div className="hidden sm:block">
               <span className="font-semibold text-gray-800">Admin</span>
             </div>
-                    <button 
+               <button 
               onClick={handleLogout}
-              className="text-gray-600 hover:text-red-600 transition-colors"
-            >
+              className="text-gray-600 hover:text-red-600 transition-colors sr-only"
+            >terminar
               <MdLogout size={24} />
             </button>
                   </div>
@@ -1219,7 +1292,8 @@ tr>
               <div className="p-6 border-b border-gray-200 flex justify-between items-center">
                 <h2 className="text-xl font-semibold text-gray-800">Tickets de Suporte</h2>
                 <div className="flex space-x-2">
-                  <select className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                <label htmlFor='status' className='sr-only'> status</label>
+                  <select  name='status' id="status" className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500">
                     <option value="">Todos os Status</option>
                     <option value="Aberto">Aberto</option>
                     <option value="Em Andamento">Em Andamento</option>
@@ -1255,15 +1329,7 @@ tr>
                         <td className="p-4 border-b border-gray-200">2023-08-17</td>
                         <td className="p-4 border-b border-gray-200"><button className="px-3 py-1 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors mr-2">Responder</button></td>
                       </tr>
-                      <tr>
-                        <td className="p-4 border-b border-gray-200">#SUP002</td>
-                        <td className="p-4 border-b border-gray-200">Maria Santos</td>
-                        <td className="p-4 border-b border-gray-200">Dúvida sobre entrega</td>
-                        <td className="p-4 border-b border-gray-200"><span className="inline-block px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800">Média</span></td>
-                        <td className="p-4 border-b border-gray-200"><span className="inline-block px-3 py-1 rounded-full text-sm bg-red-100 text-red-800">Aberto</span></td>
-                        <td className="p-4 border-b border-gray-200">2023-08-17</td>
-                        <td className="p-4 border-b border-gray-200"><button className="px-3 py-1 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors mr-2">Responder</button></td>
-                      </tr>
+                      
                     </tbody>
                   </table>
                 </div>
@@ -1331,7 +1397,9 @@ tr>
                     <td className="p-4 border-b">{pedido.nome_usuario}</td>
                     <td className="p-4 border-b">{formatarValor(pedido.valor_total)}</td>
                     <td className="p-4 border-b">
+                      <label htmlFor="pedidos" className='sr-only'> pedidos</label>
                       <select
+                       id='pedidos'
                         value={pedido.estado}
                         onChange={(e) => atualizarStatusPedido(pedido.id_pedido, e.target.value)}
                         className={`px-3 py-1 rounded-full text-sm ${getStatusColor(pedido.estado)}`}

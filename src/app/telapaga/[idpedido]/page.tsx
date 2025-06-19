@@ -488,13 +488,9 @@ const processarPagamento = async (e: any) => {
   }
 
 
-
-
-
 const handlefinalizarCompra = async () => {
   try {
-     setStatus('processando')
-    
+    // ✅ NÃO mudar o status para 'processando' aqui
     console.log('🎉 Finalizando compra...')
     
     // Verificar se temos os dados necessários
@@ -502,7 +498,7 @@ const handlefinalizarCompra = async () => {
       throw { message: 'ID do pedido não encontrado' }
     }
     
-    // ✅ CORREÇÃO AQUI
+    // ✅ Dados para finalização
     const dadosFinalizacao = {
       id_pedido: pedido.pedido.id_pedido,
       pagamento_confirmado: true, 
@@ -511,45 +507,40 @@ const handlefinalizarCompra = async () => {
     
     console.log('📦 Dados para finalização:', dadosFinalizacao)
     
-    
+    // ✅ Chamar a API de finalização
     const resultado = await apiFinalizarCompra(dadosFinalizacao)
     
     console.log('✅ Compra finalizada com sucesso:', resultado)
     
-    // Limpar estados e fechar modal
+    // ✅ Limpar estados e fechar modal APENAS após sucesso
     setMostrarModal(false)
-    setStatus('inicial')
     setReferenciaPagamento('')
     setTransacaoId('')
     setReferenciaInput('')
     setMensagemErro('')
-    setPedido(null)
+    setMensagemSucesso('Compra finalizada com sucesso! Redirecionando...')
     
-
-    setTimeout(()=>{
-      router.push('/FinalizarCompra')
-    }, 3000)
+    // ✅ Redirecionar imediatamente após sucesso
+    router.push('/FinalizarCompra')
     
-    
-  } catch (error:any) {
+  } catch (error: any) {
     console.error('❌ Erro ao finalizar compra:', error)
-    setStatus('erro')
+    
+    // ✅ Manter o status atual, não mudar para 'erro'
+    // ✅ Apenas mostrar a mensagem de erro
     
     // Tratar diferentes tipos de erro da API
     if (error.message) {
-      setMensagemErro(error.message)
+      setMensagemErro(`Erro ao finalizar: ${error.message}`)
     } else if (error.mensagem) {
-      setMensagemErro(error.mensagem)
+      setMensagemErro(`Erro ao finalizar: ${error.mensagem}`)
     } else if (error.erro) {
-      setMensagemErro(error.erro)
+      setMensagemErro(`Erro ao finalizar: ${error.erro}`)
     } else {
       setMensagemErro('Erro ao finalizar compra. Tente novamente')
     }
   }
 }
-
-
-
 
   const fecharModal = () => {
     setMostrarModal(false)
