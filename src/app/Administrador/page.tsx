@@ -566,7 +566,7 @@ const atualizarStatusPedido = async (idPedido: number, novoStatus: string) => {
               className={`flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === tab ? 'bg-marieth text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-marieth'}`}
               onClick={(e) => { e.preventDefault(); handleTabChange(tab); }}
             >
-              {tab === 'Dashboard' && <MdDashboard className="mr-3" size={20} />}Dashboard
+              {tab === 'Dashboard' && <MdDashboard className="mr-3" size={20} />}
               {tab === 'Usuários' && <MdGroup className="mr-3" size={20} />}
               {tab === 'Produtos' && <MdInventory className="mr-3" size={20} />}
               {tab === 'Pedidos' && <MdShoppingCart className="mr-3" size={20} />}

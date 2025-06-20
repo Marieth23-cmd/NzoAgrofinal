@@ -11,13 +11,13 @@ import { useRouter } from 'next/navigation';
 import { ToastContainer, toast } from 'react-toastify';
 import { MdLogout } from 'react-icons/md';
 
-
-
 interface Entrega {
   id: number;
   estado_entrega: string;
   data_entrega?: string;
   valor_total?: number;
+  nome_cliente?: string;
+  endereco_entrega?: string;
 }
 
 interface Notificacao {
@@ -25,11 +25,19 @@ interface Notificacao {
   titulo?: string;
   mensagem: string;
   created_at: string;
+  lida:string;
 }
 
 interface Pedido {
   id: number;
-  // Adicione outras propriedades do pedido conforme necessário
+  estado_entrega?: string;
+  nome_cliente?: string;
+  endereco_entrega?: string;
+  contacto_cliente?: string;
+  descricao_produtos?: string;
+  valor_total?: number;
+  tipo_entrega?: string;
+  distancia?: string;
 }
 
 interface Filial {
@@ -37,7 +45,7 @@ interface Filial {
   provincia: string;
   bairro?: string;
   descricao?: string;
-  // Adicione outras propriedades da filial conforme necessário
+  created_at?: string;
 }
 
 interface NovaFilial {
@@ -53,16 +61,15 @@ interface Stats {
   receitaMensal: number;
 }
 
-
-
-const Dashboard = () => {
-  const [activeTab, setActiveTab] = useState('pedidos');
+const Dashboard: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<string>('pedidos');
   const [selectedFilial, setSelectedFilial] = useState<Record<string, number>>({});
-  const [loading, setLoading] = useState(false);
-  const [auntenticado , setAutenticado]=useState<boolean | null>(null)
-  const router =useRouter()
+  const [loading, setLoading] = useState<boolean>(false);
+  const [autenticado, setAutenticado] = useState<boolean | null>(null);
+  const [showNotificacoes, setShowNotificacoes] = useState<boolean>(false);
+  const router = useRouter();
 
-  const handleLogout = async () => {
+  const handleLogout = async (): Promise<void> => {
     try {
       await logout();
       setAutenticado(false);
@@ -91,30 +98,25 @@ const Dashboard = () => {
     bairro: '',
     descricao: ''
   });
-  const [showNovaFilialForm, setShowNovaFilialForm] = useState(false);
+  const [showNovaFilialForm, setShowNovaFilialForm] = useState<boolean>(false);
 
   // useEffects individuais para carregar dados
-  // 1. useEffect para carregar pedidos pendentes
   useEffect(() => {
     carregarPedidosPendentes();
   }, []);
 
-  // 2. useEffect para carregar minhas entregas
   useEffect(() => {
     carregarMinhasEntregas();
   }, []);
 
-  // 3. useEffect para carregar filiais
   useEffect(() => {
     carregarMinhasFiliais();
   }, []);
 
-  // 4. useEffect para carregar notificações
   useEffect(() => {
     carregarNotificacoes();
   }, []);
 
-  // 5. useEffect para atualizar stats quando os dados mudarem
   useEffect(() => {
     if (minhasEntregas.length > 0 || pedidosPendentes.length > 0) {
       const hoje = new Date().toDateString();
@@ -144,7 +146,7 @@ const Dashboard = () => {
   }, [minhasEntregas, pedidosPendentes]);
 
   // Funções para carregar dados individuais
-  const carregarPedidosPendentes = async () => {
+  const carregarPedidosPendentes = async (): Promise<void> => {
     try {
       const response = await listarEntregasPendentes();
       if (response.sucesso) {
@@ -155,20 +157,19 @@ const Dashboard = () => {
     }
   };
 
-  const carregarMinhasEntregas = async () => {
+  const carregarMinhasEntregas = async (): Promise<void> => {
     try {
       const response = await listarMinhasEntregas();
       if (response.sucesso) {
         const entregas: Entrega[] = response.dados || [];
         setMinhasEntregas(entregas);
-        // Stats são calculadas no useEffect específico
       }
     } catch (error) {
       console.error('Erro ao carregar minhas entregas:', error);
     }
   };
 
-  const carregarMinhasFiliais = async () => {
+  const carregarMinhasFiliais = async (): Promise<void> => {
     try {
       const response = await listarMinhasFiliais();
       if (response.sucesso) {
@@ -179,7 +180,7 @@ const Dashboard = () => {
     }
   };
 
-  const carregarNotificacoes = async () => {
+  const carregarNotificacoes = async (): Promise<void> => {
     try {
       const response = await buscarMinhasNotificacoes();
       if (response.sucesso) {
@@ -190,8 +191,8 @@ const Dashboard = () => {
     }
   };
 
-  // Nova função para recarregar todos os dados (para botão "Atualizar")
-  const recarregarTodosDados = async () => {
+  // Nova função para recarregar todos os dados
+  const recarregarTodosDados = async (): Promise<void> => {
     setLoading(true);
     try {
       await Promise.all([
@@ -207,11 +208,11 @@ const Dashboard = () => {
     }
   };
 
-  const handleFilialSelect = (pedidoId: string, filialId: number) => {
+  const handleFilialSelect = (pedidoId: number, filialId: number): void => {
     setSelectedFilial({ ...selectedFilial, [pedidoId]: filialId });
   };
 
-  const aceitarPedido = async (pedido: Pedido) => {
+  const aceitarPedido = async (pedido: Pedido): Promise<void> => {
     const filialId = selectedFilial[pedido.id];
     if (!filialId) {
       toast.warn('Selecione uma filial primeiro!');
@@ -228,9 +229,8 @@ const Dashboard = () => {
 
       if (response.sucesso) {
         toast.success('Pedido aceito com sucesso!');
-        // Recarregar apenas os dados necessários
-        await carregarPedidosPendentes(); // Remove o pedido aceito da lista
-        await carregarMinhasEntregas();   // Adiciona à lista de entregas
+        await carregarPedidosPendentes();
+        await carregarMinhasEntregas();
       } else {
         toast.error(response.mensagem || 'Erro ao aceitar pedido');
       }
@@ -242,13 +242,13 @@ const Dashboard = () => {
     }
   };
 
-  const atualizarStatus = async (entregaId: number, novoStatus: string) => {
+  const atualizarStatus = async (entregaId: number, novoStatus: string): Promise<void> => {
     setLoading(true);
     try {
       const response = await atualizarStatusEntrega(entregaId, novoStatus);
       if (response.sucesso) {
-        alert('Status atualizado com sucesso!');
-        await carregarMinhasEntregas(); // Recarrega apenas as entregas
+        toast.success('Status atualizado com sucesso!');
+        await carregarMinhasEntregas();
       } else {
         toast.error(response.mensagem || 'Erro ao atualizar status');
       }
@@ -260,9 +260,9 @@ const Dashboard = () => {
     }
   };
 
-  const criarNovaFilial = async () => {
+  const criarNovaFilial = async (): Promise<void> => {
     if (!novaFilial.provincia) {
-      alert('Província é obrigatória!');
+      toast.error('Província é obrigatória!');
       return;
     }
 
@@ -273,7 +273,7 @@ const Dashboard = () => {
         toast.success('Filial cadastrada com sucesso!');
         setShowNovaFilialForm(false);
         setNovaFilial({ provincia: '', bairro: '', descricao: '' });
-        await carregarMinhasFiliais(); // Recarrega apenas as filiais
+        await carregarMinhasFiliais();
       } else {
         toast.error(response.mensagem || 'Erro ao cadastrar filial');
       }
@@ -294,7 +294,7 @@ const Dashboard = () => {
     }).format(valorNumerico).replace('AOA', 'Kz');
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string): string => {
     switch (status) {
       case 'pendente': return 'bg-orange-100 text-orange-800';
       case 'em_transito': return 'bg-blue-100 text-blue-800';
@@ -304,7 +304,7 @@ const Dashboard = () => {
     }
   };
 
-  const getStatusText = (status: string) => {
+  const getStatusText = (status: string): string => {
     switch (status) {
       case 'pendente': return 'Pendente';
       case 'em_transito': return 'Em Trânsito';
@@ -314,34 +314,7 @@ const Dashboard = () => {
     }
   };
 
-  const renderNotificacoes = () => (
-    <div className="absolute top-full right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border z-50">
-      <div className="p-4 border-b">
-        <h3 className="font-semibold text-gray-800">Notificações</h3>
-      </div>
-      <div className="max-h-64 overflow-y-auto">
-        {notificacoes.length === 0 ? (
-          <div className="p-4 text-center text-gray-500">
-            Nenhuma notificação
-          </div>
-        ) : (
-          notificacoes.map((notificacao: Notificacao) => (
-            <div key={notificacao.id} className="p-4 border-b hover:bg-gray-50">
-              <div className="text-sm font-medium text-gray-800">
-                {notificacao.titulo || 'Notificação'}
-              </div>
-              <div className="text-sm text-gray-600 mt-1">
-                {notificacao.mensagem}
-              </div>
-              <div className="text-xs text-gray-400 mt-2">
-                {new Date(notificacao.created_at).toLocaleString('pt-AO')}
-              </div>
-            </div>
-          ))
-        )}
-      </div>
-    </div>
-  );
+
 
   const renderPedidos = () => (
     <div className="space-y-6">
@@ -352,7 +325,7 @@ const Dashboard = () => {
           <div className="text-gray-700 mt-2">Pedidos Pendentes</div>
         </div>
         <div className="bg-white p-6 rounded-lg shadow text-center">
-          <div className="text-2xl text-marieth font-bold">{stats.entreguesHoje}</div>
+          <div className="text-2xl text-green-600 font-bold">{stats.entreguesHoje}</div>
           <div className="text-gray-700 mt-2">Entregues Hoje</div>
         </div>
         <div className="bg-white p-6 rounded-lg shadow text-center">
@@ -372,7 +345,7 @@ const Dashboard = () => {
             Nenhum pedido pendente encontrado
           </div>
         ) : (
-          pedidosPendentes.map((pedido: any) => (
+          pedidosPendentes.map((pedido: Pedido) => (
             <div key={pedido.id} className="bg-white rounded-lg shadow-lg overflow-hidden">
               <div className="p-6">
                 {/* Header do Pedido */}
@@ -395,12 +368,12 @@ const Dashboard = () => {
                     <div>
                       <p className="font-semibold text-gray-800">{pedido.nome_cliente || 'Cliente'}</p>
                       <p className="text-sm text-gray-600">{pedido.endereco_entrega}</p>
-                      <p className="text-sm text-marieth">{pedido.distancia || 'Calculando...'}</p>
+                      <p className="text-sm text-green-600">{pedido.distancia || 'Calculando...'}</p>
                     </div>
                   </div>
                   
                   <div className="flex items-center gap-2">
-                    <FaPhone className="text-marieth" />
+                    <FaPhone className="text-green-600" />
                     <span className="text-sm text-gray-700">{pedido.contacto_cliente}</span>
                   </div>
 
@@ -408,7 +381,7 @@ const Dashboard = () => {
                     <FaBox className="text-orange-500 mt-1 flex-shrink-0" />
                     <div>
                       <p className="text-sm text-gray-700">{pedido.descricao_produtos || 'Produtos diversos'}</p>
-                      <p className="font-bold text-lg text-marieth mt-1">{formatarMoeda(pedido.valor_total || 0)}</p>
+                      <p className="font-bold text-lg text-green-600 mt-1">{formatarMoeda(pedido.valor_total || 0)}</p>
                     </div>
                   </div>
                 </div>
@@ -424,7 +397,7 @@ const Dashboard = () => {
                         aria-label="Selecionar Filial"
                       >
                         <option value="">Selecionar Filial</option>
-                        {minhasFiliais.map((filial: any) => (
+                        {minhasFiliais.map((filial: Filial) => (
                           <option key={filial.id} value={filial.id}>
                             {filial.provincia} - {filial.bairro || 'Centro'}
                           </option>
@@ -433,7 +406,7 @@ const Dashboard = () => {
                       <button 
                         onClick={() => aceitarPedido(pedido)}
                         disabled={loading}
-                        className="bg-marieth hover:bg-verdeaceso text-white px-4 py-2 rounded-md flex items-center gap-2 transition-colors disabled:opacity-50"
+                        className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md flex items-center gap-2 transition-colors disabled:opacity-50"
                       >
                         {loading ? <FaSpinner className="animate-spin" /> : <FaPaperPlane className="text-sm" />}
                         Aceitar
@@ -453,8 +426,8 @@ const Dashboard = () => {
           <h3 className="text-xl font-bold text-gray-800 mb-4">Minhas Entregas em Andamento</h3>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {minhasEntregas
-              .filter((entrega: any) => entrega.estado_entrega !== 'entregue')
-              .map((entrega: any) => (
+              .filter((entrega: Entrega) => entrega.estado_entrega !== 'entregue')
+              .map((entrega: Entrega) => (
                 <div key={entrega.id} className="bg-white rounded-lg shadow-lg overflow-hidden">
                   <div className="p-6">
                     <div className="flex justify-between items-start mb-4">
@@ -477,7 +450,7 @@ const Dashboard = () => {
                         <button 
                           onClick={() => atualizarStatus(entrega.id, 'em_transito')}
                           disabled={loading}
-                          className="bg-marieth hover:bg-verdeaceso text-white px-3 py-2 rounded text-sm flex-1 disabled:opacity-50"
+                          className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded text-sm flex-1 disabled:opacity-50"
                         >
                           Iniciar Entrega
                         </button>
@@ -486,7 +459,7 @@ const Dashboard = () => {
                         <button 
                           onClick={() => atualizarStatus(entrega.id, 'entregue')}
                           disabled={loading}
-                          className="bg-marieth hover:bg-verdeaceso text-white px-3 py-2 rounded text-sm flex-1 disabled:opacity-50"
+                          className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded text-sm flex-1 disabled:opacity-50"
                         >
                           Finalizar Entrega
                         </button>
@@ -507,7 +480,7 @@ const Dashboard = () => {
         <h2 className="text-2xl font-bold text-gray-800">Gestão de Filiais</h2>
         <button 
           onClick={() => setShowNovaFilialForm(true)}
-          className="bg-marieth hover:bg-green-700 text-white px-4 py-2 rounded-md flex items-center gap-2"
+          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md flex items-center gap-2"
         >
           <FaBuilding /> Nova Filial
         </button>
@@ -544,7 +517,7 @@ const Dashboard = () => {
             <button 
               onClick={criarNovaFilial}
               disabled={loading}
-              className="bg-marieth hover:bg-verdeaceso text-white px-4 py-2 rounded-md disabled:opacity-50"
+              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md disabled:opacity-50"
             >
               {loading ? <FaSpinner className="animate-spin" /> : 'Cadastrar'}
             </button>
@@ -565,22 +538,22 @@ const Dashboard = () => {
             Nenhuma filial cadastrada
           </div>
         ) : (
-          minhasFiliais.map((filial: any) => (
+          minhasFiliais.map((filial: Filial) => (
             <div key={filial.id} className="bg-white p-6 rounded-lg shadow">
               <div className="flex items-center gap-3 mb-4">
-                <FaBuilding className="text-marieth text-xl" />
+                <FaBuilding className="text-green-600 text-xl" />
                 <h3 className="font-bold text-lg text-gray-800">{filial.provincia}</h3>
               </div>
               <div className="space-y-2 mb-4">
                 <p className="text-gray-600"><strong>Bairro:</strong> {filial.bairro || 'Não informado'}</p>
                 <p className="text-gray-600"><strong>Descrição:</strong> {filial.descricao || 'Não informado'}</p>
-                <p className="text-sm text-gray-500">Criada em: {new Date(filial.created_at).toLocaleDateString('pt-AO')}</p>
+                <p className="text-sm text-gray-500">Criada em: {filial.created_at ? new Date(filial.created_at).toLocaleDateString('pt-AO') : 'N/A'}</p>
               </div>
               <div className="flex gap-2">
-                <button className="bg-white  border-marieth text-marieth px-3 py-1 rounded text-sm flex-1">
+                <button className="bg-white border border-green-600 text-green-600 px-3 py-1 rounded text-sm flex-1">
                   Editar
                 </button>
-                <button className="bg-marieth text-white px-3 py-1 rounded text-sm flex-1">
+                <button className="bg-green-600 text-white px-3 py-1 rounded text-sm flex-1">
                   Ver Entregas
                 </button>
               </div>
@@ -601,8 +574,8 @@ const Dashboard = () => {
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-lg font-semibold text-gray-700">Total de Entregas</h3>
-              <p className="text-3xl font-bold text-marieth">{minhasEntregas.length}</p>
-              <div className="flex items-center mt-2 text-marieth">
+              <p className="text-3xl font-bold text-green-600">{minhasEntregas.length}</p>
+              <div className="flex items-center mt-2 text-green-600">
                 <FaArrowUp className="mr-1" />
                 <span className="text-sm">Todas as entregas</span>
               </div>
@@ -615,8 +588,8 @@ const Dashboard = () => {
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-lg font-semibold text-gray-700">Receita Total</h3>
-              <p className="text-3xl font-bold text-marieth">{formatarMoeda(stats.receitaMensal)}</p>
-              <div className="flex items-center mt-2 text-marieth">
+              <p className="text-3xl font-bold text-green-600">{formatarMoeda(stats.receitaMensal)}</p>
+              <div className="flex items-center mt-2 text-green-600">
                 <FaArrowUp className="mr-1" />
                 <span className="text-sm">Valor acumulado</span>
               </div>
@@ -643,11 +616,11 @@ const Dashboard = () => {
       {/* Histórico de Entregas */}
       <div className="bg-white p-6 rounded-lg shadow">
         <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-          <FaChartBar className="text-marieth" />
+          <FaChartBar className="text-green-600" />
           Histórico de Entregas
         </h3>
         <div className="space-y-3">
-          {minhasEntregas.slice(0, 10).map((entrega: any, index) => (
+          {minhasEntregas.slice(0, 10).map((entrega: Entrega) => (
             <div key={entrega.id} className="flex items-center justify-between p-3 bg-gray-50 rounded">
               <div>
                 <span className="font-medium">#{entrega.id}</span>
@@ -657,7 +630,7 @@ const Dashboard = () => {
                 <span className={`px-2 py-1 rounded text-xs ${getStatusColor(entrega.estado_entrega)}`}>
                   {getStatusText(entrega.estado_entrega)}
                 </span>
-                <span className="text-marieth font-bold">{formatarMoeda(entrega.valor_total || 0)}</span>
+                <span className="text-green-600 font-bold">{formatarMoeda(entrega.valor_total || 0)}</span>
               </div>
             </div>
           ))}
@@ -666,11 +639,43 @@ const Dashboard = () => {
     </div>
   );
 
+  const renderNotificacoes = () => (
+    <div className="space-y-6">
+      <h2 className="text-2xl font-bold text-gray-800">Notificações</h2>
+      
+      <div className="bg-white rounded-lg shadow">
+        {notificacoes.length === 0 ? (
+          <div className="p-8 text-center text-gray-500">
+            Nenhuma notificação encontrada
+          </div>
+        ) : (
+          <div className="divide-y divide-gray-200">
+            {notificacoes.map((notificacao: Notificacao) => (
+              <div key={notificacao.id} className={`p-4 hover:bg-gray-50 ${!notificacao.lida ? 'bg-blue-50' : ''}`}>
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <p className="text-sm text-gray-900">{notificacao.mensagem}</p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {new Date(notificacao.created_at).toLocaleString('pt-AO')}
+                    </p>
+                  </div>
+                  {!notificacao.lida && (
+                    <span className="inline-block w-2 h-2 bg-blue-600 rounded-full ml-2 mt-1"></span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
   if (loading && pedidosPendentes.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <FaSpinner className="animate-spin text-4xl text-marieth mx-auto mb-4" />
+          <FaSpinner className="animate-spin text-4xl text-green-600 mx-auto mb-4" />
           <p>Carregando dashboard...</p>
         </div>
       </div>
@@ -678,51 +683,54 @@ const Dashboard = () => {
   }
 
   return (
-    
-    <div className="grid grid-cols-[250px_1fr] min-h-screen bg-gray-100">
+    <div className="flex min-h-screen bg-gray-100">
       <ToastContainer position="top-right" autoClose={4000} />
+      
       {/* Sidebar */}
-      <aside className="bg-white p-4 border-r border-gray-200">
-        <div className="text-center p-4 mb-8 font-bold text-xl text-marieth">
-          Transporte NzoAgro
-        </div>
-        <ul className="space-y-2">
-          <li>
+      <aside className="w-64 bg-white shadow-lg">
+        <div className="p-6">
+          <div className="text-center mb-8">
+            <h1 className="text-xl font-bold text-green-600">Transporte NzoAgro</h1>
+          </div>
+          
+          <nav className="space-y-2">
             <button 
               onClick={() => setActiveTab('pedidos')}
-              className={`flex items-center p-3 w-full text-left rounded-md gap-2 transition-colors ${
-                activeTab === 'pedidos' ? 'bg-green-50 text-marieth' : 'text-gray-700 hover:bg-gray-100'
+              className={`flex items-center w-full p-3 text-left rounded-lg transition-colors ${
+                activeTab === 'pedidos' ? 'bg-green-50 text-green-600 border-r-2 border-green-600' : 'text-gray-700 hover:bg-gray-100'
               }`}
             >
-              <FaTruck /> Pedidos
+              <FaTruck className="mr-3" /> Pedidos
             </button>
-          </li>
-          <li>
+            
             <button 
               onClick={() => setActiveTab('filiais')}
-              className={`flex items-center p-3 w-full text-left rounded-md gap-2 transition-colors ${
-                activeTab === 'filiais' ? 'bg-green-50 text-marieth' : 'text-gray-700 hover:bg-gray-100'
+              className={`flex items-center w-full p-3 text-left rounded-lg transition-colors ${
+                activeTab === 'filiais' ? 'bg-green-50 text-green-600 border-r-2 border-green-600' : 'text-gray-700 hover:bg-gray-100'
               }`}
             >
-              <FaBuilding /> Filiais
+              <FaBuilding className="mr-3" /> Filiais
             </button>
-          </li>
-          <li>
+            
             <button 
               onClick={() => setActiveTab('relatorios')}
-              className={`flex items-center p-3 w-full text-left rounded-md gap-2 transition-colors ${
-                activeTab === 'relatorios' ? 'bg-green-50 text-green-600' : 'text-gray-700 hover:bg-gray-100'
+              className={`flex items-center w-full p-3 text-left rounded-lg transition-colors ${
+                activeTab === 'relatorios' ? 'bg-green-50 text-green-600 border-r-2 border-green-600' : 'text-gray-700 hover:bg-gray-100'
               }`}
             >
-              <FaChartBar /> Relatórios
+              <FaChartBar className="mr-3" /> Relatórios
             </button>
-          </li>
-          <li>
+            
             <button 
-              onClick={carregarNotificacoes}
-              className="flex items-center p-3 w-full text-left text-gray-700 hover:bg-gray-100 rounded-md gap-2"
+              onClick={() => {
+                setActiveTab('notificacoes');
+                carregarNotificacoes();
+              }}
+              className={`flex items-center w-full p-3 text-left rounded-lg transition-colors ${
+                activeTab === 'notificacoes' ? 'bg-green-50 text-green-600 border-r-2 border-green-600' : 'text-gray-700 hover:bg-gray-100'
+              }`}
             >
-              <FaBell /> 
+              <FaBell className="mr-3" /> 
               Notificações 
               {notificacoes.length > 0 && (
                 <span className="bg-green-600 text-white text-xs rounded-full px-2 py-1 ml-auto">
@@ -730,28 +738,28 @@ const Dashboard = () => {
                 </span>
               )}
             </button>
-          </li>
-          <li>
-            <button className="flex items-center p-3 w-full text-left text-gray-700 hover:bg-gray-100 rounded-md gap-2">
-              <FaCog /> Configurações
+            
+            <button className="flex items-center w-full p-3 text-left text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
+              <FaCog className="mr-3" /> Configurações
             </button>
-          </li>
-        </ul>
+          </nav>
+        </div>
       </aside>
 
       {/* Main Content */}
-       <main className="p-8 overflow-y-auto ">
+      <main className="flex-1 p-8 overflow-y-auto">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-gray-800">
             {activeTab === 'pedidos' ? 'Painel de Pedidos' :
              activeTab === 'filiais' ? 'Gestão de Filiais' :
-             'Relatórios e Estatísticas'}
+             activeTab === 'relatorios' ? 'Relatórios e Estatísticas' :
+             'Notificações'}
           </h1>
           <div className="flex items-center gap-4">
             <button 
               onClick={recarregarTodosDados}
               disabled={loading}
-              className="bg-marieth hover:bg-verdeaceso text-white px-4 py-2 rounded-md flex items-center gap-2 disabled:opacity-50"
+              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md flex items-center gap-2 disabled:opacity-50"
             >
               {loading ? <FaSpinner className="animate-spin" /> : <FaArrowUp />}
               Atualizar
@@ -760,14 +768,14 @@ const Dashboard = () => {
             <div className="text-sm text-gray-600">
               Última atualização: {new Date().toLocaleString('pt-AO')}
             </div>
-              <div>
-                 <button 
-                 onClick={handleLogout}
-                className="text-gray-600 hover:text-red-600 transition-colors sr-only"
-                >terminar <MdLogout size={24} /></button>
-                                
-              </div>
-           
+            
+            <button 
+              onClick={handleLogout}
+              className="text-gray-600 hover:text-red-600 transition-colors"
+              title="Sair"
+            >
+              <MdLogout size={24} />
+            </button>
           </div>
         </div>
 
@@ -775,7 +783,6 @@ const Dashboard = () => {
         {activeTab === 'filiais' && renderFiliais()}
         {activeTab === 'relatorios' && renderRelatorios()}
         {activeTab === 'notificacoes' && renderNotificacoes()}
-        
       </main>
     </div>
   );

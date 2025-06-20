@@ -213,21 +213,16 @@ const cancelarPedido = async (pedido: Pedido) => {
   // usar a logica aqui para cancelar o pedido
   toast.info("Função de cancelamento ainda não implementada");
 };
-
 const confirmarEntregaPedido = async (pedido: Pedido) => {
   try {
-    // Chama sua função de API existente
-    await confirmarEntrega(
-      String(pedido.transacao_id || pedido.id_pedido), // convert to string
-      usuario.id, 
-      'manual'
-    );
+    // Chama a função de API atualizada (só precisa do pedido_id)
+    await confirmarEntrega(pedido.id_pedido);
     
     // Atualiza o estado local após sucesso da API
     setPedidos(prevPedidos => 
       prevPedidos.map(p => 
         p.id_pedido === pedido.id_pedido 
-          ? { ...p, estado: 'Entregue', entrega_confirmada: true }
+          ? { ...p, estado: 'entregue', entrega_confirmada: true }
           : p
       )
     );
@@ -235,10 +230,9 @@ const confirmarEntregaPedido = async (pedido: Pedido) => {
     toast.success('Entrega confirmada com sucesso!');
   } catch (error: any) {
     console.error('Erro ao confirmar entrega:', error);
-    toast.error(error?.message || 'Erro ao confirmar entrega. Tente novamente.');
+    toast.error(error?.erro || error?.message || 'Erro ao confirmar entrega. Tente novamente.');
   }
 };
-
 
 const solicitarReembolso = async (pedido: Pedido) => {
   try {

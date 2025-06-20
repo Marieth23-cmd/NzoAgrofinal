@@ -13,6 +13,8 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
 import { exportarPDF } from '../Services/relatorios';
 import {getUsuarioById} from '../Services/user';
 import { marcarPedidoPronto, cancelarPedido } from '../Services/pedidos'; 
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 
 // Interface para os dados estatísticos de compras
@@ -145,14 +147,14 @@ const confirmarAtualizacao = async () => {
   try {
     if (acaoSelecionada === 'pronto') {
       await marcarPedidoPronto(pedidoSelecionado, observacoes || undefined);
-      alert('Pedido marcado como pronto!');
+      toast.success('Pedido marcado como pronto!');
     } else if (acaoSelecionada === 'cancelado') {
       if (!motivo.trim()) {
-        alert('É necessário informar o motivo do cancelamento.');
+        toast.info('É necessário informar o motivo do cancelamento.');
         return;
       }
       await cancelarPedido(pedidoSelecionado, motivo);
-      alert('Pedido cancelado com sucesso!');
+      toast.error('Pedido cancelado com sucesso!');
     }
     
     // Fechar modal e limpar estados
@@ -163,7 +165,7 @@ const confirmarAtualizacao = async () => {
     
   } catch (error: any) {
     console.error('Erro:', error);
-    alert(error.mensagem || 'Erro ao atualizar pedido');
+    toast.error(error.mensagem || 'Erro ao atualizar pedido');
   }
 };
 
@@ -500,7 +502,7 @@ const podeVerVendas = () => {
         await carregarDadosVendas();
       }
 
-      alert('Status do pedido atualizado com sucesso!');
+      toast.success('Status do pedido atualizado com sucesso!');
     } catch (error) {
       console.error("Erro ao atualizar status:", error);
       setError("Erro ao atualizar status do pedido. Tente novamente.");
@@ -612,7 +614,8 @@ const podeVerVendas = () => {
   return (
     <div>
       <Navbar/>
-      
+       <ToastContainer position="top-right" autoClose={5000} />
+            
       {/* Container principal */}
       <div className="flex flex-col mb-20 md:mb-20 gap-2 mt-[48%] md:[45%] md:mt-[15%] mx-4 md:mx-8 max-w-full md:max-w-[1200px] shadow-custom p-4 md:p-8 rounded-[10px]">
         
