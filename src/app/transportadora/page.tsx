@@ -10,6 +10,7 @@ import {logout} from '../Services/auth'
 import { useRouter } from 'next/navigation';
 import { ToastContainer, toast } from 'react-toastify';
 import { MdLogout } from 'react-icons/md';
+import Image from 'next/image';
 
 interface Entrega {
   id: number;
@@ -29,15 +30,20 @@ interface Notificacao {
 }
 
 interface Pedido {
-  id: number;
-  estado_entrega?: string;
-  nome_cliente?: string;
-  endereco_entrega?: string;
-  contacto_cliente?: string;
-  descricao_produtos?: string;
-  valor_total?: number;
-  tipo_entrega?: string;
-  distancia?: string;
+  id_pedido: number;
+  valor_total: number;
+  estado: string;
+  data_pedido: string;
+  cliente_nome: string;
+  cliente_telefone: string;
+  rua: string;
+  bairro: string;
+  municipio: string;
+  provincia: string;
+  referencia?: string;
+  cliente_numero?: string;
+  total_itens: number;
+  total_quantidade: number;
 }
 
 interface Filial {
@@ -211,7 +217,7 @@ const Dashboard: React.FC = () => {
   };
 
   const aceitarPedido = async (pedido: Pedido): Promise<void> => {
-    const filialId = selectedFilial[pedido.id];
+    const filialId = selectedFilial[pedido.id_pedido];
     if (!filialId) {
       toast.warn('Selecione uma filial primeiro!');
       return;
@@ -220,7 +226,7 @@ const Dashboard: React.FC = () => {
     setLoading(true);
     try {
       const response = await aceitarPedidoNotificar({
-        pedidos_id: pedido.id,
+        pedidos_id: pedido.id_pedido,
         filial_retirada_id: filialId,
         observacoes: 'Pedido aceito via dashboard'
       });
@@ -273,7 +279,7 @@ const Dashboard: React.FC = () => {
         setNovaFilial({ provincia: '', bairro: '', descricao: '' });
         await carregarMinhasFiliais();
       } else {
-        toast.error(response.mensagem || 'Erro ao cadastrar filial');
+        toast.error(response.sucesso || 'Erro ao cadastrar filial');
       }
     } catch (error: any) {
       console.error('Erro ao cadastrar filial:', error);
@@ -335,27 +341,26 @@ const Dashboard: React.FC = () => {
           <div className="text-gray-700 mt-2">Receita Mensal</div>
         </div>
       </div>
-
-      {/* Lista de Pedidos */}
+{/* Lista de Pedidos */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {pedidosProntos.length === 0 ? (
           <div className="col-span-2 text-center py-8 text-gray-500">
             Nenhum pedido pendente encontrado
           </div>
         ) : (
-          pedidosProntos.map((pedido: Pedido) => (
-            <div key={pedido.id} className="bg-white rounded-lg shadow-lg overflow-hidden">
+          pedidosProntos.map((pedido: any) => (
+            <div key={pedido.id_pedido} className="bg-white rounded-lg shadow-lg overflow-hidden">
               <div className="p-6">
                 {/* Header do Pedido */}
                 <div className="flex justify-between items-start mb-4">
                   <div>
-                    <h3 className="text-lg font-bold text-gray-800">#{pedido.id}</h3>
-                    <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(pedido.estado_entrega || 'pendente')}`}>
-                      {getStatusText(pedido.estado_entrega || 'pendente')}
+                    <h3 className="text-lg font-bold text-gray-800">#{pedido.id_pedido}</h3>
+                    <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${getStatusColor('pendente')}`}>
+                      {getStatusText('pendente')}
                     </span>
                   </div>
                   <div className="text-sm font-medium text-gray-600">
-                    📦 {pedido.tipo_entrega || 'Normal'}
+                    📦 Normal
                   </div>
                 </div>
 
@@ -364,54 +369,62 @@ const Dashboard: React.FC = () => {
                   <div className="flex items-start gap-2">
                     <FaMapMarkerAlt className="text-red-500 mt-1 flex-shrink-0" />
                     <div>
-                      <p className="font-semibold text-gray-800">{pedido.nome_cliente || 'Cliente'}</p>
-                      <p className="text-sm text-gray-600">{pedido.endereco_entrega}</p>
-                      <p className="text-sm text-green-600">{pedido.distancia || 'Calculando...'}</p>
+                      <p className="font-semibold text-gray-800">{pedido.cliente_nome}</p>
+                      <p className="text-sm text-gray-600">
+                        {pedido.rua}, {pedido.bairro}, {pedido.municipio}, {pedido.provincia}
+                        {pedido.referencia && ` - ${pedido.referencia}`}
+                      </p>
+                      <p className="text-sm text-green-600">Calculando distância...</p>
                     </div>
                   </div>
                   
                   <div className="flex items-center gap-2">
                     <FaPhone className="text-green-600" />
-                    <span className="text-sm text-gray-700">{pedido.contacto_cliente}</span>
+                    <span className="text-sm text-gray-700">{pedido.cliente_telefone}</span>
                   </div>
 
                   <div className="flex items-start gap-2">
                     <FaBox className="text-orange-500 mt-1 flex-shrink-0" />
                     <div>
-                      <p className="text-sm text-gray-700">{pedido.descricao_produtos || 'Produtos diversos'}</p>
-                      <p className="font-bold text-lg text-green-600 mt-1">{formatarMoeda(pedido.valor_total || 0)}</p>
+                      <p className="text-sm text-gray-700">
+                        {pedido.total_itens} itens ({pedido.total_quantidade} unidades)
+                      </p>
+                      <p className="font-bold text-lg text-green-600 mt-1">
+                        {formatarMoeda(pedido.valor_total || 0)}
+                      </p>
                     </div>
                   </div>
                 </div>
 
                 {/* Ações */}
-                {pedido.estado_entrega === 'pendente' && (
-                  <div className="border-t pt-4 space-y-3">
-                    <div className="flex gap-2">
-                      <select
-                        className="flex-1 p-2 border border-gray-300 rounded-md text-sm"
-                        value={selectedFilial[pedido.id] || ''}
-                        onChange={(e) => handleFilialSelect(pedido.id, parseInt(e.target.value))}
-                        aria-label="Selecionar Filial"
-                      >
-                        <option value="">Selecionar Filial</option>
-                        {minhasFiliais.map((filial: Filial) => (
-                          <option key={filial.id} value={filial.id}>
-                            {filial.provincia} - {filial.bairro || 'Centro'}
-                          </option>
-                        ))}
-                      </select>
-                      <button 
-                        onClick={() => aceitarPedido(pedido)}
-                        disabled={loading}
-                        className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md flex items-center gap-2 transition-colors disabled:opacity-50"
-                      >
-                        {loading ? <FaSpinner className="animate-spin" /> : <FaPaperPlane className="text-sm" />}
-                        Aceitar
-                      </button>
-                    </div>
+                <div className="border-t pt-4 space-y-3">
+                  <div className="flex gap-2">
+                    <select
+                      className="flex-1 p-2 border border-gray-300 rounded-md text-sm"
+                      value={selectedFilial[pedido.id_pedido] || ''}
+                      onChange={(e) => handleFilialSelect(pedido.id_pedido, parseInt(e.target.value))}
+                      aria-label="Selecionar Filial"
+                    >
+                      <option value="">Selecionar Filial</option>
+                      {minhasFiliais.map((filial: Filial) => (
+                        <option key={filial.id} value={filial.id}>
+                          {filial.provincia} - {filial.bairro || 'Centro'}
+                        </option>
+                      ))}
+                    </select>
+                    <button 
+                      onClick={() => aceitarPedido({
+                        ...pedido,
+                        id: pedido.id_pedido // Mapeia para o que a função aceitar espera
+                      })}
+                      disabled={loading}
+                      className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md flex items-center gap-2 transition-colors disabled:opacity-50"
+                    >
+                      {loading ? <FaSpinner className="animate-spin" /> : <FaPaperPlane className="text-sm" />}
+                      Aceitar
+                    </button>
                   </div>
-                )}
+                </div>
               </div>
             </div>
           ))
@@ -687,7 +700,8 @@ const Dashboard: React.FC = () => {
       {/* Sidebar */}
       <aside className="w-64 bg-white shadow-lg">
         <div className="p-6">
-          <div className="text-center mb-8">
+          <div className=" flex text-center mb-8">
+            <Image src="/images/logo.jpg" alt="logotipo" width={55} height={55}/>
             <h1 className="text-xl font-bold text-green-600">Transporte NzoAgro</h1>
           </div>
           

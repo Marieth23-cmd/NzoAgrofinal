@@ -18,6 +18,11 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { getTransportadoras } from '../Services/transportadora';
 import {listarNotificacoes} from '../Services/notificacoes'
+import {actualizarStatusdoPedidoApi} from '../Services/relatorios'
+import {badgeNotificacoes} from '../Services/notificacoes'
+import Image from 'next/image';
+import { IoMdNotificationsOutline } from "react-icons/io";
+
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, ArcElement);
 
@@ -59,7 +64,7 @@ interface Usuario {
   tipo_usuario: string;
   data_criacao: string;
   status: UserStatus;
-  foto?: string; // Made optional
+  foto?: string; 
 }
 
 interface Notificacao {
@@ -160,7 +165,7 @@ export default function AdminDashboard() {
     const [carregando, setCarregando] = useState(true);
     
   // No início do seu componente
-const [isLoading, setIsLoading] = useState(true);
+const [isLoading, setIsLoading] = useState(false);
 const [error, setError] = useState<string | null>(null);
 
   // Initial notifications data
@@ -206,6 +211,9 @@ const [error, setError] = useState<string | null>(null);
 
 
 const fetchUsuarios = async () => {
+  setIsLoading(true)
+  setError(null)
+
   try {
     const data = await getUsuarios();
     setUsuarios(data.usuarios || []); 
@@ -213,6 +221,8 @@ const fetchUsuarios = async () => {
   } catch (error) {
     setUsuarios([]);
     console.error("Erro ao buscar usuários:", error);
+  }finally {
+    setIsLoading(false); 
   }
 };
 
@@ -376,6 +386,8 @@ setCategoryData({
         return 'bg-blue-100 text-blue-800';
       case 'entregue':
         return 'bg-green-100 text-green-800';
+        case 'ativo':
+          return 'bg-green-100 text-green-800';
       case 'cancelado':
         return 'bg-red-100 text-red-800';
       default:
@@ -496,29 +508,12 @@ useEffect(() => {
 }, [activeTab]);
 
 
-
 const atualizarStatusPedido = async (idPedido: number, novoStatus: string) => {
   try {
-    const token = localStorage.getItem('token');
+    // Chama a função que você já tem
+    const resultado = await actualizarStatusdoPedidoApi(idPedido.toString(), novoStatus);
     
-    if (!token) {
-      throw new Error('Token não encontrado');
-    }
-
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/pedidos/${idPedido}/status`, {
-      method: 'PUT',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ estado: novoStatus })
-    });
-
-    if (!response.ok) {
-      throw new Error('Erro ao atualizar status');
-    }
-
-    // Atualiza a lista de pedidos
+    // Atualiza a lista de pedidos no estado local
     setPedidos(pedidos.map(pedido => 
       pedido.id_pedido === idPedido 
         ? { ...pedido, estado: novoStatus }
@@ -526,11 +521,44 @@ const atualizarStatusPedido = async (idPedido: number, novoStatus: string) => {
     ));
 
     toast.success('Status atualizado com sucesso!');
-  } catch (error) {
+    
+    // Opcional: retornar o resultado para uso posterior
+    return resultado;
+  } catch (error: any) {
     console.error('Erro ao atualizar status:', error);
-    toast.error('Erro ao atualizar status do pedido');
+    
+    // Tratamento de erro mais específico
+    const mensagemErro = error?.mensagem || 'Erro ao atualizar status do pedido';
+    toast.error(mensagemErro);
+    
+    // Re-throw o erro caso você queira tratá-lo em outro lugar
+    throw error;
   }
 };
+
+
+     const [notificacoesNaoLidas, setNotificacoesNaoLidas] = useState(0)
+     const numeroNotificacoes = async () => {
+       if (autenticado) {  
+         try {
+          console.log("🔔 Fazendo chamada para API...");
+           const resposta = await badgeNotificacoes();
+           setNotificacoesNaoLidas(resposta.total);
+           console.log("🔔 Estado atualizado para:", resposta.total);
+           console.log("🔔 notificacoesNaoLidas atual:", notificacoesNaoLidas);
+
+
+ 
+           console.log("Notificações não lidas:", resposta.total);
+         } catch (error) {
+          console.log("🔔 usuario não foi encontrado:", error);
+           console.log("Erro ao carregar notificações não lidas:", error);
+         }
+       }
+     };
+     
+
+
 
 
 
@@ -548,6 +576,7 @@ const atualizarStatusPedido = async (idPedido: number, novoStatus: string) => {
       {/* Sidebar */}
       <aside className={`sidebar fixed top-0 left-0 h-full w-72 bg-white border-r border-gray-200 p-4 transition-transform duration-300 z-40 ${sidebarActive ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}>
         <div className="mb-6 flex items-center justify-center">
+          <Image src="/images/logo.jpg" alt="logotipo" width={55} height={55}/>
           <h1 className="text-marieth text-2xl font-bold">NzoAgro</h1>
         </div>
         <div className="mb-4">
@@ -601,15 +630,14 @@ const atualizarStatusPedido = async (idPedido: number, novoStatus: string) => {
 
         <div className="flex items-center space-x-4 relative">
   <div className="relative">
-    <MdNotifications 
+    < IoMdNotificationsOutline
       className="text-gray-600 cursor-pointer" 
       size={24} 
       onClick={() => setNotificationsOpen(!notificationsOpen)} 
     />
-    {/* ✅ CORREÇÃO: usar `notificacoes` em vez de `notifications` */}
-    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-      {notificacoes.filter(n => n.is_lida === 0).length}
-    </span>
+    <span className="absolute top-0 right-4 bg-vermelho text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
+              {notificacoesNaoLidas}
+            </span>
     
     {notificationsOpen && (
       <div className="notifications-dropdown absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-200 z-50">
@@ -846,9 +874,9 @@ const atualizarStatusPedido = async (idPedido: number, novoStatus: string) => {
       <h2 className="text-xl font-semibold text-gray-800">Gerenciamento de Usuários</h2>
       <div className="relative">
         <input 
-          type="search" 
-          placeholder="Buscar usuários..." 
-          className="px-4 py-2 border border-gray-300 rounded-md w-80" 
+          type="search"
+          placeholder="Buscar usuários..."
+          className="px-4 py-2 border border-gray-300 rounded-md w-80"
         />
       </div>
     </div>
@@ -862,8 +890,8 @@ const atualizarStatusPedido = async (idPedido: number, novoStatus: string) => {
         <div className="text-center py-12">
           <p className="text-red-600">{error}</p>
           <button 
-            onClick={() => fetchUsuarios()} 
-            className="mt-4 px-4 py-2 bg-marieth text-white rounded-md"
+            onClick={() => fetchUsuarios()}
+            className="mt-4 px-4 py-2 bg-marieth text-white rounded-md hover:opacity-90"
           >
             Tentar novamente
           </button>
@@ -871,34 +899,40 @@ const atualizarStatusPedido = async (idPedido: number, novoStatus: string) => {
       ) : usuarios.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-gray-600">Nenhum usuário encontrado</p>
+          <button 
+            onClick={() => fetchUsuarios()}
+            className="mt-4 px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600"
+          >
+            Recarregar
+          </button>
         </div>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr>
-                <th className="p-4 text-left">ID</th>
-                <th className="p-4 text-left">Nome</th>
-                <th className="p-4 text-left">Tipo</th>
-                <th className="p-4 text-left">Data Cadastro</th>
-                <th className="p-4 text-left">Status</th>
-                <th className="p-4 text-left">Ações</th>
+              <tr className="bg-gray-50">
+                <th className="p-4 text-left font-medium text-gray-700">ID</th>
+                <th className="p-4 text-left font-medium text-gray-700">Nome</th>
+                <th className="p-4 text-left font-medium text-gray-700">Tipo</th>
+                <th className="p-4 text-left font-medium text-gray-700">Data Cadastro</th>
+                <th className="p-4 text-left font-medium text-gray-700">Status</th>
+                <th className="p-4 text-left font-medium text-gray-700">Ações</th>
               </tr>
             </thead>
             <tbody>
               {usuarios.map((user) => (
-                <tr key={user.id_usuario} className="hover:bg-gray-50">
-                  <td className="p-4 border-b">{user.id_usuario}</td>
-                  <td className="p-4 border-b">{user.nome}</td>
-                  <td className="p-4 border-b">{user.tipo_usuario}</td>
-                  <td className="p-4 border-b">{new Date(user.data_criacao).toLocaleDateString()}</td>
-                  <td className="p-4 border-b">
+                <tr key={user.id_usuario} className="hover:bg-gray-50 border-b border-gray-100">
+                  <td className="p-4">{user.id_usuario}</td>
+                  <td className="p-4 font-medium">{user.nome}</td>
+                  <td className="p-4">{user.tipo_usuario}</td>
+                  <td className="p-4">{new Date(user.data_criacao).toLocaleDateString('pt-BR')}</td>
+                  <td className="p-4">
                     <span className={`inline-block px-2 py-1 rounded-full text-sm ${getStatusColor(user.status)}`}>
                       {user.status}
                     </span>
                   </td>
-                  <td className="p-4 border-b">
-                    <button className="px-3 py-1 bg-marieth text-white rounded hover:bg-green-700">
+                  <td className="p-4">
+                    <button className="px-3 py-1 bg-marieth text-white rounded hover:opacity-90 transition-opacity">
                       Detalhes
                     </button>
                   </td>
@@ -911,6 +945,12 @@ const atualizarStatusPedido = async (idPedido: number, novoStatus: string) => {
     </div>
   </div>
 )}
+
+
+
+
+
+
         {/* Cadastrar Transportadora Tab */}
         {activeTab === 'Cadastrar Transportadora' && (
           <div className="bg-white rounded-lg shadow-sm mb-6">

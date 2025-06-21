@@ -213,19 +213,7 @@ const handleClick = useCallback((event: MouseEvent) => {
                       <AiOutlineShoppingCart className="gap-2 text-[1.6rem] ml-5" />  
                      
                      </li>
-                
-          {/* <li className="cursor-pointer hover:text-marieth relative" 
-         onClick={()=>redirecionar("./notificacoes")}> 
-          <div className="relative">
-            <IoMdNotificationsOutline className="gap-2 text-[1.6rem] ml-8" /> 
-            {notificacoesNaoLidas > 0 && (
-              <span className="absolute -top-2 -right-2 bg-vermelho text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
-                {notificacoesNaoLidas}
-              </span>
-            )}
-          </div>
-            
-        </li> */}
+               
 
 
                   <li className="cursor-pointer hover:text-marieth relative" 
