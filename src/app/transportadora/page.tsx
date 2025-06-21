@@ -4,7 +4,7 @@ import {
   FaHome,  FaTruck,  FaMapMarkerAlt,  FaBell,  FaCog,  FaPaperPlane, FaEnvelope,  FaCheck, 
   FaTimes,FaChartBar,FaBuilding,FaPhone,FaBox,FaArrowUp,FaArrowDown,FaEquals,FaCalendarAlt,
   FaMoneyBillWave,FaSpinner} from 'react-icons/fa';
-import {listarEntregasPendentes,listarMinhasEntregas,listarMinhasFiliais,aceitarPedidoNotificar,
+import { ProdutosProntos,listarMinhasEntregas,listarMinhasFiliais,aceitarPedidoNotificar,
   atualizarStatusEntrega,cadastrarFilial,buscarMinhasNotificacoes} from '../Services/transportadora';
 import {logout} from '../Services/auth'
 import { useRouter } from 'next/navigation';
@@ -55,10 +55,10 @@ interface NovaFilial {
 }
 
 interface Stats {
-  pedidosPendentes: number;
   entreguesHoje: number;
   emTransito: number;
   receitaMensal: number;
+  pedidosProntos:number;
 }
 
 const Dashboard: React.FC = () => {
@@ -80,13 +80,13 @@ const Dashboard: React.FC = () => {
   };
 
   // Estados para dados da API - Tipados corretamente
-  const [pedidosPendentes, setPedidosPendentes] = useState<Pedido[]>([]);
+  const [pedidosProntos, setPedidosProntos] = useState<Pedido[]>([]);
   const [minhasEntregas, setMinhasEntregas] = useState<Entrega[]>([]);
   const [minhasFiliais, setMinhasFiliais] = useState<Filial[]>([]);
   const [notificacoes, setNotificacoes] = useState<Notificacao[]>([]);
   
   const [stats, setStats] = useState<Stats>({
-    pedidosPendentes: 0,
+    pedidosProntos: 0,
     entreguesHoje: 0,
     emTransito: 0,
     receitaMensal: 0
@@ -102,7 +102,7 @@ const Dashboard: React.FC = () => {
 
   // useEffects individuais para carregar dados
   useEffect(() => {
-    carregarPedidosPendentes();
+    carregarProdutosProntos();
   }, []);
 
   useEffect(() => {
@@ -118,7 +118,7 @@ const Dashboard: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (minhasEntregas.length > 0 || pedidosPendentes.length > 0) {
+    if (minhasEntregas.length > 0 || pedidosProntos.length > 0) {
       const hoje = new Date().toDateString();
       const entreguesHoje = minhasEntregas.filter((e: Entrega) => 
         e.estado_entrega === 'entregue' && 
@@ -137,25 +137,23 @@ const Dashboard: React.FC = () => {
         }, 0);
 
       setStats({
-        pedidosPendentes: pedidosPendentes.length,
+       pedidosProntos: pedidosProntos.length,
         entreguesHoje,
         emTransito,
         receitaMensal
       });
     }
-  }, [minhasEntregas, pedidosPendentes]);
+  }, [minhasEntregas, pedidosProntos]);
 
   // Funções para carregar dados individuais
-  const carregarPedidosPendentes = async (): Promise<void> => {
-    try {
-      const response = await listarEntregasPendentes();
-      if (response.sucesso) {
-        setPedidosPendentes(response.dados || []);
-      }
-    } catch (error) {
-      console.error('Erro ao carregar pedidos pendentes:', error);
-    }
-  };
+  const carregarProdutosProntos = async (): Promise<void> => {
+  try {
+    const response = await ProdutosProntos();
+    setPedidosProntos(response.pedidos || []);
+  } catch (error) {
+    console.error('Erro ao carregar pedidos prontos:', error);
+  }
+};
 
   const carregarMinhasEntregas = async (): Promise<void> => {
     try {
@@ -172,9 +170,9 @@ const Dashboard: React.FC = () => {
   const carregarMinhasFiliais = async (): Promise<void> => {
     try {
       const response = await listarMinhasFiliais();
-      if (response.sucesso) {
-        setMinhasFiliais(response.dados || []);
-      }
+      
+        setMinhasFiliais(response.filiais || []);
+     
     } catch (error) {
       console.error('Erro ao carregar filiais:', error);
     }
@@ -183,9 +181,9 @@ const Dashboard: React.FC = () => {
   const carregarNotificacoes = async (): Promise<void> => {
     try {
       const response = await buscarMinhasNotificacoes();
-      if (response.sucesso) {
-        setNotificacoes(response.dados || []);
-      }
+      
+        setNotificacoes(response.notificacoes|| []);
+      
     } catch (error) {
       console.error('Erro ao carregar notificações:', error);
     }
@@ -196,7 +194,7 @@ const Dashboard: React.FC = () => {
     setLoading(true);
     try {
       await Promise.all([
-        carregarPedidosPendentes(),
+        carregarProdutosProntos(),
         carregarMinhasEntregas(),
         carregarMinhasFiliais(),
         carregarNotificacoes()
@@ -229,7 +227,7 @@ const Dashboard: React.FC = () => {
 
       if (response.sucesso) {
         toast.success('Pedido aceito com sucesso!');
-        await carregarPedidosPendentes();
+        await carregarProdutosProntos();
         await carregarMinhasEntregas();
       } else {
         toast.error(response.mensagem || 'Erro ao aceitar pedido');
@@ -321,8 +319,8 @@ const Dashboard: React.FC = () => {
       {/* Stats Cards */}
       <div className="grid gap-4 grid-cols-1 md:grid-cols-4 mb-8">
         <div className="bg-white p-6 rounded-lg shadow text-center">
-          <div className="text-2xl text-orange-500 font-bold">{pedidosPendentes.length}</div>
-          <div className="text-gray-700 mt-2">Pedidos Pendentes</div>
+          <div className="text-2xl text-orange-500 font-bold">{pedidosProntos.length}</div>
+          <div className="text-gray-700 mt-2">Pedidos em Trânsito</div>
         </div>
         <div className="bg-white p-6 rounded-lg shadow text-center">
           <div className="text-2xl text-green-600 font-bold">{stats.entreguesHoje}</div>
@@ -340,12 +338,12 @@ const Dashboard: React.FC = () => {
 
       {/* Lista de Pedidos */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {pedidosPendentes.length === 0 ? (
+        {pedidosProntos.length === 0 ? (
           <div className="col-span-2 text-center py-8 text-gray-500">
             Nenhum pedido pendente encontrado
           </div>
         ) : (
-          pedidosPendentes.map((pedido: Pedido) => (
+          pedidosProntos.map((pedido: Pedido) => (
             <div key={pedido.id} className="bg-white rounded-lg shadow-lg overflow-hidden">
               <div className="p-6">
                 {/* Header do Pedido */}
@@ -671,7 +669,7 @@ const Dashboard: React.FC = () => {
     </div>
   );
 
-  if (loading && pedidosPendentes.length === 0) {
+  if (loading && pedidosProntos.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">

@@ -146,11 +146,11 @@ export const listarMinhasEntregas = async (): Promise<any> => {
 };
 
 // Função para listar entregas pendentes
-export const listarEntregasPendentes = async (): Promise<any> => {
+export const ProdutosProntos = async (): Promise<any> => {
     try {
         const token = localStorage.getItem('token');
         const response = await axios.get(
-            `${API_URL}/transportadoras/entregas-pendentes`,
+            `${API_URL}/transportadoras/pedidos-prontos`,
             {
                 withCredentials: true,
                 headers: {

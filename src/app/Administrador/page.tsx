@@ -208,16 +208,15 @@ const [error, setError] = useState<string | null>(null);
 const fetchUsuarios = async () => {
   try {
     const data = await getUsuarios();
-    // Se a API retorna {usuario: {...}}, extraia apenas o objeto usuario
-    // ou ajuste para o formato correto
-    const usuariosArray = Array.isArray(data) ? data : [data.usuario];
-    setUsuarios(usuariosArray);
+    setUsuarios(data.usuarios || []); 
     console.log("Usuários carregados:", data);
   } catch (error) {
     setUsuarios([]);
     console.error("Erro ao buscar usuários:", error);
   }
 };
+
+
  useEffect(() => {
     fetchUsuarios();
   }, []); 
@@ -580,6 +579,8 @@ const atualizarStatusPedido = async (idPedido: number, novoStatus: string) => {
               {tab === 'Gerenciamento de Usuarios' && <MdGroup className="mr-3" size={20} />}
               {tab === 'Logout' && <MdLogout className="mr-3" size={20} />}
               
+              <span>{tab}</span>
+
             </a>
           ))}
         </nav>
