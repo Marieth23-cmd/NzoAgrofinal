@@ -232,7 +232,7 @@ export const exportarCSVVendasFornecedor = async (): Promise<Blob> => {
 // ===== OUTRAS FUNÇÕES =====
 
 // Atualizar status do pedido
-export const actualizarStatusdoPedidoApi = async (pedidoId: string, status: string): Promise<any> => {
+export const actualizarStatusdoPedido = async (pedidoId: string, status: string): Promise<any> => {
     try {
         const response = await axios.put(`${API_URL}/relatorios/pedidos/${pedidoId}/status`, { status }, {
             withCredentials: true,

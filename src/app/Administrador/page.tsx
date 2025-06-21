@@ -18,7 +18,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { getTransportadoras } from '../Services/transportadora';
 import {listarNotificacoes} from '../Services/notificacoes'
-import {actualizarStatusdoPedidoApi} from '../Services/relatorios'
+import {actualizarStatusdoPedido} from '../Services/relatorios'
 import {badgeNotificacoes} from '../Services/notificacoes'
 import Image from 'next/image';
 import { IoMdNotificationsOutline } from "react-icons/io";
@@ -511,7 +511,7 @@ useEffect(() => {
 const atualizarStatusPedido = async (idPedido: number, novoStatus: string) => {
   try {
     // Chama a função que você já tem
-    const resultado = await actualizarStatusdoPedidoApi(idPedido.toString(), novoStatus);
+    const resultado = await actualizarStatusdoPedido(idPedido.toString(), novoStatus);
     
     // Atualiza a lista de pedidos no estado local
     setPedidos(pedidos.map(pedido => 
