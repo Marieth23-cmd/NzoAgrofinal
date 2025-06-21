@@ -231,7 +231,7 @@ const Dashboard: React.FC = () => {
         observacoes: 'Pedido aceito via dashboard'
       });
 
-      if (response.sucesso) {
+      if (response.mensagem) {
         toast.success('Pedido aceito com sucesso!');
         await carregarProdutosProntos();
         await carregarMinhasEntregas();
@@ -250,7 +250,7 @@ const Dashboard: React.FC = () => {
     setLoading(true);
     try {
       const response = await atualizarStatusEntrega(entregaId, novoStatus);
-      if (response.sucesso) {
+      if (response.mensagem) {
         toast.success('Status atualizado com sucesso!');
         await carregarMinhasEntregas();
       } else {
@@ -421,7 +421,7 @@ const Dashboard: React.FC = () => {
                       className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md flex items-center gap-2 transition-colors disabled:opacity-50"
                     >
                       {loading ? <FaSpinner className="animate-spin" /> : <FaPaperPlane className="text-sm" />}
-                      Aceitar
+                      Notificar
                     </button>
                   </div>
                 </div>

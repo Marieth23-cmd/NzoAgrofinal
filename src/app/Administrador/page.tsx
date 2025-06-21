@@ -718,13 +718,14 @@ const atualizarStatusPedido = async (idPedido: number, novoStatus: string) => {
             <div className="hidden sm:block">
               <span className="font-semibold text-gray-800">Admin</span>
             </div>
-               <button 
+               
+            <button 
               onClick={handleLogout}
-              className="text-gray-600 hover:text-red-600 transition-colors sr-only"
-            >terminar
-              <MdLogout size={24} />
-            </button>
+              className="text-gray-600 hover:text-red-600 transition-colors"
+              title="Sair"
+            ></button>
                   </div>
+                  
 
         </div>
       </header>
