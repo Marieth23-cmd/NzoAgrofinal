@@ -446,10 +446,7 @@ const Dashboard: React.FC = () => {
                 ))}
               </select>
               <button 
-                onClick={() => aceitarPedido({
-                  ...pedido,
-                  id: pedido.id_pedido
-                })}
+                onClick={() => aceitarPedido(pedido)}
                 disabled={loading}
                 className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md flex items-center gap-2 transition-colors disabled:opacity-50"
               >
