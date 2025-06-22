@@ -426,14 +426,16 @@ export const confirmarPagamentoWebhook = async (dadosConfirmacao: {
 
 
 
-
-export const confirmarEntrega = async (pedidoId:number) => {
+export const confirmarEntrega = async (pedidoId: number) => {
     try {
         const response = await axios.post(
             `${API_URL}/pagamentos/confirmar-entrega/${pedidoId}`,
-            {
+            {}, 
+            {   
                 withCredentials: true,
-                headers: { "Content-Type": "application/json" },
+                headers: { 
+                    "Content-Type": "application/json"
+                }
             }
         );
         return response.data;
