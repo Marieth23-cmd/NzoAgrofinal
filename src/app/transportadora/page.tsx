@@ -174,7 +174,11 @@ const Dashboard: React.FC = () => {
   const carregarMinhasEntregas = async (): Promise<void> => {
     try {
       const response = await listarMinhasEntregas();
-      if (response.sucesso) {
+      if (response.entregas) {
+        console.log('✅ response.entregas existe');
+      console.log('📊 Quantidade de entregas:', response.entregas.length);
+      console.log('📋 Primeira entrega (se existir):', response.entregas[0]);
+      
         const entregas: Entrega[] = response.entregas || [];
         setMinhasEntregas(entregas);
       }
