@@ -132,6 +132,7 @@ interface FormDataTransportadora {
   provincia_base: string; 
 }
 
+
 export default function AdminDashboard() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabType>('Dashboard');
@@ -377,23 +378,35 @@ setCategoryData({
     }
   };
 
+
   const getStatusColor = (status: string) => {
-    switch (status?.toLowerCase()) {
-      case 'pendente':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'processando':
-      case 'em trânsito':
-        return 'bg-blue-100 text-blue-800';
-      case 'entregue':
-        return 'bg-green-100 text-green-800';
-        case 'ativo':
-          return 'bg-green-100 text-green-800';
-      case 'cancelado':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
+  switch (status?.toLowerCase()) {
+    case 'pendente':
+      return 'bg-yellow-100 text-yellow-800';
+    case 'confirmado':
+      return 'bg-blue-100 text-blue-800';
+    case 'processado':
+    case 'em trânsito':
+      return 'bg-purple-100 text-purple-800';
+    case 'enviado':
+      return 'bg-indigo-100 text-indigo-800';
+    case 'pronto':
+      return 'bg-teal-100 text-teal-800';
+    case 'aguardando retirada':
+      return 'bg-cyan-100 text-cyan-800';
+    case 'entregue':
+      return 'bg-green-100 text-green-800';
+    case 'ativo':
+      return 'bg-green-100 text-green-800';
+    case 'cancelado':
+      return 'bg-red-100 text-red-800';
+    case 'expirado':
+      return 'bg-gray-100 text-gray-800';
+    default:
+      return 'bg-gray-100 text-gray-800';
+  }
+};
+
 
   const formatarData = (data: string) => {
     return new Date(data).toLocaleDateString('pt-BR');
@@ -1372,6 +1385,7 @@ tr>
           </div>
         )}
 
+
         {/* Controle de Pedidos Tab */}
        {activeTab === 'Controle de Pedidos' && (
   <div className="space-y-6">
@@ -1431,21 +1445,26 @@ tr>
                     <td className="p-4 border-b">{pedido.nome_usuario}</td>
                     <td className="p-4 border-b">{formatarValor(pedido.valor_total)}</td>
                     <td className="p-4 border-b">
-                      <label htmlFor="pedidos" className='sr-only'> pedidos</label>
-                      <select
-                       id='pedidos'
-                        value={pedido.estado}
-                        onChange={(e) => atualizarStatusPedido(pedido.id_pedido, e.target.value)}
-                        className={`px-3 py-1 rounded-full text-sm ${getStatusColor(pedido.estado)}`}
-                      >
-                        <option value="Pendente">Pendente</option>
-                        <option value="Em Processamento">Em Processamento</option>
-                        <option value="Em Trânsito">Em Trânsito</option>
-                        <option value="Entregue">Entregue</option>
-                        <option value="Cancelado">Cancelado</option>
-                      </select>
-                    </td>
-                    <td className="p-4 border-b">{formatarData(pedido.data_pedido)}</td>
+                    <label htmlFor={`pedido-${pedido.id_pedido}`} className='sr-only'>Status do pedido</label>
+                    <select
+                      id={`pedido-${pedido.id_pedido}`}
+                      value={pedido.estado}
+                      onChange={(e) => atualizarStatusPedido(pedido.id_pedido, e.target.value)}
+                      className={`px-3 py-1 rounded-full text-sm ${getStatusColor(pedido.estado)}`}
+                    >
+                      <option value="pendente">Pendente</option>
+                      <option value="confirmado">Confirmado</option>
+                      <option value="processado">Processado</option>
+                      <option value="enviado">Enviado</option>
+                      <option value="em trânsito">Em Trânsito</option>
+                      <option value="aguardando retirada">Aguardando Retirada</option>
+                      <option value="pronto">Pronto</option>
+                      <option value="entregue">Entregue</option>
+                      <option value="cancelado">Cancelado</option>
+                      <option value="expirado">Expirado</option>
+                    </select>
+                  </td>
+                   <td className="p-4 border-b">{formatarData(pedido.data_pedido)}</td>
                     <td className="p-4 border-b">
                       <button
                         onClick={() => console.log('Ver detalhes do pedido')}
