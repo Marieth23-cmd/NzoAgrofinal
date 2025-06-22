@@ -29,6 +29,14 @@ interface Notificacao {
   lida:string;
 }
 
+interface Produto {
+  nome_produto: string;
+  quantidade: number;
+  unidade: string;
+  peso_kg: number;
+  peso_total: number;
+}
+
 interface Pedido {
   id_pedido: number;
   valor_total: number;
@@ -44,6 +52,8 @@ interface Pedido {
   cliente_numero?: string;
   total_itens: number;
   total_quantidade: number;
+  peso_total_pedido: number;
+  produtos: Produto[];
 }
 
 interface Filial {
@@ -341,95 +351,118 @@ const Dashboard: React.FC = () => {
           <div className="text-gray-700 mt-2">Receita Mensal</div>
         </div>
       </div>
-{/* Lista de Pedidos */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {pedidosProntos.length === 0 ? (
-          <div className="col-span-2 text-center py-8 text-gray-500">
-            Nenhum pedido pendente encontrado
+
+
+      {/* Lista de Pedidos */}
+<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  {pedidosProntos.length === 0 ? (
+    <div className="col-span-2 text-center py-8 text-gray-500">
+      Nenhum pedido pendente encontrado
+    </div>
+  ) : (
+    pedidosProntos.map((pedido) => (
+      <div key={pedido.id_pedido} className="bg-white rounded-lg shadow-lg overflow-hidden">
+        <div className="p-6">
+          {/* Header do Pedido */}
+          <div className="flex justify-between items-start mb-4">
+            <div>
+              <h3 className="text-lg font-bold text-gray-800">#{pedido.id_pedido}</h3>
+              <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${getStatusColor('em trânsito')}`}>
+                {getStatusText('em trânsito')}
+              </span>
+            </div>
+            <div className="text-sm font-medium text-gray-600">
+              📦 {pedido.peso_total_pedido.toFixed(2)} kg
+            </div>
           </div>
-        ) : (
-          pedidosProntos.map((pedido: any) => (
-            <div key={pedido.id_pedido} className="bg-white rounded-lg shadow-lg overflow-hidden">
-              <div className="p-6">
-                {/* Header do Pedido */}
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h3 className="text-lg font-bold text-gray-800">#{pedido.id_pedido}</h3>
-                    <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${getStatusColor('pendente')}`}>
-                      {getStatusText('pendente')}
-                    </span>
-                  </div>
-                  <div className="text-sm font-medium text-gray-600">
-                    📦 Normal
-                  </div>
-                </div>
 
-                {/* Informações do Cliente */}
-                <div className="space-y-3 mb-4">
-                  <div className="flex items-start gap-2">
-                    <FaMapMarkerAlt className="text-red-500 mt-1 flex-shrink-0" />
-                    <div>
-                      <p className="font-semibold text-gray-800">{pedido.cliente_nome}</p>
-                      <p className="text-sm text-gray-600">
-                        {pedido.rua}, {pedido.bairro}, {pedido.municipio}, {pedido.provincia}
-                        {pedido.referencia && ` - ${pedido.referencia}`}
-                      </p>
-                      <p className="text-sm text-green-600">Calculando distância...</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <FaPhone className="text-green-600" />
-                    <span className="text-sm text-gray-700">{pedido.cliente_telefone}</span>
-                  </div>
-
-                  <div className="flex items-start gap-2">
-                    <FaBox className="text-orange-500 mt-1 flex-shrink-0" />
-                    <div>
-                      <p className="text-sm text-gray-700">
-                        {pedido.total_itens} itens ({pedido.total_quantidade} unidades)
-                      </p>
-                      <p className="font-bold text-lg text-green-600 mt-1">
-                        {formatarMoeda(pedido.valor_total || 0)}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Ações */}
-                <div className="border-t pt-4 space-y-3">
-                  <div className="flex gap-2">
-                    <select
-                      className="flex-1 p-2 border border-gray-300 rounded-md text-sm"
-                      value={selectedFilial[pedido.id_pedido] || ''}
-                      onChange={(e) => handleFilialSelect(pedido.id_pedido, parseInt(e.target.value))}
-                      aria-label="Selecionar Filial"
-                    >
-                      <option value="">Selecionar Filial</option>
-                      {minhasFiliais.map((filial: Filial) => (
-                        <option key={filial.id} value={filial.id}>
-                          {filial.provincia} - {filial.bairro || 'Centro'}
-                        </option>
-                      ))}
-                    </select>
-                    <button 
-                      onClick={() => aceitarPedido({
-                        ...pedido,
-                        id: pedido.id_pedido // Mapeia para o que a função aceitar espera
-                      })}
-                      disabled={loading}
-                      className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md flex items-center gap-2 transition-colors disabled:opacity-50"
-                    >
-                      {loading ? <FaSpinner className="animate-spin" /> : <FaPaperPlane className="text-sm" />}
-                      Notificar
-                    </button>
-                  </div>
-                </div>
+          {/* Informações do Cliente */}
+          <div className="space-y-3 mb-4">
+            <div className="flex items-start gap-2">
+              <FaMapMarkerAlt className="text-red-500 mt-1 flex-shrink-0" />
+              <div>
+                <p className="font-semibold text-gray-800">{pedido.cliente_nome}</p>
+                <p className="text-sm text-gray-600">
+                  {pedido.rua}, {pedido.bairro}, {pedido.municipio}, {pedido.provincia}
+                  {pedido.referencia && ` - ${pedido.referencia}`}
+                </p>
               </div>
             </div>
-          ))
-        )}
+            
+            <div className="flex items-center gap-2">
+              <FaPhone className="text-green-600" />
+              <span className="text-sm text-gray-700">{pedido.cliente_telefone}</span>
+            </div>
+
+            <div className="flex items-start gap-2">
+              <FaBox className="text-orange-500 mt-1 flex-shrink-0" />
+              <div className="w-full">
+                <p className="text-sm text-gray-700 mb-2">
+                  {pedido.total_itens} itens ({pedido.total_quantidade} unidades) - {pedido.peso_total_pedido.toFixed(2)} kg total
+                </p>
+                
+                {/* Lista de Produtos */}
+                <div className="bg-gray-50 rounded-md p-3 mb-3">
+                  <h4 className="text-sm font-semibold text-gray-700 mb-2">Produtos a entregar:</h4>
+                  <div className="space-y-2">
+                    {pedido.produtos.map((produto, index) => (
+                      <div key={index} className="bg-white rounded-md p-2 border border-gray-200">
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <p className="font-medium text-gray-800 text-sm">{produto.nome_produto}</p>
+                            <div className="flex gap-4 text-xs text-gray-600 mt-1">
+                              <span>Qtd: {produto.quantidade} {produto.unidade}</span>
+                              <span>Peso unit.: {produto.peso_kg} kg</span>
+                              <span className="font-medium text-orange-600">Total: {produto.peso_total.toFixed(2)} kg</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                <p className="font-bold text-lg text-green-600">
+                  {formatarMoeda(pedido.valor_total || 0)}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Ações */}
+          <div className="border-t pt-4 space-y-3">
+            <div className="flex gap-2">
+              <select
+                className="flex-1 p-2 border border-gray-300 rounded-md text-sm"
+                value={selectedFilial[pedido.id_pedido] || ''}
+                onChange={(e) => handleFilialSelect(pedido.id_pedido, parseInt(e.target.value))}
+                aria-label="Selecionar Filial"
+              >
+                <option value="">Selecionar Filial</option>
+                {minhasFiliais.map((filial) => (
+                  <option key={filial.id} value={filial.id}>
+                    {filial.provincia} - {filial.bairro || 'Centro'}
+                  </option>
+                ))}
+              </select>
+              <button 
+                onClick={() => aceitarPedido({
+                  ...pedido,
+                  id: pedido.id_pedido
+                })}
+                disabled={loading}
+                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md flex items-center gap-2 transition-colors disabled:opacity-50"
+              >
+                {loading ? <FaSpinner className="animate-spin" /> : <FaPaperPlane className="text-sm" />}
+                Notificar
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
+    ))
+  )}
+</div>
 
       {/* Minhas Entregas em Andamento */}
       {minhasEntregas.length > 0 && (

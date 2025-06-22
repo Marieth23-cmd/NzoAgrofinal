@@ -705,12 +705,6 @@ const atualizarStatusPedido = async (idPedido: number, novoStatus: string) => {
       </div>
     )}
   </div>
-
-
-
-
-
-
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-marieth rounded-full flex items-center justify-center">
               <MdPerson className="text-white" size={20} />
@@ -718,15 +712,13 @@ const atualizarStatusPedido = async (idPedido: number, novoStatus: string) => {
             <div className="hidden sm:block">
               <span className="font-semibold text-gray-800">Admin</span>
             </div>
-               
-            <button 
-              onClick={handleLogout}
+            <div>  
+            <button onClick={handleLogout}
               className="text-gray-600 hover:text-red-600 transition-colors"
-              title="Sair"
-            ></button>
-                  </div>
-                  
-
+              title="Sair" >
+              </button>
+              </div>
+          </div>
         </div>
       </header>
 

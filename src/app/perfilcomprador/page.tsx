@@ -230,7 +230,7 @@ const confirmarEntregaPedido = async (pedido: Pedido) => {
     toast.success('Entrega confirmada com sucesso!');
   } catch (error: any) {
     console.error('Erro ao confirmar entrega:', error);
-    toast.error(error?.erro || error?.message || 'Erro ao confirmar entrega. Tente novamente.');
+    toast.error(error?.message || error?.message || 'Erro ao confirmar entrega. Tente novamente.');
   }
 };
 
@@ -591,8 +591,8 @@ const solicitarReembolso = async (pedido: Pedido) => {
 
           {/* Informações adicionais baseadas no estado */}
           {pedido.estado?.toLowerCase() === 'aguardando retirada' && (
-            <div className="mt-4 p-3 bg-blue-50 border-l-4 border-blue-400 rounded">
-              <p className="text-sm text-blue-800">
+            <div className="mt-4 p-3 bg-green-50 border-l-4 border-green-400 rounded">
+              <p className="text-sm text-green-800">
                 <strong>Importante:</strong> Só confirme o recebimento depois de receber e verificar o produto.
               </p>
             </div>
