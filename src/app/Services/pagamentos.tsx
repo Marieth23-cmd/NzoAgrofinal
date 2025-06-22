@@ -102,39 +102,6 @@ export const obterRelatorioFinanceiro = async (
     }
 };
 
-// // ========================================
-// // CONFIRMAR ENTREGA E DISTRIBUIR VALORES
-// // ========================================
-// export const confirmarEntrega = async (
-//     transacaoId: string,
-//     confirmadoPor: number,
-//     metodoConfirmacao: string = 'manual',
-//     idTransportadora?: number
-// ) => {
-//     try {
-//         const response = await axios.post(
-//             `${API_URL}/pagamentos/confirmar-entrega/${transacaoId}`,
-//             {
-//                 confirmado_por: confirmadoPor,
-//                 metodo_confirmacao: metodoConfirmacao,
-//                 id_transportadora: idTransportadora
-//             },
-//             {
-//                 withCredentials: true,
-//                 headers: { "Content-Type": "application/json" },
-//             }
-//         );
-//         return response.data;
-//     } catch (error: any) {
-//         const axiosError = error as AxiosError;
-//         console.log("Erro ao confirmar entrega:", axiosError.response?.data || axiosError.message);
-//         throw axiosError.response?.data || { erro: "Erro desconhecido ao confirmar entrega" };
-//     }
-// };
-
-// ========================================
-// SOLICITAR REEMBOLSO
-// ========================================
 export const solicitarReembolso = async (
     transacaoId: string,
     motivoReembolso: string,
@@ -429,7 +396,7 @@ export const confirmarPagamentoWebhook = async (dadosConfirmacao: {
 export const confirmarEntrega = async (pedidoId: number) => {
     try {
         const response = await axios.post(
-            `${API_URL}/pagamentos/confirmar-entrega/${pedidoId}`,
+            `${API_URL}/pagamentos/confirmar-recebimento/${pedidoId}`,
             {}, 
             {   
                 withCredentials: true,

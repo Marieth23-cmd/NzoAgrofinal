@@ -175,7 +175,7 @@ const Dashboard: React.FC = () => {
     try {
       const response = await listarMinhasEntregas();
       if (response.sucesso) {
-        const entregas: Entrega[] = response.dados || [];
+        const entregas: Entrega[] = response.entregas || [];
         setMinhasEntregas(entregas);
       }
     } catch (error) {
