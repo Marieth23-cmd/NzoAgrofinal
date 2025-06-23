@@ -330,7 +330,7 @@ export default function Carrinho() {
         {/* Modal de ajuste de quantidade */}
         {showcaixa && produtoSelecionado && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 mt-5">
-            <div className="min-w-[300px] w-[70%] max-w-[450px] bg-white shadow-custom rounded-[10px] p-6 relative">
+            <div className="min-w-[30px] w-[80%] max-w-[500px] bg-white shadow-custom rounded-[10px] p-4 relative">
               <h2 className="font-bold text-2xl mb-4 text-marieth">Alterar Quantidade</h2>
               <div className="mb-4 p-3 bg-gray-50 rounded-[5px]">
                 <p className="font-semibold">{produtoSelecionado.nome}</p>
