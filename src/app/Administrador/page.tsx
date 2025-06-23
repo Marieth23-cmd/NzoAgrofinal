@@ -155,7 +155,21 @@ export default function AdminDashboard() {
     confirmar_senha: '',
     provincia_base: ''
   });
+// Adicione essas linhas no topo do seu componente, junto com os outros useState
+const [cardsData, setCardsData] = useState({
+  UsuariosActivo: 0,
+  PedidosHoje: 0,
+  ProdutosAtivos: 0,
+  ReceitaMensal: 0
+});
 
+// Defina o tipo para TypeScript (opcional, mas recomendado)
+interface CardsData {
+  UsuariosActivo: number;
+  PedidosHoje: number;
+  ProdutosAtivos: number;
+  ReceitaMensal: number;
+}
 
   
   const [termoBusca, setTermoBusca] = useState('');
@@ -256,25 +270,27 @@ const fetchUsuarios = async () => {
 
 
 
-
-  useEffect(() => {
+useEffect(() => {
   async function fetchCardsData() {
     try {
-      // Contagem de usuários ativos
-      const usuariosAtivos = Array.isArray(usuarios) 
-        ? usuarios.filter(u => u.status === 'Aprovado').length 
+      // Debug logs
+      console.log("Dados disponíveis:", { usuarios, pedidos, produtos });
+
+      // Contagem de usuários ativos com verificação robusta
+      const usuariosAtivos = Array.isArray(usuarios)
+        ? usuarios.filter(u => u && u.status === 'Aprovado').length
         : 0;
 
       // Pedidos de hoje
       const hoje = new Date().toISOString().split('T')[0];
       const pedidosHoje = Array.isArray(pedidos)
-        ? pedidos.filter(p => p.data_pedido.startsWith(hoje)).length
+        ? pedidos.filter(p => p && p.data_pedido && p.data_pedido.startsWith(hoje)).length
         : 0;
 
-      // Produtos ativos e contagem por categoria
+      // Produtos ativos
       const produtosAtivos = Array.isArray(produtos) ? produtos.length : 0;
-      
-      // Calcular total por categoria
+
+      // Calcular total por categoria com verificação
       const categorias = {
         Frutas: 0,
         Graos: 0,
@@ -283,62 +299,64 @@ const fetchUsuarios = async () => {
         Verduras: 0
       };
 
-      produtos.forEach(produto => {
-        const normalizedCategoria = produto.categoria.normalize('NFD').replace(/[\u0300-\u036f]/g, '') as keyof CategoriaContagem;
-        if (normalizedCategoria in categorias) {
-          categorias[normalizedCategoria]++;
-        }
-      });
+      if (Array.isArray(produtos)) {
+        produtos.forEach(produto => {
+          if (produto && produto.categoria && typeof produto.categoria === 'string') {
+            try {
+              const normalizedCategoria = produto.categoria
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '') as keyof CategoriaContagem;
+              
+              if (normalizedCategoria in categorias) {
+                categorias[normalizedCategoria]++;
+              }
+            } catch (error) {
+              console.warn("Erro ao processar categoria:", produto.categoria, error);
+            }
+          }
+        });
+      }
 
       // Calcular receita mensal
       const mesAtual = new Date().getMonth() + 1;
       const receitaMensal = Array.isArray(pedidos)
         ? pedidos
+            .filter(p => p && p.data_pedido && p.valor_total)
             .filter(p => new Date(p.data_pedido).getMonth() + 1 === mesAtual)
-            .reduce((total, pedido) => total + pedido.valor_total, 0)
+            .reduce((total, pedido) => total + (Number(pedido.valor_total) || 0), 0)
         : 0;
 
-      setCardsData({
+      const dadosCalculados = {
         UsuariosActivo: usuariosAtivos,
         PedidosHoje: pedidosHoje,
         ProdutosAtivos: produtosAtivos,
         ReceitaMensal: receitaMensal / 1000 // Converter para milhares
-      });
+      };
 
-      // Atualizar dados do gráfico de categorias
-      // Update setCategoryData call
-setCategoryData({
-  labels: ['Frutas', 'Graos', 'Tuberculos', 'Insumos', 'Verduras'],
-  datasets: [{
-    label: 'Produtos por Categoria',
-    data: [
-      categorias.Frutas,
-      categorias.Graos,
-      categorias.Tuberculos,
-      categorias.Insumos,
-      categorias.Verduras
-    ],
-    backgroundColor: ['#10b981', '#f59e42', '#3b82f6', '#f43f5e', '#8b5cf6'],
-    borderWidth: 1,
-  }]
-});
+      console.log("Dados calculados:", dadosCalculados);
+      setCardsData(dadosCalculados);
 
     } catch (error) {
       console.error("Erro ao buscar dados dos cartões:", error);
-      // ... error handling ...
+      // Definir valores padrão em caso de erro
+      setCardsData({
+        UsuariosActivo: 0,
+        PedidosHoje: 0,
+        ProdutosAtivos: 0,
+        ReceitaMensal: 0
+      });
     }
   }
-  fetchCardsData();
-}, [produtos, usuarios, pedidos]);
 
-  const [Cardsdata, setCardsData] = useState({
-    UsuariosActivo: 0,
-    PedidosHoje: 0,
-    ProdutosAtivos: 0,
-    ReceitaMensal: 0
-  });
+  // Só executar quando todos os dados estiverem disponíveis
+  if (usuarios && pedidos && produtos) {
+    fetchCardsData();
+  }
+}, [usuarios, pedidos, produtos]);  
 
-  const markNotificationAsRead = (id_notificacoes: number) => {
+
+
+const markNotificationAsRead = (id_notificacoes: number) => {
     setNotifications((prev) =>
       prev.map((n) => (n.id_notificacoes === id_notificacoes ? { ...n, is_lida: 1 } : n))
     );
@@ -758,20 +776,20 @@ const atualizarStatusPedido = async (idPedido: number, novoStatus: string) => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <div className="bg-white p-6 rounded-lg shadow-sm">
                 <h3 className="text-gray-600 text-sm mb-2">Usuários Ativos</h3>
-                <div className="text-3xl font-bold text-marieth">{Cardsdata.UsuariosActivo}</div>
+                <div className="text-3xl font-bold text-marieth">{cardsData.UsuariosActivo}</div>
               </div>
               <div className="bg-white p-6 rounded-lg shadow-sm">
                 <h3 className="text-gray-600 text-sm mb-2">Pedidos Hoje</h3>
-                <div className="text-3xl font-bold text-marieth">{Cardsdata.PedidosHoje}</div>
+                <div className="text-3xl font-bold text-marieth">{cardsData.PedidosHoje}</div>
               </div>
               <div className="bg-white p-6 rounded-lg shadow-sm">
                 <h3 className="text-gray-600 text-sm mb-2">Produtos Ativos</h3>
-                <div className="text-3xl font-bold text-marieth">{Cardsdata.ProdutosAtivos}</div>
+                <div className="text-3xl font-bold text-marieth">{cardsData.ProdutosAtivos}</div>
               </div>
               <div className="bg-white p-6 rounded-lg shadow-sm">
                 <h3 className="text-gray-600 text-sm mb-2">Receita Mensal</h3>
                 <div className="text-3xl font-bold text-marieth">
-                    AOA {new Intl.NumberFormat('pt-AO').format(Cardsdata.ReceitaMensal)}K
+                    AOA {new Intl.NumberFormat('pt-AO').format(cardsData.ReceitaMensal)}
                   </div>
                  </div>
             </div>
